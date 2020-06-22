@@ -1,0 +1,292 @@
+---
+title: "predictor_data"
+author: "Ziqi Zhou"
+date: "6/15/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE,warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(viridis)
+library(leaflet)
+library(maps)
+```
+
+
+# Median income
+```{r,warning=FALSE}
+median_income = read_excel("./data/MedianZIP-3.xlsx") %>% 
+  janitor::clean_names() %>% 
+  rename(zipcode = zip)
+```
+
+Data resources: https://www.psc.isr.umich.edu/dis/census/Features/tract2zip/
+It is the data of 2010
+```{r,warning=FALSE}
+May_newcases = read_csv("./data/May_newcases")
+
+New_York_City_zip = May_newcases %>% 
+  distinct(zipcode)
+
+median_income_nyc = left_join(New_York_City_zip, median_income)
+```
+
+
+# Race from census bureau
+```{r,warning=FALSE}
+race_by_zipcode = read_excel("./data/race_by_zipcode.xlsx",skip = 1) %>% 
+  select(-id) %>% 
+  janitor::clean_names() %>% 
+  separate(geographic_area_name,into = c("ZCTA", "zipcode_state"), sep = 6) %>% 
+  separate(zipcode_state,into = c("zipcode", "state"),sep = 5) %>% 
+  select(-ZCTA, -state) %>% 
+  mutate(zipcode = as.numeric(zipcode))
+
+race_by_zipcode_nyc = left_join(New_York_City_zip, race_by_zipcode)
+
+```
+
+
+# sex by age from census bureau
+
+```{r,warning=FALSE}
+sex_by_age = read_excel("./data/sex_by_age.xlsx", skip = 1) %>% 
+  janitor::clean_names()  %>% 
+  separate(geographic_area_name,into = c("ZCTA", "zipcode_state"), sep = 6) %>% 
+  separate(zipcode_state,into = c("zipcode", "state"),sep = 5) %>% 
+  select(-ZCTA, -state, -id) %>% 
+  mutate(zipcode = as.numeric(zipcode))
+
+sex_by_age_zipcode_nyc = left_join(New_York_City_zip, sex_by_age)
+
+```
+
+
+# Household
+```{r,warning=FALSE}
+household = read_excel("./data/household.xlsx", skip = 1)%>% 
+  janitor::clean_names()  %>% 
+  separate(geographic_area_name,into = c("ZCTA", "zipcode_state"), sep = 6) %>% 
+  separate(zipcode_state,into = c("zipcode", "state"),sep = 5) %>% 
+  select(-ZCTA, -state, -id) %>% 
+  mutate(zipcode = as.numeric(zipcode))
+
+household_zipcode_nyc = left_join(New_York_City_zip,household)
+```
+
+# Zipcode map data
+
+latitude and longitude.
+
+https://public.opendatasoft.com/explore/dataset/us-zip-code-latitude-and-longitude/export/?q=NY&refine.state=NY
+
+
+```{r,warning=FALSE}
+zipcode_map = read_xlsx("./data/us-zip-code-latitude-and-longitude.xlsx",skip = 1) %>% 
+  janitor::clean_names() %>% 
+  rename(zipcode = zip)
+
+zipcode_map_nyc = left_join(New_York_City_zip, zipcode_map)
+
+zipcode_map_nyc = zipcode_map_nyc %>% select(zipcode,latitude,longitude)
+  
+```
+
+
+```{r}
+
+```
+
+
+
+```{r ,include=FALSE,warning=FALSE}
+library(tigris)
+library(dplyr)
+library(leaflet)
+library(sp)
+library(ggmap)
+library(maptools)
+library(broom)
+library(httr)
+library(rgdal)
+```
+
+```{r ,warning=FALSE}
+r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
+nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
+```
+
+```{r,warning=FALSE}
+summary(nyc_neighborhoods)
+```
+
+
+
+
+```{r ,warning=FALSE}
+leaflet(nyc_neighborhoods) %>%
+  addTiles() %>% 
+  addPolygons(popup = ~neighborhood) %>%
+  addProviderTiles("CartoDB.Positron")
+```
+
+Use Median income to draw the map
+```{r ,warning=FALSE}
+library(sf)
+library(raster)
+library(dplyr)
+library(spData)
+
+library(tmap)    # for static and interactive maps
+library(leaflet) # for interactive maps
+library(ggplot2) # tidyverse data visualization package
+library(shiny)   # for web applications
+```
+
+```{r ,warning=FALSE}
+median_income_nyc
+```
+
+
+
+
+
+```{r,warning=FALSE}
+m <- leaflet() %>% setView(lng = -73.99653, lat = 40.75074, zoom = 12)
+m %>% addTiles()
+```
+
+
+```{r,warning=FALSE}
+r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
+nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
+```
+
+
+
+```{r,warning=FALSE}
+leaflet(nyc_neighborhoods) %>%
+  addTiles() %>% 
+  addPolygons(stroke = FALSE, smoothFactor = 0.2, fillOpacity = 1,popup = ~neighborhood) %>%
+  addProviderTiles("CartoDB.Positron")
+```
+
+
+```{r,warning=FALSE}
+data0614 = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>% 
+  drop_na()%>% janitor::clean_names() %>% 
+  rename(positive = covid_case_count,
+         MODZCTA = modified_zcta) %>% 
+  dplyr::select(MODZCTA,positive)
+
+data0614_death = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>% 
+  drop_na()%>% janitor::clean_names() %>% 
+  rename(positive = covid_case_count,
+         MODZCTA = modified_zcta) %>% 
+  dplyr::select(MODZCTA,covid_death_count)
+```
+
+
+```{r,warning=FALSE}
+spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf@data
+
+posi_map = geo_join(spdf,data0614,"MODZCTA","MODZCTA")
+
+pal <- colorNumeric("Greens", domain=posi_map$positive)
+
+# Getting rid of rows with NA values
+posi_map <- subset(posi_map, !is.na(positive))
+
+# Setting up the pop up text
+popup_sb <- paste0("Positive Cases: ", as.character(posi_map$positive))
+
+# Mapping it with the new tiles CartoDB.Positron
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = posi_map , 
+              fillColor = ~pal(posi_map$positive), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2, 
+              popup = ~popup_sb) %>%
+  addLegend(pal = pal, 
+            values = posi_map$positive, 
+            position = "bottomright", 
+            title = "Cumulative cases")
+```
+
+
+
+```{r,warning=FALSE}
+median_income_map = geo_join(spdf, median_income_nyc,"MODZCTA", "zipcode")
+pal_med = colorNumeric(palette="YlOrRd", domain=median_income_map@data$median, na.color="transparent")
+
+median_income_map = subset(median_income_map, !is.na(median))
+
+popup_medi_sb <- paste0("Median Income: ", as.character(median_income_map$median))
+
+# Mapping it with the new tiles CartoDB.Positron
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = median_income_map , 
+              fillColor = ~pal_med(median_income_map$median), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2, 
+              popup = ~popup_medi_sb) %>%
+  addLegend(pal = pal_med, 
+            values = median_income_map$median, 
+            position = "bottomright", 
+            title = "Median Annual Income")
+```
+
+
+```{r,warning=FALSE}
+
+death_map = geo_join(spdf,data0614_death,"MODZCTA","MODZCTA")
+  
+pal_dea <- colorNumeric("Reds", domain=death_map$covid_death_count)
+
+# Getting rid of rows with NA values
+death_map <- subset(death_map, !is.na(covid_death_count))
+
+# Setting up the pop up text
+popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count))
+
+# Mapping it with the new tiles CartoDB.Positron
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = death_map , 
+              fillColor = ~pal_dea(death_map$covid_death_count), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2, 
+              popup = ~popup_dea_sb) %>%
+  addLegend(pal = pal_dea, 
+            values = death_map$covid_death_count, 
+            position = "bottomright", 
+            title = "Death Count")
+```
+
+
+
+
+```{r,warning=FALSE}
+library(broom)
+spdf_fortified <- tidy(spdf)
+
+# Plot it
+ggplot() +
+  geom_polygon(data = spdf_fortified, aes( x = long, y = lat, group = group), fill="#69b3a2", color="white") +
+  theme_void() +
+  coord_map()
+```
+
+
+

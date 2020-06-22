@@ -6,12 +6,10 @@ navbar:
   right: 
     - text: "Introduction"
       href: intro.html
+    - text: "Dashboard"
+      href: dashboard.html
     - text: Shiny Apps
-      menu:
-      - text: "Number of Wildfires in NYC"
-        href: 
-      - text: "Number of Wildfires in States"
-        href: 
+      href: 
     - icon: fa-github fa-lg
       href: https://github.com/Zhou-Ziqi/NYC_covid-19.github.io
     - icon: fa-envelope fa-lg
