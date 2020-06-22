@@ -28,6 +28,10 @@ library(spData)
 library(tmap)    # for static and interactive maps
 
 library(shiny)   # for web applications
+
+spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf@data
+
 ```
 
 Column {data-width=650}
@@ -35,15 +39,12 @@ Column {data-width=650}
 
 ### Chart A
 
-```{r}
+```{r, include = FALSE}
 data0614 = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>% 
   drop_na()%>% janitor::clean_names() %>% 
   rename(positive = covid_case_count,
          MODZCTA = modified_zcta) %>% 
   dplyr::select(MODZCTA,positive)
-
-spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
-spdf@data
 
 posi_map = geo_join(spdf,data0614,"MODZCTA","MODZCTA")
 
@@ -54,7 +55,10 @@ posi_map <- subset(posi_map, !is.na(positive))
 
 # Setting up the pop up text
 popup_sb <- paste0("Positive Cases: ", as.character(posi_map$positive))
+```
 
+
+```{r, echo = FALSE}
 # Mapping it with the new tiles CartoDB.Positron
 leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
@@ -76,7 +80,7 @@ Column {data-width=350}
 
 ### Chart B
 
-```{r}
+```{r,include = FALSE}
 data0614_death = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>% 
   drop_na()%>% janitor::clean_names() %>% 
   rename(positive = covid_case_count,
@@ -92,7 +96,10 @@ death_map <- subset(death_map, !is.na(covid_death_count))
 
 # Setting up the pop up text
 popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count))
+```
 
+
+```{r, echo = FALSE}
 # Mapping it with the new tiles CartoDB.Positron
 leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
@@ -111,7 +118,7 @@ leaflet() %>%
 
 ### Chart C
 
-```{r}
+```{r, include=FALSE}
 median_income = read_excel("./data/MedianZIP-3.xlsx") %>% 
   janitor::clean_names() %>% 
   rename(zipcode = zip)
@@ -129,7 +136,10 @@ pal_med = colorNumeric(palette="YlOrRd", domain=median_income_map@data$median, n
 median_income_map = subset(median_income_map, !is.na(median))
 
 popup_medi_sb <- paste0("Median Income: ", as.character(median_income_map$median))
+```
 
+
+```{r,echo = FALSE}
 # Mapping it with the new tiles CartoDB.Positron
 leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
