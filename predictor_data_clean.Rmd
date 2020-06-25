@@ -201,7 +201,9 @@ pal <- colorNumeric("Greens", domain=posi_map$positive)
 posi_map <- subset(posi_map, !is.na(positive))
 
 # Setting up the pop up text
-popup_sb <- paste0("Positive Cases: ", as.character(posi_map$positive))
+popup_sb <- paste0("Positive Cases: ", as.character(posi_map$positive), 
+                   "  Neighborhood: ", as.character(posi_map$neighborhood_name),
+                   "  Boro: ",as.character(posi_map$borough_group),sep = ",")
 
 # Mapping it with the new tiles CartoDB.Positron
 leaflet() %>%

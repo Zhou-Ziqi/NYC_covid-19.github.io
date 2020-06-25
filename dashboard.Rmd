@@ -44,7 +44,7 @@ data0614 = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>%
   drop_na()%>% janitor::clean_names() %>% 
   rename(positive = covid_case_count,
          MODZCTA = modified_zcta) %>% 
-  dplyr::select(MODZCTA,positive)
+  dplyr::select(MODZCTA,positive,neighborhood_name, borough_group)
 
 posi_map = geo_join(spdf,data0614,"MODZCTA","MODZCTA")
 
