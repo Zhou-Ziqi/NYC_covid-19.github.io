@@ -78,7 +78,7 @@ ui =  fluidPage(
                     leafletOutput(outputId = "map2"))
 
       ),
-      width = 13
+      width = 10
     )
   )
 )
