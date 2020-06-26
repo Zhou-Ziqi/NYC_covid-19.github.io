@@ -18,14 +18,14 @@ data0613 = read.csv("./data/June/0613/data-by-modzcta0613.csv") %>%
   rename(positive = covid_case_count,
          MODZCTA = modified_zcta) %>% 
   mutate(day = "June13") %>% 
-  dplyr::select(MODZCTA,positive,neighborhood_name, borough_group,day)
+  dplyr::select(MODZCTA,positive,neighborhood_name, borough_group,day,covid_death_count)
 
 data0614 = read.csv("./data/June/0614/data-by-modzcta0614.csv") %>% 
   drop_na()%>% janitor::clean_names() %>% 
   rename(positive = covid_case_count,
          MODZCTA = modified_zcta) %>% 
   mutate(day = "June14") %>% 
-  dplyr::select(MODZCTA,positive,neighborhood_name, borough_group,day)
+  dplyr::select(MODZCTA,positive,neighborhood_name, borough_group,day,covid_death_count)
 
 jun13_jun14 = full_join(data0613,data0614)
 
@@ -45,6 +45,11 @@ selectInput(
   label = h3("Select date"),
   choices = date)
 
+death_map = geo_join(spdf,jun13_jun14,"MODZCTA","MODZCTA")
+
+popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count))
+
+pal_dea <- colorNumeric("Reds", domain=death_map$covid_death_count)
 
 
 ##########
@@ -66,7 +71,14 @@ ui =  fluidPage(
     ),
     
     mainPanel(
-      leafletOutput("map")
+      fluidRow(
+        
+        splitLayout(cellWidths = c("50%","50%"),
+                    leafletOutput(outputId = "map1"),
+                    leafletOutput(outputId = "map2"))
+
+      ),
+      width = 13
     )
   )
 )
@@ -76,30 +88,47 @@ ui =  fluidPage(
 
 server = function(input, output) {
   
-  output$map = renderLeaflet({ 
-    
-    jun13_jun14 %>%
-      filter(day == input$date_choice) %>% 
-      leaflet() %>%
-      addProviderTiles("CartoDB.Positron") %>%
-      setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
-      addPolygons(data = posi_map , 
-                  fillColor = ~pal(posi_map$positive), 
-                  fillOpacity = 0.7, 
-                  weight = 0.2, 
-                  smoothFactor = 0.2, 
-                  popup = ~popup_sb) %>%
-      addLegend(pal = pal, 
-                values = posi_map$positive, 
-                position = "bottomright", 
-                title = "Cumulative cases")
-      
-    
-    
-    
-  })
+    output$map1 = renderLeaflet({
+      jun13_jun14 %>%
+      filter(day == input$date_choice)%>% 
+       leaflet() %>%
+       addProviderTiles("CartoDB.Positron") %>%
+       setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+       addPolygons(data = posi_map , 
+                fillColor = ~pal(posi_map$positive), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+       addLegend(pal = pal, 
+              values = posi_map$positive, 
+              position = "bottomright", 
+              title = "Cumulative cases")
   
+  
+})
+
+   output$map2 = renderLeaflet({
+     
+     jun13_jun14 %>%
+       filter(day == input$date_choice) %>% 
+       leaflet() %>%
+       addProviderTiles("CartoDB.Positron") %>%
+       setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+       addPolygons(data = death_map , 
+                fillColor = ~pal_dea(death_map$covid_death_count), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_dea_sb) %>%
+       addLegend(pal = pal_dea, 
+              values = death_map$covid_death_count, 
+              position = "bottomright", 
+              title = "Death Count")
+})
+
 }
+
 
 
 shinyApp(ui, server)
