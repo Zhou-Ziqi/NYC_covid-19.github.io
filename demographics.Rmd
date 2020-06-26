@@ -1,7 +1,9 @@
 ---
-title: "Untitled"
+title: "Demographics"
 output: 
     flexdashboard::flex_dashboard
+editor_options: 
+  chunk_output_type: inline
 ---
 
 
@@ -11,6 +13,7 @@ library(tidyverse)
 library(readxl)
 library(viridis)
 library(leaflet)
+library(plotly)
 
 library(tigris)
 library(sp)
@@ -20,10 +23,29 @@ library(tmap)    # for static and interactive maps
 spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 spdf@data
 
-sex_age <- read_csv("data/predictor_data/sex_by_age_zipcode_nyc.csv") %>% select(-1)
-income <- read_csv("data/predictor_data/median_income_nyc.csv") %>% select(-1)
-household <- read_csv("data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
-race <- read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
+data_by_modzcta <- read_csv("data/data-by-modzcta.csv") %>% 
+  select(1:3) %>% 
+  janitor::clean_names() %>% 
+  rename(zipcode = modified_zcta)
+  
+
+sex_age_raw <- read_csv("data/predictor_data/sex_by_age_zipcode_nyc.csv") %>% select(-1)
+sex_age <- left_join(sex_age_raw, data_by_modzcta) %>% 
+  select(zipcode, neighborhood_name, borough_group, everything())
+
+income_raw <- read_csv("data/predictor_data/median_income_nyc.csv") %>% select(-1)
+income <- left_join(income_raw, data_by_modzcta) %>% 
+  select(zipcode, neighborhood_name, borough_group, everything())
+
+household_raw <- read_csv("data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
+household <- left_join(household_raw, data_by_modzcta) %>% 
+  select(zipcode, neighborhood_name, borough_group, everything())
+
+race_raw <- read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
+race <- left_join(race_raw, data_by_modzcta) %>% 
+  select(zipcode, neighborhood_name, borough_group, everything())
+
+
 ```
 
 
@@ -36,30 +58,7 @@ Column {data-width=600}
 ### Chart 1
     
 ```{r echo=FALSE}
-posi_map = geo_join(spdf,income,"MODZCTA","zipcode")
 
-pal <- colorNumeric("Greens", domain=posi_map$median)
-
-# Getting rid of rows with NA values
-posi_map <- subset(posi_map, !is.na(median))
-
-# Setting up the pop up text
-popup_sb <- paste0("ZCTA: ", posi_map$zipcode, "<br>", "Median Income: $", as.character(round(posi_map$median),0))
-
-
-leaflet() %>%
-  addProviderTiles("CartoDB.Positron") %>%
-  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
-  addPolygons(data = posi_map , 
-              fillColor = ~pal(posi_map$median), 
-              fillOpacity = 0.7, 
-              weight = 0.2, 
-              smoothFactor = 0.2,
-              popup = ~popup_sb) %>%
-  addLegend(pal = pal, 
-            values = posi_map$median, 
-            position = "bottomright", 
-            title = "Median Income")
 ```
    
 Column {data-width=400}
@@ -75,65 +74,171 @@ Column {data-width=400}
 ```
 
 
-Race {data-orientation=rows}
+Race 
 =======================================================================    
    
-Row {data-height=600}
+Column {data-width=600 }
 -----------------------------------------------------------------------
 ### Chart 1
 
 ```{r}
+
 ```
 
-Row {data-height=400}
------------------------------------------------------------------------   
+Column {data-width=400}
+----------------------------------------------------------------------- 
 ### Chart 2
 
 ```{r}
+race_gp = race %>% 
+  pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
+  group_by(borough_group, race) %>% 
+  summarise(pop = sum(population))
+  
+
+
+plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$pop),
+        y = race_gp$pop,
+        type = "bar",
+        color = race_gp$race,
+        colors = "Spectral",
+        opacity=0.8) %>% 
+  layout(boxmode = "group",
+         legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5)
+         )
+```   
+
+
+Income {data-orientation=columns}
+=======================================================================   
+   
+Column {data-width=600 .tabset}
+-----------------------------------------------------------------------
+### Chart 1
+
+```{r}
+posi_map_income = geo_join(spdf,income,"MODZCTA","zipcode")
+
+pal <- colorNumeric("Greens", domain=posi_map_income$median)
+
+# Getting rid of rows with NA values
+posi_map_income <- subset(posi_map_income, !is.na(median))
+
+# Setting up the pop up text
+popup_sb <- paste0("ZCTA: ", posi_map_income$zipcode, 
+                   "<br>", 
+                   "NBH: ", posi_map_income$neighborhood_name,
+                   "<br>", 
+                   "Borough: ", posi_map_income$borough_group,
+                   "<br>", 
+                   "Median Income: $", as.character(round(posi_map_income$median),0))
+
+
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = posi_map_income , 
+              fillColor = ~pal(posi_map_income$median), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2,
+              popup = ~popup_sb) %>%
+  addLegend(pal = pal, 
+            values = posi_map_income$median, 
+            position = "bottomright", 
+            title = "Median Income")
+```
+
+### Chart 2
+
+```{r}
+posi_map_income = geo_join(spdf,income,"MODZCTA","zipcode")
+
+pal <- colorNumeric("Greens", domain=posi_map_income$mean)
+
+# Getting rid of rows with NA values
+posi_map_income <- subset(posi_map_income, !is.na(mean))
+
+# Setting up the pop up text
+popup_sb <- paste0("ZCTA: ", posi_map_income$zipcode, 
+                   "<br>", 
+                   "NBH: ", posi_map_income$neighborhood_name,
+                   "<br>", 
+                   "Borough: ", posi_map_income$borough_group,
+                   "<br>", 
+                   "Mean Income: $", as.character(round(posi_map_income$mean),0))
+
+
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = posi_map_income , 
+              fillColor = ~pal(posi_map_income$mean), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2,
+              popup = ~popup_sb) %>%
+  addLegend(pal = pal, 
+            values = posi_map_income$mean, 
+            position = "bottomright", 
+            title = "Mean Income")
 ```   
     
+
+Column {data-width=400}
+-----------------------------------------------------------------------   
 ### Chart 3
 
 ```{r}
-```
+income_gp = income %>% 
+  pivot_longer(mean:median, names_to = "stat", values_to = "value")
+  
 
-Income {data-orientation=rows}
-=======================================================================   
-   
-Row {data-height=600}
------------------------------------------------------------------------
-### Chart 1
+#  group_by(borough_group) %>% 
+#  summarise(mean = round(mean(mean, na.rm = TRUE),0),
+#            median = round(median(median, na.rm = TRUE),0)) %>% 
 
-```{r}
-```
-
-Row {data-height=400}
------------------------------------------------------------------------   
-### Chart 2
-
-```{r}
+plot_ly(x = forcats::fct_reorder(income_gp$borough_group, income_gp$value),
+        y = income_gp$value,
+        type = "box",
+        color = income_gp$stat,
+        colors = "Set1") %>% 
+  layout(boxmode = "group",
+         legend=list(title=list(text='<b> Statistics </b>')))
 ```   
     
-### Chart 3
+### Chart 4
 
 ```{r}
+
 ```
 
-Household {data-orientation=rows}
+Household {data-orientation=columns}
 =======================================================================   
    
-Row {data-height=600}
+Column {data-width=600}
 -----------------------------------------------------------------------
 ### Chart 1
 
 ```{r}
 ```
 
-Row {data-height=400}
+Column {data-width=400}
 -----------------------------------------------------------------------   
 ### Chart 2
 
 ```{r}
+household_gp = household %>% 
+  pivot_longer("1":"7_or_more", names_to = "size", values_to = "number")
+  
+plot_ly(x = forcats::fct_reorder(household_gp$borough_group, household_gp$number),
+        y = household_gp$number,
+        type = "box",
+        colors = "Spectral",
+        color = household_gp$size) %>% 
+  layout(boxmode = "group",
+         legend=list(title=list(text='<b> Family Size </b>')))
+
 ```   
     
 ### Chart 3
