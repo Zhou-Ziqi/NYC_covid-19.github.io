@@ -19,7 +19,7 @@ library(tmap)    # for static and interactive maps
 
 library(shiny)   # for web applications
 
-spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 spdf@data
 
 ```

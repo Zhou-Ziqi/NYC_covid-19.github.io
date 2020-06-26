@@ -1,7 +1,142 @@
 ---
-output: html_document
+title: "Untitled"
+output: 
+    flexdashboard::flex_dashboard
 ---
 
 
-#demographics
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(readxl)
+library(viridis)
+library(leaflet)
 
+library(tigris)
+library(sp)
+
+library(tmap)    # for static and interactive maps
+
+spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf@data
+
+sex_age <- read_csv("data/predictor_data/sex_by_age_zipcode_nyc.csv") %>% select(-1)
+income <- read_csv("data/predictor_data/median_income_nyc.csv") %>% select(-1)
+household <- read_csv("data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
+race <- read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
+```
+
+
+
+Sex by Age
+======================================================================= 
+    
+Column {data-width=600}
+-----------------------------------------------------------------------    
+### Chart 1
+    
+```{r echo=FALSE}
+posi_map = geo_join(spdf,income,"MODZCTA","zipcode")
+
+pal <- colorNumeric("Greens", domain=posi_map$median)
+
+# Getting rid of rows with NA values
+posi_map <- subset(posi_map, !is.na(median))
+
+# Setting up the pop up text
+popup_sb <- paste0("ZCTA: ", posi_map$zipcode, "<br>", "Median Income: $", as.character(round(posi_map$median),0))
+
+
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(lng = -73.99653, lat = 40.75074, zoom = 12) %>% 
+  addPolygons(data = posi_map , 
+              fillColor = ~pal(posi_map$median), 
+              fillOpacity = 0.7, 
+              weight = 0.2, 
+              smoothFactor = 0.2,
+              popup = ~popup_sb) %>%
+  addLegend(pal = pal, 
+            values = posi_map$median, 
+            position = "bottomright", 
+            title = "Median Income")
+```
+   
+Column {data-width=400}
+-----------------------------------------------------------------------   
+### Chart 2
+
+```{r}
+```   
+ 
+### Chart 3
+    
+```{r}
+```
+
+
+Race {data-orientation=rows}
+=======================================================================    
+   
+Row {data-height=600}
+-----------------------------------------------------------------------
+### Chart 1
+
+```{r}
+```
+
+Row {data-height=400}
+-----------------------------------------------------------------------   
+### Chart 2
+
+```{r}
+```   
+    
+### Chart 3
+
+```{r}
+```
+
+Income {data-orientation=rows}
+=======================================================================   
+   
+Row {data-height=600}
+-----------------------------------------------------------------------
+### Chart 1
+
+```{r}
+```
+
+Row {data-height=400}
+-----------------------------------------------------------------------   
+### Chart 2
+
+```{r}
+```   
+    
+### Chart 3
+
+```{r}
+```
+
+Household {data-orientation=rows}
+=======================================================================   
+   
+Row {data-height=600}
+-----------------------------------------------------------------------
+### Chart 1
+
+```{r}
+```
+
+Row {data-height=400}
+-----------------------------------------------------------------------   
+### Chart 2
+
+```{r}
+```   
+    
+### Chart 3
+
+```{r}
+```
