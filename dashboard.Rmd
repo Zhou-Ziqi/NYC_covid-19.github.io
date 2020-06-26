@@ -12,18 +12,8 @@ library(readxl)
 library(viridis)
 library(leaflet)
 
-library(maps)
 library(tigris)
 library(sp)
-library(maptools)
-library(broom)
-library(httr)
-library(rgdal)
-
-library(sf)
-library(raster)
-
-library(spData)
 
 library(tmap)    # for static and interactive maps
 
