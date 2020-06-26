@@ -2,10 +2,30 @@
 output: html_document
 ---
 
+# Methodology
 
-# Data Sources
+### Data Sources
+
+### Definitions
+
+### Maps
+
+### Demographics
+
+### Time Trend
+
+### Disclaimer
+
+
+
+
+# FAQ
 
 
 # Contact Us
 
 info about us
+
+email:
+
+Github: 
