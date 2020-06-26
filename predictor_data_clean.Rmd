@@ -31,6 +31,7 @@ New_York_City_zip = May_newcases %>%
   distinct(zipcode)
 
 median_income_nyc = left_join(New_York_City_zip, median_income)
+#write.csv(median_income_nyc,file="data/predictor_data/median_income_nyc.csv")
 ```
 
 
@@ -45,7 +46,7 @@ race_by_zipcode = read_excel("./data/race_by_zipcode.xlsx",skip = 1) %>%
   mutate(zipcode = as.numeric(zipcode))
 
 race_by_zipcode_nyc = left_join(New_York_City_zip, race_by_zipcode)
-
+#write.csv(race_by_zipcode_nyc,file="data/predictor_data/race_by_zipcode_nyc.csv")
 ```
 
 
@@ -60,7 +61,7 @@ sex_by_age = read_excel("./data/sex_by_age.xlsx", skip = 1) %>%
   mutate(zipcode = as.numeric(zipcode))
 
 sex_by_age_zipcode_nyc = left_join(New_York_City_zip, sex_by_age)
-
+#write.csv(sex_by_age_zipcode_nyc,file="data/predictor_data/sex_by_age_zipcode_nyc.csv")
 ```
 
 
@@ -74,6 +75,8 @@ household = read_excel("./data/household.xlsx", skip = 1)%>%
   mutate(zipcode = as.numeric(zipcode))
 
 household_zipcode_nyc = left_join(New_York_City_zip,household)
+
+# write.csv(household_zipcode_nyc,file="data/predictor_data/household_zipcode_nyc.csv")
 ```
 
 # Zipcode map data
