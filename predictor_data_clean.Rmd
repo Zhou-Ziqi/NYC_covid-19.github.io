@@ -65,20 +65,21 @@ sex_by_age_zipcode_nyc = left_join(New_York_City_zip, sex_by_age)
 colnames(sex_by_age_zipcode_nyc) <- str_replace(colnames(sex_by_age_zipcode_nyc), "total_", "")
 
 male = sex_by_age_zipcode_nyc %>% 
-  select(zipcode, starts_with("male_")) %>% 
-  mutate(sex = rep("male", nrow(.)))
+  select(zipcode, starts_with("male")) %>% 
+  mutate(sex = rep("male", nrow(.))) %>% 
+  rename(total = male)
 colnames(male) <- str_replace(colnames(male), "male_", "")
 colnames(male) <- str_replace(colnames(male), "_years", "")
 
 female = sex_by_age_zipcode_nyc %>% 
-  select(zipcode, starts_with("female_")) %>% 
-  mutate(sex = rep("female", nrow(.)))
+  select(zipcode, starts_with("female")) %>% 
+  mutate(sex = rep("female", nrow(.)))%>% 
+  rename(total = female)
 colnames(female) <- str_replace(colnames(male), "female_", "")
 colnames(female) <- str_replace(colnames(male), "_years", "")
 
 sex_age_zipcode_nyc = rbind(male, female) %>% 
-  select(zipcode, sex, everything())
-
+  select(zipcode, total, sex, everything())
 
 #write.csv(sex_age_zipcode_nyc,file="data/predictor_data/sex_by_age_zipcode_nyc.csv")
 ```
