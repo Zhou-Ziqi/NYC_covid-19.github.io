@@ -1,5 +1,6 @@
 ---
 title: "Demographics"
+runtime: shiny
 output: 
     flexdashboard::flex_dashboard
 editor_options: 
@@ -8,6 +9,7 @@ editor_options:
 
 
 ```{r setup, include=FALSE}
+library(shiny)
 library(flexdashboard)
 library(tidyverse)
 library(readxl)
@@ -48,30 +50,6 @@ race <- left_join(race_raw, data_by_modzcta) %>%
 
 ```
 
-
-
-Sex by Age
-======================================================================= 
-    
-Column {data-width=600}
------------------------------------------------------------------------    
-### Chart 1
-    
-```{r echo=FALSE}
-
-```
-   
-Column {data-width=400}
------------------------------------------------------------------------   
-### Chart 2
-
-```{r}
-```   
- 
-### Chart 3
-    
-```{r}
-```
 
 
 Race 
