@@ -32,45 +32,45 @@ jun13_jun14 = full_join(data0613,data0614)
 #input the widges
 date = jun13_jun14 %>% distinct(day) %>% pull()
 
-posi_map = geo_join(spdf,jun13_jun14,"MODZCTA","MODZCTA")
+Map_data = geo_join(spdf,jun13_jun14,"MODZCTA","MODZCTA")
 
 # Setting up the pop up text
-popup_sb <- paste0("Positive Cases: ", as.character(posi_map$positive))
+popup_sb <- paste0("Positive Cases: ", as.character(Map_data$positive))
 
-pal <- colorNumeric("Greens", domain=posi_map$positive)
+pal <- colorNumeric("Greens", domain=Map_data$positive)
 
-# selectInput widget
-selectInput(
-  "date_choice", 
-  label = h3("Select date"),
-  choices = date)
 
-death_map = geo_join(spdf,jun13_jun14,"MODZCTA","MODZCTA")
-
-popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count),
+popup_dea_sb <- paste0("Death Count: ", as.character(Map_data$covid_death_count),
                        "<br>", 
-                       "Neighborhood Name", as.character(death_map$neighborhood_name))
+                       "Neighborhood Name", as.character(Map_data$neighborhood_name))
 
-pal_dea <- colorNumeric("Reds", domain=death_map$covid_death_count)
+pal_dea <- colorNumeric("Reds", domain=Map_data$covid_death_count)
 
 
 ##########
 ui =  fluidPage(
-  titlePanel("Cumulative Positive Cases in NYC"),
+  titlePanel("COVID-19 in NYC"),
   
   sidebarLayout(
     sidebarPanel(
       helpText("Create maps for the distribution of Cumulative Positive cases in NYC."),
-      
       
       selectInput(
         "date_choice", 
         label = h3("Select date"),
         choices = date),
       
-      width = 3
       
-    ),
+      
+      checkboxGroupInput(inputId = "EventFinder",
+                         label = "Select Event:",
+                         choices = c("Death" = "D", "Positive Case" = "P"),
+                         selected = "P"),
+      
+      width = 3
+      ),
+    
+    
     
     mainPanel(
       fluidRow(
@@ -91,42 +91,24 @@ ui =  fluidPage(
 server = function(input, output) {
   
     output$map1 = renderLeaflet({
-      jun13_jun14 %>%
+      Map_data %>%
       filter(day == input$date_choice)%>% 
+        select()
        leaflet() %>%
        addProviderTiles("CartoDB.Positron") %>%
        setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
-       addPolygons(data = posi_map , 
-                fillColor = ~pal(posi_map$positive), 
+       addPolygons(data = Map_data , 
+                fillColor = ~pal(Map_data$positive), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
        addLegend(pal = pal, 
-              values = posi_map$positive, 
+              values = Map_data$positive, 
               position = "bottomright", 
-              title = "Cumulative cases")
+              title = "Number")
   
   
-})
-
-   output$map2 = renderLeaflet({
-     
-     jun13_jun14 %>%
-       filter(day == input$date_choice) %>% 
-       leaflet() %>%
-       addProviderTiles("CartoDB.Positron") %>%
-       setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
-       addPolygons(data = death_map , 
-                fillColor = ~pal_dea(death_map$covid_death_count), 
-                fillOpacity = 0.7, 
-                weight = 0.2, 
-                smoothFactor = 0.2, 
-                popup = ~popup_dea_sb) %>%
-       addLegend(pal = pal_dea, 
-              values = death_map$covid_death_count, 
-              position = "bottomright", 
-              title = "Death Count")
 })
 
 }
