@@ -9,7 +9,7 @@ navbar:
     - text: "Demographics"
       href: demographics.html
     - text: "COVID-19 in NYC"
-      href: covid.html
+      href: covid.R
     - text: "Comorbidity"
       href: comorbidity.html
     - text: "Time Trend"

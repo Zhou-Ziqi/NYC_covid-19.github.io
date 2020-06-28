@@ -47,7 +47,9 @@ selectInput(
 
 death_map = geo_join(spdf,jun13_jun14,"MODZCTA","MODZCTA")
 
-popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count))
+popup_dea_sb <- paste0("Death Count: ", as.character(death_map$covid_death_count),
+                       "<br>", 
+                       "Neighborhood Name", as.character(death_map$neighborhood_name))
 
 pal_dea <- colorNumeric("Reds", domain=death_map$covid_death_count)
 
