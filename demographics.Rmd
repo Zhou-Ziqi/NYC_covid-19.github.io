@@ -222,4 +222,41 @@ plot_ly(x = forcats::fct_reorder(household_gp$borough_group, household_gp$number
 ### Chart 3
 
 ```{r}
+
+    output$household_boro <- renderPlotly({
+      
+      household_gp = household %>% 
+        pivot_longer("1":"7_or_more", names_to = "size", values_to = "number") %>% 
+        group_by(borough_group, size) %>% 
+        summarise(num = sum(number))
+      
+      plot_ly(x = forcats::fct_reorder(household_gp$borough_group, household_gp$num),
+              y = household_gp$num,
+              type = "bar",
+              color = household_gp$size,
+              colors = "Spectral",
+              opacity=0.8) %>% 
+        layout(boxmode = "group",
+               legend=list(title=list(text='<b> Family Size </b>')))
+    
+      
+    })
+    
+    
+    output$household_nbh <- renderPlotly({
+      household_nbh = household %>% 
+        filter(neighborhood_name == input$nbhid) %>%
+        pivot_longer("1":"7_or_more", names_to = "size", values_to = "number") %>%
+        group_by(neighborhood_name, size) %>% 
+        summarise(num = sum(number)) %>% 
+        drop_na()
+      
+      plot_ly(labels = household_nbh$size,
+              values = household_nbh$num,
+              type = "pie",
+              colors = "Spectral",
+              opacity=0.8) %>% 
+        layout(legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5))
+      
+    })
 ```
