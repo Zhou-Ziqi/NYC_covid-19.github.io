@@ -102,19 +102,29 @@ shinyApp(
     
     output$race_boro <- renderPlotly({
       race_gp = race %>% 
-        pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
-        group_by(borough_group, race) %>% 
-        summarise(pop = sum(population))
+        pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") 
+      #%>% 
+        #group_by(borough_group, race) %>% 
+        #summarise(pop = sum(population))
       
-        plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$pop),
-                y = race_gp$pop,
-                type = "bar",
-                color = race_gp$race,
-                colors = "Spectral",
-                opacity=0.8) %>% 
-        layout(boxmode = "group",
-                legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5)
-        )
+        #plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$pop),
+        #        y = race_gp$pop,
+        #        type = "bar",
+        #        color = race_gp$race,
+        #        colors = "Spectral",
+        #        opacity=0.8) %>% 
+        #layout(boxmode = "group",
+        #        legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5)
+        #)
+        
+       plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$population),
+               y = race_gp$population,
+               type = "box",
+               colors = "Spectral",
+               color = race_gp$race) %>% 
+         layout(boxmode = "group",
+                legend=list(title=list(text='<b> Family Size </b>'),orientation = 'h', xanchor = "center", x = 0.5))
+       
       
     })
     
