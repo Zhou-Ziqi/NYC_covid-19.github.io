@@ -125,42 +125,50 @@ ggplot(spdf.df) +
 ```{r using leaflet}
 posi_map_race = geo_join(spdf,race,"MODZCTA","zipcode")
       
-pal <- colorNumeric("Greens", domain=posi_map_race$total)
+pal <- colorFactor("Spectral", unique(dots.final$Race))
+
 posi_map_race <- subset(posi_map_race, !is.na(total))
 
 
       # Setting up the pop up text
-      popup_sb <- paste0("ZCTA: ", posi_map_race$zipcode, 
+      popup_sb <- paste0("<b> ZCTA: </b>", posi_map_race$zipcode, 
                          "<br>", 
-                         "NBH: ", posi_map_race$neighborhood_name,
+                         "<b> NBH: </b>", posi_map_race$neighborhood_name,
                          "<br>", 
-                         "Borough: ", posi_map_race$borough_group,
+                         "<b> Borough: </b>", posi_map_race$borough_group,
                          "<br>", 
-                         "White alone", posi_map_race$white_alone,
+                         "<b> Total: </b>", posi_map_race$total,
                          "<br>", 
-                         "Black or African American alone",posi_map_race$black_or_african_american_alone,
+                         "<b> White alone: </b>", posi_map_race$white_alone,
                          "<br>", 
-                         "American indian and Alaska native alone", posi_map_race$american_indian_and_alaska_native_alone,
+                         "<b> Black or African American alone: </b>",posi_map_race$black_or_african_american_alone,
                          "<br>", 
-                         "Asian alone", posi_map_race$asian_alone,
+                         "<b> American indian and Alaska native alone: </b>", posi_map_race$american_indian_and_alaska_native_alone,
                          "<br>", 
-                         "Native Hawaiian and other Pacific Islander alone", posi_map_race$native_hawaiian_and_other_pacific_islander_alone,
+                         "<b> Asian alone: </b>", posi_map_race$asian_alone,
                          "<br>", 
-                         "Some other race alone", posi_map_race$some_other_race_alone,
+                         "<b> Native Hawaiian and other Pacific Islander alone: </b>", posi_map_race$native_hawaiian_and_other_pacific_islander_alone,
                          "<br>", 
-                         "Two or more races", posi_map_race$two_or_more_races)
+                         "<b> Some other race alone: </b>", posi_map_race$some_other_race_alone,
+                         "<br>", 
+                         "<b> Two or more races: </b>", posi_map_race$two_or_more_races)
       
       
-leaflet(height = "100%") %>%
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
   setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
         addPolygons(data = posi_map_race, 
-                    fillColor = ~pal(posi_map_race$total), 
-                    fillOpacity = 0.7, 
+                    fillColor = "white", 
+                    fillOpacity = 0.00001, 
                     weight = 0.2, 
                     smoothFactor = 0.2,
                     popup = ~popup_sb) %>%
+        addCircleMarkers(data = dots.final, lng = dots.final$x, lat = dots.final$y,
+                         color = ~pal(Race),
+                         radius = 1,
+                         stroke = FALSE, fillOpacity = 0.5) %>% 
         addLegend(pal = pal, 
-                  values = posi_map_race$total, 
+                  values = unique(dots.final$Race), 
                   position = "bottomright", 
                   title = "Total population")
 
