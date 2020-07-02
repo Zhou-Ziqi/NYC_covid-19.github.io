@@ -20,7 +20,15 @@ library(plotly)
 library(tigris)
 library(sp)
 
+
 library(tmap)    # for static and interactive maps
+
+
+library(maptools)
+library(rgeos)
+library(tidyverse)
+library(rgdal)
+library(ggthemes)
 
 spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 spdf@data
@@ -47,10 +55,9 @@ race_raw <- read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-
 race <- left_join(race_raw, data_by_modzcta) %>% 
   select(zipcode, neighborhood_name, borough_group, everything())
 
-
+race_new = 
+  rbind(race,c(99999, rep(0,10)))
 ```
-
-
 
 Race 
 =======================================================================    
@@ -59,7 +66,103 @@ Column {data-width=600 }
 -----------------------------------------------------------------------
 ### Chart 1
 
-```{r}
+```{r using plot()}
+mergedata <- merge(race_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
+num.dots <- select(mergedata, white_alone:two_or_more_races) / 100
+
+sp.dfs <- lapply(names(num.dots), function(x) {
+  dotsInPolys(spdf, as.integer(num.dots[,x]), f="random")
+})
+
+pal <- c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69")
+
+
+
+par(mar = c(0,0,0,0))
+plot(spdf, lwd = 0.01, border = "black")
+for (i in 1:length(sp.dfs)) {
+  plot(sp.dfs[[i]], add = T, pch = 16, cex = 0.1, col = pal[i])
+}
+```
+
+
+```{r using ggplot}
+spdf@data$id <- row.names(spdf@data)
+spdf.points <- fortify(spdf, region = "id")
+spdf.df <- merge(spdf.points, spdf@data, by = "id") %>% 
+  filter(MODZCTA != 99999)
+
+ggplot(spdf.df, aes(long, lat, group = group)) +
+  geom_path() +
+  coord_map()
+
+dfs <- lapply(sp.dfs, function(x) {
+  data.frame(coordinates(x)[,1:2])
+})
+
+race_name <- str_replace_all(names(race_new[,5:11]), "_", " ") 
+
+for (i in 1:length(race_name)) {
+  dfs[[i]]$Race <- race_name[i]
+}
+
+dots.final <- bind_rows(dfs)
+dots.final$Race <- factor(dots.final$Race, levels = race_name)
+
+
+
+ggplot(spdf.df) +
+  geom_point(data = dots.final, aes(x, y, colour = Race), size = 0.01, alpha = 0.5) +
+  geom_path(aes(long, lat, group = group), colour = "black", size = 0.05) +
+  scale_colour_manual(values = pal) +
+  theme_map() +
+  coord_map()
+
+
+```
+
+
+```{r using leaflet}
+posi_map_race = geo_join(spdf,race,"MODZCTA","zipcode")
+      
+pal <- colorNumeric("Greens", domain=posi_map_race$total)
+posi_map_race <- subset(posi_map_race, !is.na(total))
+
+
+      # Setting up the pop up text
+      popup_sb <- paste0("ZCTA: ", posi_map_race$zipcode, 
+                         "<br>", 
+                         "NBH: ", posi_map_race$neighborhood_name,
+                         "<br>", 
+                         "Borough: ", posi_map_race$borough_group,
+                         "<br>", 
+                         "White alone", posi_map_race$white_alone,
+                         "<br>", 
+                         "Black or African American alone",posi_map_race$black_or_african_american_alone,
+                         "<br>", 
+                         "American indian and Alaska native alone", posi_map_race$american_indian_and_alaska_native_alone,
+                         "<br>", 
+                         "Asian alone", posi_map_race$asian_alone,
+                         "<br>", 
+                         "Native Hawaiian and other Pacific Islander alone", posi_map_race$native_hawaiian_and_other_pacific_islander_alone,
+                         "<br>", 
+                         "Some other race alone", posi_map_race$some_other_race_alone,
+                         "<br>", 
+                         "Two or more races", posi_map_race$two_or_more_races)
+      
+      
+leaflet(height = "100%") %>%
+  setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+        addPolygons(data = posi_map_race, 
+                    fillColor = ~pal(posi_map_race$total), 
+                    fillOpacity = 0.7, 
+                    weight = 0.2, 
+                    smoothFactor = 0.2,
+                    popup = ~popup_sb) %>%
+        addLegend(pal = pal, 
+                  values = posi_map_race$total, 
+                  position = "bottomright", 
+                  title = "Total population")
 
 ```
 

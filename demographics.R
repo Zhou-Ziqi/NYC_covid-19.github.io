@@ -59,7 +59,7 @@ shinyApp(
                
                mainPanel(
                  tabsetPanel(
-                   tabPanel("Map"), ###
+                   tabPanel("Map", leafletOutput("race_map", width="100%",height="600px")), ###
                    tabPanel("Borough Level", plotlyOutput("race_boro", width="100%",height="600px")),
                    tabPanel("Neighborhood Level", plotlyOutput("race_nbh", width="100%",height="600px"))))
       ),
@@ -99,6 +99,25 @@ shinyApp(
   ),
   
   server = function(input, output) {
+    output$race_map <- renderLeaflet({
+      
+    mergedata <- merge(race_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
+    num.dots <- select(mergedata, white_alone:two_or_more_races) / 100
+    
+    sp.dfs <- lapply(names(num.dots), function(x) {
+      dotsInPolys(spdf, as.integer(num.dots[,x]), f="random")
+    })
+    
+    pal <- c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69")
+    
+    
+    
+    par(mar = c(0,0,0,0))
+    plot(spdf, lwd = 0.01, border = "black")
+    for (i in 1:length(sp.dfs)) {
+      plot(sp.dfs[[i]], add = T, pch = 16, cex = 0.1, col = pal[i])
+    }
+    })
     
     output$race_boro <- renderPlotly({
       race_gp = race %>% 
