@@ -12,6 +12,12 @@ library(sp)
 
 library(tmap)    # for static and interactive maps
 
+
+library(maptools)
+library(rgeos)
+library(rgdal)
+library(ggthemes)
+
 spdf = rgdal::readOGR("./data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 spdf@data
 
@@ -36,6 +42,9 @@ household = left_join(household_raw, data_by_modzcta) %>%
 race_raw = read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
 race = left_join(race_raw, data_by_modzcta) %>% 
     select(zipcode, neighborhood_name, borough_group, everything())
+
+race_new = 
+    rbind(race,c(99999, rep(0,10)))
 
 # Define UI for application that draws a histogram
 zipcode = sex_age %>% distinct(zipcode) %>% pull()
