@@ -1,0 +1,12 @@
+name: Dashboard
+title: Dashboard
+username:
+account: cumc2020zzq
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2533414
+bundleId: 3348592
+url: https://cumc2020zzq.shinyapps.io/Dashboard/
+when: 1593791763.94615
+asMultiple: FALSE
+asStatic: FALSE
