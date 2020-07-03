@@ -14,8 +14,9 @@ output: html_document
 
 ### Time Trend
 
-### Disclaimer
 
+### Disclaimer
+The authors assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us.
 
 
 
