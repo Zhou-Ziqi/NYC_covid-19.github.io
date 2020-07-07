@@ -3,3 +3,182 @@ output: html_document
 ---
 
 # COVID-19 in NYC
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(gganimate)
+library(tidyverse)
+
+library(leaflet)
+library(maps)
+library(tigris)
+library(sf)
+
+```
+
+```{r}
+#read data
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv")  
+May_data = read_csv("./data/May_data.csv")
+Junedata = read_csv("./data/Junedata.csv")
+
+data_to_plot = Junedata %>% filter(day == "June29")
+spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+
+```
+
+```{r}
+popup_sb_newcases <- paste0("<b> MODZCTA: </b>", Junedata$zipcode,
+                   "<br>", 
+                   "<b> NTA: </b>", Junedata$neighborhood_name,
+                   "<br>",
+                   "<b> Borough: </b>", Junedata$borough_group,
+                   "<br>",
+                   "<b> New Cases: </b>", Junedata$newcases_june)
+            
+popup_sb_cumulative <- paste0("<b> MODZCTA: </b>", Junedata$zipcode,
+                   "<br>", 
+                   "<b> NTA: </b>", Junedata$neighborhood_name,
+                   "<br>",
+                   "<b> Borough: </b>", Junedata$borough_group,
+                   "<br>",
+                   "<b> Cumulative Cases: </b>", Junedata$positive)
+            
+popup_sb_pos_rate <- paste0("<b> MODZCTA: </b>", Junedata$zipcode,
+                   "<br>", 
+                   "<b> NTA: </b>", Junedata$neighborhood_name,
+                   "<br>",
+                   "<b> Borough: </b>", Junedata$borough_group,
+                   "<br>",
+                   "<b> Case Rate: </b>", Junedata$covid_case_rate)
+                 
+popup_sb_death <- paste0("<b> MODZCTA: </b>", Junedata$zipcode,
+                   "<br>", 
+                   "<b> NTA: </b>", Junedata$neighborhood_name,
+                   "<br>",
+                   "<b> Borough: </b>", Junedata$borough_group,
+                   "<br>",
+                   "<b> Death Count: </b>", Junedata$covid_death_count)
+
+            
+popup_sb_death_rate <- paste0("<b> MODZCTA: </b>", Junedata$zipcode,
+                   "<br>", 
+                   "<b> NTA: </b>", Junedata$neighborhood_name,
+                   "<br>",
+                   "<b> Borough: </b>", Junedata$borough_group,
+                   "<br>",
+                   "<b> Death Rate: </b>", Junedata$covid_death_rate)
+```
+
+#draw a map for cumulative cases
+```{r}
+data_to_plot = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+            
+# Getting rid of rows with NA values
+data_to_plot <- subset(data_to_plot, !is.na(positive))
+            
+pal_cum <- colorNumeric("Greens", domain=data_to_plot$positive)
+
+leaflet() %>%
+                addProviderTiles("CartoDB.Positron") %>%
+                setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+                addPolygons(data = data_to_plot , 
+                            fillColor = ~pal_cum(data_to_plot$positive), 
+                            fillOpacity = 0.7, 
+                            weight = 0.2, 
+                            smoothFactor = 0.2,
+                            popup = ~popup_sb_cumulative) %>%
+                addLegend(pal = pal_cum, 
+                          values = data_to_plot$positive, 
+                          position = "bottomright", 
+                          title = "Cumulative Cases Count in June 30")
+```
+# draw a map for positive rate
+```{r}
+data_to_plot <- subset(data_to_plot, !is.na(covid_case_rate))
+            
+pal_posr <- colorNumeric("Greens", domain=data_to_plot$covid_case_rate)
+
+leaflet() %>%
+                addProviderTiles("CartoDB.Positron") %>%
+                setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+                addPolygons(data = data_to_plot , 
+                            fillColor = ~pal_posr(data_to_plot$covid_case_rate), 
+                            fillOpacity = 0.7, 
+                            weight = 0.2, 
+                            smoothFactor = 0.2,
+                            popup = ~popup_sb_pos_rate) %>%
+                addLegend(pal = pal_posr, 
+                          values = data_to_plot$covid_case_rate, 
+                          position = "bottomright", 
+                          title = "COVID-19 Cases Rate in June 30")
+```
+
+# draw a map for new cases
+
+```{r}
+data_to_plot <- subset(data_to_plot, !is.na(newcases_june))
+            
+pal_new <- colorNumeric("Greens", domain=data_to_plot$newcases_june)
+
+leaflet() %>%
+                addProviderTiles("CartoDB.Positron") %>%
+                setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+                addPolygons(data = data_to_plot , 
+                            fillColor = ~pal_new(data_to_plot$newcases_june), 
+                            fillOpacity = 0.7, 
+                            weight = 0.2, 
+                            smoothFactor = 0.2,
+                            popup = ~popup_sb_newcases) %>%
+                addLegend(pal = pal_new, 
+                          values = data_to_plot$newcases_june, 
+                          position = "bottomright", 
+                          title = "New Cases Count in June 29")
+```
+
+#draw a map for death cases
+
+```{r}
+data_to_plot <- subset(data_to_plot, !is.na(covid_death_count))
+            
+pal_death <- colorNumeric("Greens", domain=data_to_plot$covid_death_count)
+
+leaflet() %>%
+                addProviderTiles("CartoDB.Positron") %>%
+                setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+                addPolygons(data = data_to_plot , 
+                            fillColor = ~pal_death(data_to_plot$covid_death_count), 
+                            fillOpacity = 0.7, 
+                            weight = 0.2, 
+                            smoothFactor = 0.2,
+                            popup = ~popup_sb_death) %>%
+                addLegend(pal = pal_death, 
+                          values = data_to_plot$covid_death_count, 
+                          position = "bottomright", 
+                          title = "Death Count in June 30")
+```
+
+#draw a map for death rate
+
+
+```{r}
+data_to_plot <- subset(data_to_plot, !is.na(covid_death_rate))
+            
+pal_death_rate <- colorNumeric("Greens", domain=data_to_plot$covid_death_rate)
+
+leaflet() %>%
+                addProviderTiles("CartoDB.Positron") %>%
+                setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+                addPolygons(data = data_to_plot , 
+                            fillColor = ~pal_death_rate(data_to_plot$covid_death_rate), 
+                            fillOpacity = 0.7, 
+                            weight = 0.2, 
+                            smoothFactor = 0.2,
+                            popup = ~popup_sb_death_rate) %>%
+                addLegend(pal = pal_death_rate, 
+                          values = data_to_plot$covid_death_rate, 
+                          position = "bottomright", 
+                          title = "Death Rate in June 30")
+```
+
