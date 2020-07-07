@@ -12,8 +12,13 @@ library(sp)
 
 library(tmap)    # for static and interactive maps
 
-spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
-spdf@data
+
+library(maptools)
+library(rgeos)
+library(rgdal)
+library(ggthemes)
+
+
 
 data_by_modzcta = read_csv("data/data-by-modzcta.csv") %>% 
   select(1:3) %>% 
@@ -37,9 +42,22 @@ race_raw = read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1
 race = left_join(race_raw, data_by_modzcta) %>% 
   select(zipcode, neighborhood_name, borough_group, everything())
 
+race_new = 
+  rbind(race,c(99999, rep(0,10)))
+
+household_new = 
+  rbind(household,c(99999, rep(0,10)))
+
+mergedata_race <- merge(race_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
+mergedata_household <- merge(household_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
+
+
 # Define UI for application that draws a histogram
 zipcode = sex_age %>% distinct(zipcode) %>% pull()
 nbh_name = sex_age %>% distinct(neighborhood_name) %>% pull() %>% sort()
+boro_name = sex_age %>% distinct(borough_group) %>% pull() %>% sort()
+race_name = race_name = colnames(race)[5:11]
+house_name = household = colnames(household)[5:11]
 
 ### Define App
 
@@ -49,56 +67,101 @@ shinyApp(
     navbarPage(
       theme = "cosmo",
       "Demographics",
-      tabPanel("Race",
-               sidebarPanel(
-                 selectInput("nbhid", 
-                   label = "Choose a neighborhood", 
-                   choices = nbh_name, 
-                   selected = NULL)),
-               
-               mainPanel(
-                 tabsetPanel(
-                   tabPanel("Race Density Map", leafletOutput("race_map", width="100%",height="600px")), ###
-                   tabPanel("Borough Level", plotlyOutput("race_boro", width="100%",height="600px"), tableOutput("race_boro_tb")),
-                   tabPanel("Neighborhood Level", plotlyOutput("race_nbh", width="100%",height="600px"), tableOutput("race_nbh_tb"))))
-      ),
-      tabPanel("Income",
-               sidebarPanel(
-                 # Picker for nhb name
-                 selectInput("nbhid1", 
-                             label = "Choose a neighborhood", 
-                             choices = nbh_name, 
-                             selected = NULL)),
-               
-               mainPanel(
-                 tabsetPanel(
-                   tabPanel("Median Income Map", leafletOutput("income_map", width="100%",height="600px")),
-                   tabPanel("Borough Level", plotlyOutput("income_boro", width="100%",height="600px"), tableOutput("income_boro_tb")),
-                   tabPanel("Neighborhood Level", plotlyOutput("income_nbh", width="100%",height="400px"))))
+      tabPanel("Map",
+               tabsetPanel(
+                 tabPanel("Race",
+                          sidebarPanel(
+                            selectInput("boroid1", 
+                                          label = "Choose a Borough", 
+                                          choices =boro_name, 
+                                          selected = NULL),
+                            selectInput("nbhid1", 
+                                          label = "Choose a Neibourhood", 
+                                          choices =nbh_name, 
+                                          selected = NULL),
+                            pickerInput(inputId = "raceid",
+                                        label = "Choose a Race",
+                                        choices = str_replace_all(race_name, "_", " "),
+                                        multiple = TRUE,
+                                        selected = str_replace_all(race_name, "_", " ")[1],
+                                        options = list(`actions-box` = TRUE)
+                            )),
 
+                          mainPanel(
+                            leafletOutput("race_map", width="100%",height="600px")
+                          ),
+                          
+                          hr(),
+
+                          fluidRow(
+                            column(width = 12,
+                                   h3("Description")
+                            )
+                          )),
+                            
+                   tabPanel("Median Income Map", 
+                            sidebarPanel(
+                              selectInput("boroid2", 
+                                          label = "Choose a Borough", 
+                                          choices =boro_name, 
+                                          selected = NULL),
+                              selectInput("nbhid2", 
+                                          label = "Choose a Neibourhood", 
+                                          choices =nbh_name, 
+                                          selected = NULL)),
+                            mainPanel(
+                              leafletOutput("income_map", width="100%",height="600px")
+                            )),
+                            
+                   tabPanel("Household", 
+                            sidebarPanel(
+                              selectInput("boroid3", 
+                                          label = "Choose a Borough", 
+                                          choices =boro_name, 
+                                          selected = NULL),
+                              selectInput("nbhid3", 
+                                          label = "Choose a Neibourhood", 
+                                          choices =nbh_name, 
+                                          selected = NULL),
+                              pickerInput(inputId = "houseid",
+                                          label = "Choose a Household size",
+                                          choices = str_replace_all(house_name, "_", " "),
+                                          multiple = TRUE,
+                                          selected = str_replace_all(house_name, "_", " ")[1],
+                                          options = list(`actions-box` = TRUE))),
+                            mainPanel(
+                              leafletOutput("household_map", width="100%",height="600px")))
+                            )
       ),
-      tabPanel("Household",
-               sidebarPanel(
-                 # Picker for nhb name
-                 selectInput("nbhid2", 
-                             label = "Choose a neighborhood", 
-                             choices = nbh_name, 
-                             selected = NULL)),
-               
-               mainPanel(
-                 tabsetPanel(
-                   tabPanel("Map", leafletOutput("household_map", width="100%",height="600px")),
-                   tabPanel("Borough Level", plotlyOutput("household_boro", width="100%",height="600px")),
-                   tabPanel("Neighborhood Level", plotlyOutput("household_nbh", width="100%",height="600px"))))
+      tabPanel("Comparison",
+               tabsetPanel(
+                 tabPanel("Race",
+                          sidebarPanel(
+                            selectInput("nbhid2", 
+                                        label = "Choose a neighborhood", 
+                                        choices = nbh_name, 
+                                        selected = NULL)),
+                            
+                          mainPanel(plotlyOutput("race_nbh", width="100%",height="600px"))),
+                          
+                 tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
+                 tabPanel("Household", plotlyOutput("household_nbh", width="100%",height="600px"))
+               )         
       )
-    )
+      )
   ),
   
   server = function(input, output) {
     
     output$race_map <- renderLeaflet({
-      mergedata <- merge(race_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
-      num.dots <- select(mergedata, white_alone:two_or_more_races) / 200
+      spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+      num.dots.data <- mergedata %>% 
+        select(str_replace_all(input$raceid," ","_"))
+      
+      num.dots <- num.dots.data / 200 + 1
+        
+        
+
       
       sp.dfs <- lapply(names(num.dots), function(x) {
         dotsInPolys(spdf, as.integer(num.dots[,x]), f="random")
@@ -109,22 +172,18 @@ shinyApp(
       spdf.df <- merge(spdf.points, spdf@data, by = "id") %>% 
         filter(MODZCTA != 99999)
       
-      ggplot(spdf.df, aes(long, lat, group = group)) +
-        geom_path() +
-        coord_map()
-      
+
       dfs <- lapply(sp.dfs, function(x) {
         data.frame(coordinates(x)[,1:2])
       })
       
-      race_name <- str_replace_all(names(race_new[,5:11]), "_", " ") 
-      
-      for (i in 1:length(race_name)) {
-        dfs[[i]]$Race <- race_name[i]
+
+      for (i in 1:length(input$raceid)) {
+        dfs[[i]]$Race <- input$raceid[i]
       }
       
       dots.final <- bind_rows(dfs)
-      dots.final$Race <- factor(dots.final$Race, levels = race_name)
+      dots.final$Race <- str_replace_all(factor(dots.final$Race, levels = input$raceid),"_"," ")
       ####
       posi_map_race = geo_join(spdf,race,"MODZCTA","zipcode")
       
@@ -163,7 +222,7 @@ shinyApp(
         addCircleMarkers(data = dots.final, lng = dots.final$x, lat = dots.final$y,
                          color = ~pal(Race),
                          radius = 1,
-                         stroke = FALSE, fillOpacity = 0.5) %>% 
+                         stroke = FALSE, fillOpacity = 0.7) %>% 
         addPolygons(data = posi_map_race, 
                     fillColor = "white", 
                     fillOpacity = 0.00001, 
@@ -172,7 +231,7 @@ shinyApp(
                     popup = ~popup_sb) %>%
        
         addLegend(pal = pal, 
-                  values = unique(dots.final$Race), 
+                  values = unique((str_replace_all(dots.final$Race, "_", " "))), 
                   position = "bottomright", 
                   title = "Race")
       
@@ -219,7 +278,7 @@ shinyApp(
     
     output$race_nbh <- renderPlotly({
       race_nbh = race %>% 
-        filter(neighborhood_name == input$nbhid) %>%
+        filter(neighborhood_name == input$nbhid1) %>%
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
         group_by(neighborhood_name, race) %>% 
         summarise(pop = sum(population)) %>% 
@@ -236,7 +295,7 @@ shinyApp(
     
     output$race_nbh_tb <- renderTable({
       race %>% 
-        filter(neighborhood_name == input$nbhid) %>%
+        filter(neighborhood_name == input$nbhid1) %>%
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
         group_by(neighborhood_name, race) %>% 
         summarise(pop = sum(population)) %>% 
@@ -250,6 +309,7 @@ shinyApp(
     })
     
     output$income_map <- renderLeaflet({
+      spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
       posi_map_income = geo_join(spdf,income,"MODZCTA","zipcode")
       
       pal <- colorNumeric("Greens", domain=posi_map_income$median)
@@ -312,7 +372,7 @@ shinyApp(
     
     output$income_nbh <- renderPlotly ({
       income_nbh = income %>% 
-        filter(neighborhood_name == input$nbhid1) %>%
+        filter(neighborhood_name == input$nbhid2) %>%
         pivot_longer(mean:median, names_to = "stat", values_to = "value")
 
       
@@ -326,12 +386,81 @@ shinyApp(
 
     })
     
-    #output$household_map <- render
+    output$household_map <- renderLeaflet({
+      spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+      
+        num.dots.data <- mergedata_household %>% 
+          select(str_replace_all(input$houseid," ","_"))
+        
+        num.dots <- num.dots.data / 200 + 1
+        
+        
+        
+        
+        sp.dfs <- lapply(names(num.dots), function(x) {
+          dotsInPolys(spdf, as.integer(num.dots[,x]), f="random")
+        })
+        #####
+        spdf@data$id <- row.names(spdf@data)
+        spdf.points <- fortify(spdf, region = "id")
+        spdf.df <- merge(spdf.points, spdf@data, by = "id") %>% 
+          filter(MODZCTA != 99999)
+        
+        
+        dfs <- lapply(sp.dfs, function(x) {
+          data.frame(coordinates(x)[,1:2])
+        })
+        
+        
+        for (i in 1:length(input$houseid)) {
+          dfs[[i]]$House <- input$houseid[i]
+        }
+        
+        dots.final <- bind_rows(dfs)
+        dots.final$House <- str_replace_all(factor(dots.final$House, levels = input$houseid),"_"," ")
+        ####
+        posi_map_house = geo_join(spdf,race,"MODZCTA","zipcode")
+        
+        pal <- colorFactor("Spectral", unique(dots.final$House))
+        
+        posi_map_house <- subset(posi_map_house, !is.na(total))
+        
+        
+        # Setting up the pop up text
+        popup_sb <- paste0("<b> ZCTA: </b>", posi_map_house$zipcode, 
+                           "<br>", 
+                           "<b> NBH: </b>", posi_map_house$neighborhood_name,
+                           "<br>", 
+                           "<b> Borough: </b>", posi_map_house$borough_group,
+                           "<br>", 
+                           "<b> Total: </b>", posi_map_house$total)
+        
+        
+        leaflet() %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          setView(lng = -73.99653, lat = 40.71181, zoom = 11) %>% 
+          addCircleMarkers(data = dots.final, lng = dots.final$x, lat = dots.final$y,
+                           color = ~pal(House),
+                           radius = 1,
+                           stroke = FALSE, fillOpacity = 0.7) %>% 
+          addPolygons(data = posi_map_house, 
+                      fillColor = "white", 
+                      fillOpacity = 0.00001, 
+                      weight = 0.2, 
+                      smoothFactor = 0.2,
+                      popup = ~popup_sb) %>%
+          
+          addLegend(pal = pal, 
+                    values = unique((str_replace_all(dots.final$House, "_", " "))), 
+                    position = "bottomright", 
+                    title = "Household Size")
+        
+    })
     
     output$household_boro <- renderPlotly({
       
       household_gp = household %>% 
-        pivot_longer("1":"7_or_more", names_to = "size", values_to = "number")
+        pivot_longer(`1`:`7_or_more`, names_to = "size", values_to = "number")
       
       plot_ly(x = forcats::fct_reorder(household_gp$borough_group, household_gp$number),
               y = household_gp$number,
@@ -346,8 +475,8 @@ shinyApp(
 
     output$household_nbh <- renderPlotly({
       household_nbh = household %>% 
-        filter(neighborhood_name == input$nbhid2) %>%
-        pivot_longer("1":"7_or_more", names_to = "size", values_to = "number") %>%
+        filter(neighborhood_name == input$nbhid3) %>%
+        pivot_longer(`1`:`7_or_more`, names_to = "size", values_to = "number") %>%
         group_by(neighborhood_name, size) %>% 
         summarise(num = sum(number)) %>% 
         drop_na()
