@@ -1,0 +1,62 @@
+---
+title: "comordity bug"
+author: "Ziqi Zhou"
+date: "7/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# data source
+asthma at NTA level
+http://a816-dohbesp.nyc.gov/IndicatorPublic/VisualizationData.aspx?id=2387,4466a0,11,Summarize
+
+or
+```{r}
+asthma = read.csv("./data/Asthma Emergency Department Visits (Adults) by NTA.csv",skip = 12) %>% 
+  janitor::clean_names() %>% 
+  filter(x2012_2014 == "2012-2014") %>% 
+  rename(geotypename = borough,
+         year = x2012_2014,
+         borough = staten_island,
+         neighborhood_name = staten_island_1,
+         id = x5,
+         average_annual_age_adjusted_rate = x77_7,
+         average_annual_number = x2_773,
+         average_annual_rate = x75_3) %>% 
+  select(-x,-x_1,-x_2,-x_3,-asthma_emergency_department_visits_adults_by_nta) 
+```
+
+
+map nta data source
+
+
+```{r}
+library(sp)
+library(rgdal)
+my_spdf <- readOGR( 
+  dsn= paste0("./data/nynta_20b") , 
+  layer="TM_WORLD_BORDERS_SIMPL-0.3",
+  verbose=FALSE
+)
+
+shp <- readOGR(dsn = "./data/nynta_20b/nynta.shp", stringsAsFactors = F)
+shp@data
+
+#however this step did not work.
+data_as = geo_join(shp,asthma,"NTAName","neighborhood_name")
+
+
+#then we could use the data and the ggplot function to draw the map
+library(broom)
+spdf_fortified <- tidy(shp)
+
+
+
+```
+
+we want to use geo_join to add the asthma data into the map data so that we could draw a map. However, I could not succeed.
+
+Or we could use other method to draw this map.
