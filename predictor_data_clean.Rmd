@@ -27,8 +27,9 @@ It is the data of 2010
 ```{r,warning=FALSE}
 May_newcases = read_csv("./data/May_newcases")
 
-New_York_City_zip = May_newcases %>% 
-  distinct(zipcode)
+New_York_City_zip = May_data %>% 
+  distinct(modified_zcta) %>% 
+  rename(zipcode = modified_zcta)
 
 median_income_nyc = left_join(New_York_City_zip, median_income)
 #write.csv(median_income_nyc,file="data/predictor_data/median_income_nyc.csv")
@@ -95,7 +96,7 @@ household = read_excel("./data/household.xlsx", skip = 1)%>%
   mutate(zipcode = as.numeric(zipcode))
 
 household_zipcode_nyc = left_join(New_York_City_zip,household)
-colnames(household_zipcode_nyc) <- str_replace(colnames(household_zipcode_nyc), "total_", "")
+colnames(household_zipcode_nyc) <- str_replace(colnames(household_zipcode_nyc), "total_", "person_")
 colnames(household_zipcode_nyc) <- str_replace(colnames(household_zipcode_nyc), "_person_household", "")
 # write.csv(household_zipcode_nyc,file="data/predictor_data/household_zipcode_nyc.csv")
 ```
