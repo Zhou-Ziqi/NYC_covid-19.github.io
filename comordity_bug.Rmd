@@ -21,12 +21,13 @@ asthma = read.csv("./data/Asthma Emergency Department Visits (Adults) by NTA.csv
   rename(geotypename = borough,
          year = x2012_2014,
          borough = staten_island,
-         neighborhood_name = staten_island_1,
+         NTAName = staten_island_1,
          id = x5,
          average_annual_age_adjusted_rate = x77_7,
          average_annual_number = x2_773,
          average_annual_rate = x75_3) %>% 
-  select(-x,-x_1,-x_2,-x_3,-asthma_emergency_department_visits_adults_by_nta) 
+  select(-x,-x_1,-x_2,-x_3,-asthma_emergency_department_visits_adults_by_nta) %>% 
+  mutate(NTAName = as.character(NTAName))
 ```
 
 
@@ -42,16 +43,22 @@ my_spdf <- readOGR(
   verbose=FALSE
 )
 
+spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+
+
 shp <- readOGR(dsn = "./data/nynta_20b/nynta.shp", stringsAsFactors = F)
-shp@data
+shpnta = shp@data$NTAName
+shpnta = as.data.frame(shpnta)
+write_excel_csv(shpnta, "./data/shpnta.csv")
+
+ast_nta = as.data.frame(ast_nta)
+write_excel_csv(ast_nta, "./data/astnta.csv")
 
 #however this step did not work.
-data_as = geo_join(shp,asthma,"NTAName","neighborhood_name")
+data_as = geo_join(shp,asthma,"NTAName","NTAName")
 
 
 #then we could use the data and the ggplot function to draw the map
-library(broom)
-spdf_fortified <- tidy(shp)
 
 
 

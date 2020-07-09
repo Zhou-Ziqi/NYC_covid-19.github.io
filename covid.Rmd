@@ -23,7 +23,7 @@ Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv")
 May_data = read_csv("./data/May_data.csv")
 Junedata = read_csv("./data/Junedata.csv")
 
-data_to_plot = Junedata %>% filter(day == "June29")
+data_to_plot = Junedata %>% filter(day == "June30")
 spdf = rgdal::readOGR("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
 ```
