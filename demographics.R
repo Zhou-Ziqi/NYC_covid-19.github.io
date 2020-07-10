@@ -46,6 +46,8 @@ race = left_join(race_raw, data_by_modzcta) %>%
 race_new = 
   rbind(race,c(99999, rep(0,10)))
 
+
+
 #household_new = rbind(household,c(99999, rep(0,10)))
 
 #mergedata_race <- merge(race_new, spdf@data, by.y = "MODZCTA", by.x = "zipcode", sort=FALSE)
@@ -56,7 +58,7 @@ race_new =
 zipcode = sex_age %>% distinct(zipcode) %>% pull()
 nbh_name = sex_age %>% distinct(neighborhood_name) %>% pull() %>% sort()
 boro_name = sex_age %>% distinct(borough_group) %>% pull() %>% sort()
-race_name = colnames(race)[5:11]
+race_name = sort(colnames(race)[5:11])
 house_name  = colnames(household)[5:11]
 
 ### Define App
@@ -70,7 +72,7 @@ shinyApp(
       tabPanel("Map",
                tabsetPanel(
                  tabPanel("Race",
-                          sidebarPanel(
+                          sidebarPanel(width = 3,
                             selectInput("boroid1", 
                                           label = "Choose a Borough", 
                                           choices =boro_name, 
@@ -87,7 +89,7 @@ shinyApp(
                                         options = list(`actions-box` = TRUE)
                             )),
 
-                          mainPanel(
+                          mainPanel(width = 9,
                             leafletOutput("race_map", width="100%",height="600px")
                           ),
                           
@@ -100,7 +102,7 @@ shinyApp(
                           )),
                             
                    tabPanel("Median Income Map", 
-                            sidebarPanel(
+                            sidebarPanel(width = 3,
                               selectInput("boroid2", 
                                           label = "Choose a Borough", 
                                           choices =boro_name, 
@@ -109,12 +111,12 @@ shinyApp(
                                           label = "Choose a Neibourhood", 
                                           choices =nbh_name, 
                                           selected = NULL)),
-                            mainPanel(
+                            mainPanel(width = 9,
                               leafletOutput("income_map", width="100%",height="600px")
                             )),
                             
                    tabPanel("Household", 
-                            sidebarPanel(
+                            sidebarPanel(width = 3,
                               selectInput("boroid3", 
                                           label = "Choose a Borough", 
                                           choices =boro_name, 
@@ -129,29 +131,55 @@ shinyApp(
                                           multiple = TRUE,
                                           selected = str_replace_all(house_name, "_", " ")[1],
                                           options = list(`actions-box` = TRUE))),
-                            mainPanel(
+                            mainPanel(width = 9,
                               leafletOutput("household_map", width="100%",height="600px")))
                             )
       ),
       tabPanel("Comparison",
                tabsetPanel(
                  tabPanel("Race",
-                          sidebarPanel(
-                            selectInput("nbhid2", 
+                          sidebarPanel(width = 3,
+                            selectInput("nbhid4", 
                                         label = "Choose a neighborhood", 
                                         choices = nbh_name, 
                                         selected = NULL)),
                             
-                          mainPanel(plotlyOutput("race_nbh", width="100%",height="600px"))),
+                          mainPanel(width = 9,
+                            fluidRow(
+                              column(width = 4,align="center",
+                                     textOutput("nbh"),
+                                     plotlyOutput("race_nbh", width="100%",height="600px")),
+                              column(width = 4,align="center",
+                                     textOutput("boro"),
+                                     plotlyOutput("race_boro", width="100%",height="600px")),
+                              column(width = 4,align="center",
+                                     textOutput("nyc"),
+                                     plotlyOutput("race_nyc", width="100%",height="600px"))
+                              ))),
                           
                  tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
                  tabPanel("Household", plotlyOutput("household_nbh", width="100%",height="600px"))
-               )         
+                 )               
       )
       )
   ),
   
   server = function(input, output) {
+    
+    output$nbh <- renderText({
+      
+      input$nbhid4
+      
+    })
+    
+    output$nyc <- renderText({"New York City"})
+    
+    output$boro <- renderText({
+      
+      which_boro = race %>% filter(neighborhood_name == input$nbhid4) %>% select(borough_group) %>% unique()
+      which_boro$borough_group
+      
+    })
     
     output$race_map <- renderLeaflet({
       pt = race %>% 
@@ -198,30 +226,7 @@ shinyApp(
       
     })
     
-    output$race_boro <- renderPlotly({
-      race_gp = race %>% 
-        pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") 
-      
-        #plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$pop),
-        #        y = race_gp$pop,
-        #        type = "bar",
-        #        color = race_gp$race,
-        #        colors = "Spectral",
-        #        opacity=0.8) %>% 
-        #layout(boxmode = "group",
-        #        legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5)
-        #)
-        
-       plot_ly(x = forcats::fct_reorder(race_gp$borough_group, race_gp$population),
-               y = race_gp$population,
-               type = "box",
-               colors = "Spectral",
-               color = race_gp$race) %>% 
-         layout(boxmode = "group",
-                legend=list(title=list(text='<b> Family Size </b>'),orientation = 'h', xanchor = "center", x = 0.5))
-       
-      
-    })
+   
     
     output$race_boro_tb <- renderTable({
       race %>% 
@@ -239,13 +244,13 @@ shinyApp(
     
     output$race_nbh <- renderPlotly({
       race_nbh = race %>% 
-        filter(neighborhood_name == input$nbhid1) %>%
+        filter(neighborhood_name == input$nbhid4) %>%
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
         group_by(neighborhood_name, race) %>% 
         summarise(pop = sum(population)) %>% 
         drop_na()
       
-        plot_ly(labels = race_nbh$race,
+        plot_ly(labels = str_replace_all(race_nbh$race,"_"," "),
                 values = race_nbh$pop,
                 type = "pie",
                 colors = "Spectral",
@@ -254,9 +259,46 @@ shinyApp(
         
     })
     
+    output$race_boro <- renderPlotly({
+      
+      which_boro = race %>% filter(neighborhood_name == input$nbhid4) %>% select(borough_group) %>% unique()
+      
+      race_gp = race %>% 
+        filter(borough_group == which_boro$borough_group) %>% 
+        pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
+        group_by(race) %>% 
+        summarise(pop = sum(population)) %>% 
+        drop_na()
+      
+      plot_ly(labels = str_replace_all(race_gp$race,"_"," "),
+              values = race_gp$pop,
+              type = "pie",
+              colors = "Spectral",
+              opacity=0.8) %>% 
+        layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5))
+      
+      
+    })
+    
+    output$race_nyc <- renderPlotly({
+      race_nyc = race %>% 
+        pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
+        group_by(race) %>% 
+        summarise(pop = sum(population)) %>% 
+        drop_na()
+      
+      plot_ly(labels = str_replace_all(race_nyc$race,"_"," "),
+              values = race_nyc$pop,
+              type = "pie",
+              colors = "Spectral",
+              opacity=0.8) %>% 
+        layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5))
+      
+    })
+    
     output$race_nbh_tb <- renderTable({
       race %>% 
-        filter(neighborhood_name == input$nbhid1) %>%
+        filter(neighborhood_name == input$nbhid4) %>%
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
         group_by(neighborhood_name, race) %>% 
         summarise(pop = sum(population)) %>% 
@@ -410,8 +452,8 @@ shinyApp(
 
     output$household_nbh <- renderPlotly({
       household_nbh = household %>% 
-        filter(neighborhood_name == input$nbhid3) %>%
-        pivot_longer(`1`:`7_or_more`, names_to = "size", values_to = "number") %>%
+        filter(neighborhood_name == input$nbhid4) %>%
+        pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
         group_by(neighborhood_name, size) %>% 
         summarise(num = sum(number)) %>% 
         drop_na()
