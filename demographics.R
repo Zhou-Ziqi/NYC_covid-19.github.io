@@ -136,30 +136,28 @@ shinyApp(
                             )
       ),
       tabPanel("Comparison",
-               tabsetPanel(
-                 tabPanel("Race",
-                          sidebarPanel(width = 3,
+               sidebarPanel(width = 3,
                             selectInput("nbhid4", 
                                         label = "Choose a neighborhood", 
                                         choices = nbh_name, 
                                         selected = NULL)),
-                            
-                          mainPanel(width = 9,
-                            fluidRow(
-                              column(width = 4,align="center",
-                                     textOutput("nbh"),
-                                     plotlyOutput("race_nbh", width="100%",height="600px")),
-                              column(width = 4,align="center",
-                                     textOutput("boro"),
-                                     plotlyOutput("race_boro", width="100%",height="600px")),
-                              column(width = 4,align="center",
-                                     textOutput("nyc"),
-                                     plotlyOutput("race_nyc", width="100%",height="600px"))
-                              ))),
-                          
-                 tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
-                 tabPanel("Household", plotlyOutput("household_nbh", width="100%",height="600px"))
-                 )               
+               mainPanel(width = 9,
+                         tabsetPanel(
+                           tabPanel("Race",
+                                              fluidRow(
+                                                column(width = 4,align="center",
+                                                       textOutput("nbh"),
+                                                       plotlyOutput("race_nbh", width="100%",height="600px")),
+                                                column(width = 4,align="center",
+                                                       textOutput("boro"),
+                                                       plotlyOutput("race_boro", width="100%",height="600px")),
+                                                column(width = 4,align="center",
+                                                       textOutput("nyc"),
+                                                       plotlyOutput("race_nyc", width="100%",height="600px"))
+                                              )),
+                           tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
+                           tabPanel("Household", plotlyOutput("household_nbh", width="100%",height="600px")))
+                 )              
       )
       )
   ),
