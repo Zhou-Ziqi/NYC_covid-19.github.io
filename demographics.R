@@ -145,17 +145,24 @@ shinyApp(
                           mainPanel(width = 9,
                             fluidRow(
                               column(width = 4,align="center",
-                                     textOutput("nbh"),
+                                     textOutput("nbh1"),
                                      plotlyOutput("race_nbh", width="100%",height="600px")),
                               column(width = 4,align="center",
-                                     textOutput("boro"),
+                                     textOutput("boro1"),
                                      plotlyOutput("race_boro", width="100%",height="600px")),
                               column(width = 4,align="center",
-                                     textOutput("nyc"),
+                                     textOutput("nyc1"),
                                      plotlyOutput("race_nyc", width="100%",height="600px")))
                           )
                           ),
-                 tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
+                 tabPanel("Income", 
+                          sidebarPanel(width = 3,
+                                       selectInput("nbhid5", 
+                                                   label = "Choose a neighborhood", 
+                                                   choices = nbh_name, 
+                                                   selected = NULL)),
+                          mainPanel(width = 9, plotlyOutput("income_nbh", width="100%",height="600px"))
+                          ),
                  tabPanel("Household", 
                           sidebarPanel(width = 3,
                                        selectInput("nbhid6", 
@@ -182,7 +189,7 @@ shinyApp(
   
   server = function(input, output) {
     
-    output$nbh <- renderText({
+    output$nbh1 <- renderText({
       
       input$nbhid4
       
@@ -193,10 +200,10 @@ shinyApp(
       
     })
     
-    output$nyc <- renderText({"New York City"})
+    output$nyc1 <- renderText({"New York City"})
     output$nyc2 <- renderText({"New York City"})
     
-    output$boro <- renderText({
+    output$boro1 <- renderText({
       
       which_boro = race %>% filter(neighborhood_name == input$nbhid4) %>% select(borough_group) %>% unique()
       which_boro$borough_group
@@ -208,6 +215,7 @@ shinyApp(
       which_boro$borough_group
       
     })
+    
     
     output$race_map <- renderLeaflet({
       pt = race %>% 
@@ -253,9 +261,6 @@ shinyApp(
                   title = "Percentage on NTA Level")
       
     })
-    
-   
-    
     output$race_boro_tb <- renderTable({
       race %>% 
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>% 
@@ -269,7 +274,6 @@ shinyApp(
         rename_all(~ gsub("_", " ", .)) %>% 
         rename_all(~ gsub("alone", "", .))
     })
-    
     output$race_nbh <- renderPlotly({
       race_nbh = race %>% 
         filter(neighborhood_name == input$nbhid4) %>%
@@ -286,7 +290,6 @@ shinyApp(
         layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5))
         
     })
-    
     output$race_boro <- renderPlotly({
       
       which_boro = race %>% filter(neighborhood_name == input$nbhid4) %>% select(borough_group) %>% unique()
@@ -307,7 +310,6 @@ shinyApp(
       
       
     })
-    
     output$race_nyc <- renderPlotly({
       race_nyc = race %>% 
         pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
@@ -323,7 +325,6 @@ shinyApp(
         layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5))
       
     })
-    
     output$race_nbh_tb <- renderTable({
       race %>% 
         filter(neighborhood_name == input$nbhid4) %>%
@@ -371,7 +372,6 @@ shinyApp(
                   position = "bottomright", 
                   title = "Median Income")
     })
-    
     output$income_boro <- renderPlotly ({
       income_gp = income %>% 
         pivot_longer(mean:median, names_to = "stat", values_to = "value")
@@ -384,7 +384,6 @@ shinyApp(
         layout(boxmode = "group",
                legend=list(title=list(text='<b> Statistics </b>')))
     })
-    
     output$income_boro_tb <- renderTable({
       income %>% 
         pivot_longer(mean:median, names_to = "stat", values_to = "value") %>% 
@@ -399,22 +398,32 @@ shinyApp(
         rename(borough = borough_group) %>% 
         rename_all(~ gsub("_", " ", .))
     })
-    
-    output$income_nbh <- renderPlotly ({
-      income_nbh = income %>% 
-        filter(neighborhood_name == input$nbhid2) %>%
-        pivot_longer(mean:median, names_to = "stat", values_to = "value")
-
-      
-      plot_ly(x = forcats::fct_reorder(income_nbh$stat, income_nbh$value),
-              y = income_nbh$value,
-              type = "scatter",
-              color = income_nbh$stat,
-              colors = "Set1",
-              size = 3) %>% 
-        layout(legend=list(title=list(text='<b> Statistics </b>')))
-
-    })
+    #output$income_nbh <- renderPlotly ({
+    #  income_nbh = income %>% 
+    #    filter(neighborhood_name == input$nbhid5) %>%
+    #    pivot_longer(mean:median, names_to = "stat", values_to = "value")
+    #  
+    #  which_boro = income %>% filter(neighborhood_name == input$nbhid5) %>% select(borough_group) %>% unique()
+    #  
+    #  income_boro = income %>% 
+    #    filter(borough_group == which_boro$borough_group) %>% 
+    #    pivot_longer(mean:median, names_to = "stat", values_to = "value")
+    #    
+#
+    #  
+    #  p = plot_ly(x = forcats::fct_reorder(income_nbh$stat, income_nbh$value),
+    #          y = income_nbh$value,
+    #          type = "bar",
+    #          color = income_nbh$stat,
+    #          colors = "Set1",
+    #          size = 3) %>% 
+    #    layout(legend=list(title=list(text='<b> Statistics </b>')))
+    #  
+    #  add_bars(p, 
+    #           x = forcats::fct_reorder(income_nbh$stat, income_nbh$value), 
+    #           y = )
+#
+    #})
     
     output$household_map <- renderLeaflet({
       pt = household %>% 
@@ -461,7 +470,6 @@ shinyApp(
                     title = "Percentage on NTA Level")
         
     })
-    
     output$household_boro <- renderPlotly({
       
       which_boro = race %>% filter(neighborhood_name == input$nbhid6) %>% select(borough_group) %>% unique()
@@ -482,7 +490,6 @@ shinyApp(
       
       
     })
-
     output$household_nbh <- renderPlotly({
       household_nbh = household %>% 
         filter(neighborhood_name == input$nbhid6) %>%
@@ -499,7 +506,6 @@ shinyApp(
         layout(legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5))
       
     })
-    
     output$household_nyc <- renderPlotly({
       house_nyc = household %>% 
         pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
