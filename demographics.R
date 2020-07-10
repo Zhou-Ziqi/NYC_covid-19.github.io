@@ -161,7 +161,9 @@ shinyApp(
                                                    label = "Choose a neighborhood", 
                                                    choices = nbh_name, 
                                                    selected = NULL)),
-                          mainPanel(width = 9, plotlyOutput("income_nbh", width="100%",height="600px"))
+                          mainPanel(width = 9, 
+                                    textOutput("nbh3"),textOutput("boro3"),textOutput("nyc3"),
+                                    plotlyOutput("income_nbh", width="100%",height="600px"))
                           ),
                  tabPanel("Household", 
                           sidebarPanel(width = 3,
@@ -199,9 +201,15 @@ shinyApp(
       input$nbhid6
       
     })
+    output$nbh3 <- renderText({
+      
+      input$nbhid5
+      
+    })
     
     output$nyc1 <- renderText({"New York City"})
     output$nyc2 <- renderText({"New York City"})
+    output$nyc3 <- renderText({"New York City"})
     
     output$boro1 <- renderText({
       
@@ -212,6 +220,12 @@ shinyApp(
     output$boro2 <- renderText({
       
       which_boro = race %>% filter(neighborhood_name == input$nbhid6) %>% select(borough_group) %>% unique()
+      which_boro$borough_group
+      
+    })
+    output$boro3 <- renderText({
+      
+      which_boro = race %>% filter(neighborhood_name == input$nbhid5) %>% select(borough_group) %>% unique()
       which_boro$borough_group
       
     })
@@ -398,32 +412,44 @@ shinyApp(
         rename(borough = borough_group) %>% 
         rename_all(~ gsub("_", " ", .))
     })
-    #output$income_nbh <- renderPlotly ({
-    #  income_nbh = income %>% 
-    #    filter(neighborhood_name == input$nbhid5) %>%
-    #    pivot_longer(mean:median, names_to = "stat", values_to = "value")
-    #  
-    #  which_boro = income %>% filter(neighborhood_name == input$nbhid5) %>% select(borough_group) %>% unique()
-    #  
-    #  income_boro = income %>% 
-    #    filter(borough_group == which_boro$borough_group) %>% 
-    #    pivot_longer(mean:median, names_to = "stat", values_to = "value")
-    #    
-#
-    #  
-    #  p = plot_ly(x = forcats::fct_reorder(income_nbh$stat, income_nbh$value),
-    #          y = income_nbh$value,
-    #          type = "bar",
-    #          color = income_nbh$stat,
-    #          colors = "Set1",
-    #          size = 3) %>% 
-    #    layout(legend=list(title=list(text='<b> Statistics </b>')))
-    #  
-    #  add_bars(p, 
-    #           x = forcats::fct_reorder(income_nbh$stat, income_nbh$value), 
-    #           y = )
-#
-    #})
+    output$income_nbh <- renderPlotly ({
+      income_nbh = income %>% 
+        drop_na() %>% 
+        filter(neighborhood_name == input$nbhid5) %>%
+        select(mean, median)
+      
+      which_boro = income %>% filter(neighborhood_name == input$nbhid5) %>% select(borough_group) %>% unique()
+      
+      incomeboro = income %>% 
+        drop_na() %>% 
+        filter(borough_group == which_boro$borough_group)
+      
+      mean = mean(incomeboro$mean)
+      median = median(incomeboro$median)
+      
+      income_boro = c(mean, median)
+      
+      mean = mean(na.omit(income$mean))
+      median = median(na.omit(income$median))
+      
+      income_nyc = c(mean, median)
+      
+      income_final = rbind(income_nbh, income_boro, income_nyc) %>% 
+        mutate(level = c("NTA", "Borough", "NYC")) %>% 
+        pivot_longer(mean:median, names_to = "stat", values_to = "value")
+        
+
+      
+      plot_ly(x = forcats::fct_reorder(income_final$stat, income_final$value),
+              y = income_final$value,
+              type = "bar",
+              color = income_final$level,
+              colors = "Set1",
+              size = 3) %>% 
+        layout(legend=list(title=list(text='<b> Statistics </b>')))
+
+
+    })
     
     output$household_map <- renderLeaflet({
       pt = household %>% 
