@@ -258,7 +258,7 @@ shinyApp(
         addLegend(pal = pal, 
                   values = posi_map_race$percentage, 
                   position = "bottomright", 
-                  title = "Percentage on NTA Level")
+                  title = "Proportions on NTA Level")
       
     })
     output$race_boro_tb <- renderTable({
@@ -467,7 +467,7 @@ shinyApp(
           addLegend(pal = pal, 
                     values = posi_map_house$percentage, 
                     position = "bottomright", 
-                    title = "Percentage on NTA Level")
+                    title = "Proportions on NTA Level")
         
     })
     output$household_boro <- renderPlotly({
