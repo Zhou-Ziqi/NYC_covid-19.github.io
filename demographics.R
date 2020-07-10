@@ -135,30 +135,48 @@ shinyApp(
                               leafletOutput("household_map", width="100%",height="600px")))
                             )
       ),
-      tabPanel("Comparison",
-               sidebarPanel(width = 3,
-                            selectInput("nbhid4", 
-                                        label = "Choose a neighborhood", 
-                                        choices = nbh_name, 
-                                        selected = NULL)),
-               mainPanel(width = 9,
-                         tabsetPanel(
-                           tabPanel("Race",
-                                              fluidRow(
-                                                column(width = 4,align="center",
-                                                       textOutput("nbh"),
-                                                       plotlyOutput("race_nbh", width="100%",height="600px")),
-                                                column(width = 4,align="center",
-                                                       textOutput("boro"),
-                                                       plotlyOutput("race_boro", width="100%",height="600px")),
-                                                column(width = 4,align="center",
-                                                       textOutput("nyc"),
-                                                       plotlyOutput("race_nyc", width="100%",height="600px"))
-                                              )),
-                           tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
-                           tabPanel("Household", plotlyOutput("household_nbh", width="100%",height="600px")))
-                 )              
-      )
+      navbarMenu("Comparison",
+                 tabPanel("Race",
+                          sidebarPanel(width = 3,
+                                                 selectInput("nbhid4", 
+                                                             label = "Choose a neighborhood", 
+                                                             choices = nbh_name, 
+                                                             selected = NULL)),
+                          mainPanel(width = 9,
+                            fluidRow(
+                              column(width = 4,align="center",
+                                     textOutput("nbh"),
+                                     plotlyOutput("race_nbh", width="100%",height="600px")),
+                              column(width = 4,align="center",
+                                     textOutput("boro"),
+                                     plotlyOutput("race_boro", width="100%",height="600px")),
+                              column(width = 4,align="center",
+                                     textOutput("nyc"),
+                                     plotlyOutput("race_nyc", width="100%",height="600px")))
+                          )
+                          ),
+                 tabPanel("Income", plotlyOutput("income_nbh", width="100%",height="600px")),
+                 tabPanel("Household", 
+                          sidebarPanel(width = 3,
+                                       selectInput("nbhid6", 
+                                                   label = "Choose a neighborhood", 
+                                                   choices = nbh_name, 
+                                                   selected = NULL)),
+                          mainPanel(width = 9,
+                                    fluidRow(
+                                      column(width = 4,align="center",
+                                             textOutput("nbh2"),
+                                             plotlyOutput("household_nbh", width="100%",height="600px")),
+                                      column(width = 4,align="center",
+                                             textOutput("boro2"),
+                                             plotlyOutput("household_boro", width="100%",height="600px")),
+                                      column(width = 4,align="center",
+                                             textOutput("nyc2"),
+                                             plotlyOutput("household_nyc", width="100%",height="600px"))
+                                    )
+                                    )))
+                               
+      
       )
   ),
   
@@ -169,12 +187,24 @@ shinyApp(
       input$nbhid4
       
     })
+    output$nbh2 <- renderText({
+      
+      input$nbhid6
+      
+    })
     
     output$nyc <- renderText({"New York City"})
+    output$nyc2 <- renderText({"New York City"})
     
     output$boro <- renderText({
       
       which_boro = race %>% filter(neighborhood_name == input$nbhid4) %>% select(borough_group) %>% unique()
+      which_boro$borough_group
+      
+    })
+    output$boro2 <- renderText({
+      
+      which_boro = race %>% filter(neighborhood_name == input$nbhid6) %>% select(borough_group) %>% unique()
       which_boro$borough_group
       
     })
@@ -434,34 +464,55 @@ shinyApp(
     
     output$household_boro <- renderPlotly({
       
-      household_gp = household %>% 
-        pivot_longer(`1`:"7_or_more", names_to = "size", values_to = "number")
+      which_boro = race %>% filter(neighborhood_name == input$nbhid6) %>% select(borough_group) %>% unique()
       
-      plot_ly(x = forcats::fct_reorder(household_gp$borough_group, household_gp$number),
-              y = household_gp$number,
-              type = "box",
+      house_gp = household %>% 
+        filter(borough_group == which_boro$borough_group) %>% 
+        pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>% 
+        group_by(size) %>% 
+        summarise(num = sum(number)) %>% 
+        drop_na()
+      
+      plot_ly(labels = str_replace_all(house_gp$size,"_"," "),
+              values = house_gp$num,
+              type = "pie",
               colors = "Spectral",
-              color = household_gp$size) %>% 
-        layout(boxmode = "group",
-               legend=list(title=list(text='<b> Family Size </b>'),orientation = 'h', xanchor = "center", x = 0.5))
-               
+              opacity=0.8) %>% 
+        layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5))
+      
       
     })
 
     output$household_nbh <- renderPlotly({
       household_nbh = household %>% 
-        filter(neighborhood_name == input$nbhid4) %>%
+        filter(neighborhood_name == input$nbhid6) %>%
         pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
         group_by(neighborhood_name, size) %>% 
         summarise(num = sum(number)) %>% 
         drop_na()
       
-      plot_ly(labels = factor(household_nbh$size, levels = c("1", "2", "3", "4", "5", "6", "7_or_more")),
+      plot_ly(labels = factor(household_nbh$size, levels = c("person_1", "person_2", "person_3", "person_4", "person_5", "person_6", "person_7_or_more")),
               values = household_nbh$num,
               type = "pie",
               colors = "Spectral",
               opacity=0.8) %>% 
         layout(legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5))
+      
+    })
+    
+    output$household_nyc <- renderPlotly({
+      house_nyc = household %>% 
+        pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
+        group_by(size) %>% 
+        summarise(num = sum(number)) %>% 
+        drop_na()
+      
+      plot_ly(labels = str_replace_all(house_nyc$size,"_"," "),
+              values = house_nyc$num,
+              type = "pie",
+              colors = "Spectral",
+              opacity=0.8) %>% 
+        layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5))
       
     })
     
