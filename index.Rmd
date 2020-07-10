@@ -10,4 +10,24 @@ output: html_document
 ## This is the Introduction
 
 
-## This is the map
+
+## The table
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+Junedata = read.csv("./data/Junedata.csv")
+```
+
+```{r,echo = FALSE}
+table = Junedata %>% 
+  mutate(display = paste0("+",newcases_june,
+                          "<br>",
+                          positive)) %>% 
+  select(zipcode, neighborhood_name,display,covid_death_count,day) %>%
+  filter(day == "June28") %>% 
+  arrange(zipcode)
+
+knitr::kable(table,align = "ccccc")
+```
