@@ -11,7 +11,7 @@ library(shiny)
 
 #get data
 spdf = rgdal::readOGR("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
-spdf@data
+
 
 Junedata = read.csv("./data/Junedata.csv")
 #input the widges
