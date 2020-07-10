@@ -1,0 +1,13 @@
+name: covid_map
+title: covid_map
+username:
+account: cumc2020zzq
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2555116
+bundleId: 3374456
+url: https://cumc2020zzq.shinyapps.io/covid_map/
+when: 1594347024.56013
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: _site.yml|about.html|about.Rmd|comorbidity.html|comorbidity.R|comorbidity.Rmd|comordity_bug.Rmd|covid_map_try.R|covid.html|dashboard.html|dashboard.Rmd|demo.R|demographics.R|demographics.Rmd|index.html|index.Rmd|intro.html|intro.Rmd|predictor_data_clean.html|predictor_data_clean.Rmd|README.md|time_trends.html|time_trends.Rmd|demographics_files/figure-html/using ggplot-1.png|demographics_files/figure-html/using ggplot-2.png|demographics_files/figure-html/using plot()-1.png|predictor_data_clean_files/figure-html/unnamed-chunk-21-1.png
