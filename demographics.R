@@ -91,14 +91,14 @@ shinyApp(
         column(width = 9, h4("some words to describe the pie chart"))),
       br(),
       fluidRow(
-        column(width = 1),
-        column(width = 3,align="center",
+
+        column(width = 4,align="center",
                textOutput("nbh1"),
                plotlyOutput("race_nbh", width="100%",height="500px")),
-        column(width = 3,align="center",
+        column(width = 4,align="center",
                textOutput("boro1"),
                plotlyOutput("race_boro", width="100%",height="500px")),
-        column(width = 3,align="center",
+        column(width = 4,align="center",
                textOutput("nyc1"),
                plotlyOutput("race_nyc", width="100%",height="500px"))),
       hr(),
