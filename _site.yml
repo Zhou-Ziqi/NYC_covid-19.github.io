@@ -4,16 +4,16 @@ navbar:
   title: "Home"
   href: index.html
   right: 
-    - text: "Overview"
+    - text: "Tracker"
       href: intro.html
-    - text: "Demographics"
-      href: https://cumc2020zzq.shinyapps.io/demographics/
-    - text: "COVID-19 in NYC"
+    - text: "Distribution of COVID-19 in NYC"
       href: https://cumc2020zzq.shinyapps.io/covid_map/
-    - text: "Comorbidity"
-      href: comorbidity.html
     - text: "Time Trend"
       href: time_trends.html
+    - text: "Demographics"
+      href: https://cumc2020zzq.shinyapps.io/demographics/
+    - text: "Comorbidity"
+      href: comorbidity.html
     - text: "About"
       href: about.html
 output:

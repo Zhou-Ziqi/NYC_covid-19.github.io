@@ -3,31 +3,25 @@ title: "index"
 output: html_document
 ---
 
-## The new cases of NYC at zipcode level
-
 
 
 ## This is the Introduction
 
 
 
-## The table
+## Introduction
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
-library(readxl)
-Junedata = read.csv("./data/Junedata.csv")
-```
 
-```{r,echo = FALSE}
-table = Junedata %>% 
-  mutate(display = paste0("+",newcases_june,
-                          "<br>",
-                          positive)) %>% 
-  select(zipcode, neighborhood_name,display,covid_death_count,day) %>%
-  filter(day == "June28") %>% 
-  arrange(zipcode)
+### About the COVID-19
 
-knitr::kable(table,align = "ccccc")
-```
+### About the policy timeline of New York City
+
+### About the asthma
+
+### About the zip code of New York City
+
+### NTA
+
+### Median Income of New York City at NTA level
+
+### Demographic of different boroughs in the New York City
