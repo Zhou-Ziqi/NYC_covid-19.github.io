@@ -26,27 +26,27 @@ choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Dea
 positive = function(date){
   data_to_plot = Junedata %>% filter(day == date)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+  data_to_plot = subset(data_to_plot, !is.na(positive))
+  pal <- colorNumeric("Greens", domain=data_to_plot$positive)
   
-  pal <- colorNumeric("Greens", domain=Junedata$positive)
-  
-  popup_sb <- paste0("Neighborhood Name: ", as.character(Junedata$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(Junedata$zipcode),
+                     "MODZCTA: ", as.character(data_to_plot$zipcode),
                      "<br>", 
-                     "Total Number of Cumulative Positive Cases: ", as.character(Junedata$positive)
+                     "Total Number of Cumulative Positive Cases: ", as.character(data_to_plot$positive)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot_geo$positive), 
+                fillColor = ~pal(data_to_plot$positive), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot_geo$positive, 
+              values =  data_to_plot$positive, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -57,27 +57,27 @@ case_rate = function(date){
   
   data_to_plot = Junedata %>% filter(day == date)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+  data_to_plot = subset(data_to_plot, !is.na(covid_case_rate))
+  pal <- colorNumeric("Greens", domain=data_to_plot$covid_case_rate)
   
-  pal <- colorNumeric("Greens", domain=Junedata$covid_case_rate)
-  
-  popup_sb <- paste0("Neighborhood Name: ", as.character(Junedata$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(Junedata$zipcode),
+                     "MODZCTA: ", as.character(data_to_plot$zipcode),
                      "<br>", 
-                     "Case Rate of COVID-19: ", as.character(Junedata$covid_case_rate)
+                     "Case Rate of COVID-19: ", as.character(data_to_plot$covid_case_rate)
   )
   
   leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot_geo$covid_case_rate), 
+                fillColor = ~pal(data_to_plot$covid_case_rate), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot_geo$covid_case_rate, 
+              values =  data_to_plot$covid_case_rate, 
               position = "bottomright", 
               title = "Number")
   
@@ -92,27 +92,27 @@ death_count = function(date){
   
   data_to_plot = Junedata %>% filter(day == date)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+  data_to_plot = subset(data_to_plot, !is.na(covid_death_count))
+  pal <- colorNumeric("Reds", domain=data_to_plot$covid_death_count)
   
-  pal <- colorNumeric("Reds", domain=Junedata$covid_death_count)
-  
-  popup_sb <- paste0("Neighborhood Name: ", as.character(Junedata$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(Junedata$zipcode),
+                     "MODZCTA: ", as.character(data_to_plot$zipcode),
                      "<br>", 
-                     "Total Number of Death: ", as.character(Junedata$covid_death_count)
+                     "Total Number of Death: ", as.character(data_to_plot$covid_death_count)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot_geo$covid_death_count), 
+                fillColor = ~pal(data_to_plot$covid_death_count), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values = data_to_plot_geo$covid_death_count, 
+              values = data_to_plot$covid_death_count, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -122,27 +122,27 @@ death_count = function(date){
 death_rate = function(date){
   data_to_plot = Junedata %>% filter(day == date)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+  data_to_plot = subset(data_to_plot, !is.na(covid_death_rate))
+  pal <- colorNumeric("Reds", domain=data_to_plot$covid_death_rate)
   
-  pal <- colorNumeric("Reds", domain=Junedata$covid_death_rate)
-  
-  popup_sb <- paste0("Neighborhood Name: ", as.character(Junedata$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(Junedata$zipcode),
+                     "MODZCTA: ", as.character(data_to_plot$zipcode),
                      "<br>", 
-                     "Death Rate: ", as.character(Junedata$covid_death_rate)
+                     "Death Rate: ", as.character(data_to_plot$covid_death_rate)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot_geo$covid_death_rate), 
+                fillColor = ~pal(data_to_plot$covid_death_rate), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot_geo$covid_death_rate, 
+              values =  data_to_plot$covid_death_rate, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -154,27 +154,27 @@ newcase = function(date){
   
   data_to_plot = Junedata %>% filter(day == date)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","zipcode")
+  data_to_plot = subset(data_to_plot, !is.na(newcases_june))
+  pal <- colorNumeric("Greens", domain=data_to_plot$newcases_june)
   
-  pal <- colorNumeric("Greens", domain=Junedata$newcases_june)
-  
-  popup_sb <- paste0("Neighborhood Name: ", as.character(Junedata$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(Junedata$zipcode),
+                     "MODZCTA: ", as.character(data_to_plot$zipcode),
                      "<br>", 
-                     "Total Number of New Cases: ", as.character(Junedata$newcases_june)
+                     "Total Number of New Cases: ", as.character(data_to_plot$newcases_june)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot_geo$newcases_june), 
+                fillColor = ~pal(data_to_plot$newcases_june), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot_geo$newcases_june, 
+              values =  data_to_plot$newcases_june, 
               position = "bottomright", 
               title = "Number")
   p1

@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(readxl)
 
+
 data_yester = read.csv("./data/data_for_table/data-by-modzcta0710.csv") %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-10"))
@@ -100,7 +101,10 @@ table = data %>%
   select(modified_zcta, neighborhood_name,borough_group,Positive,Death) %>%
   arrange(modified_zcta)
 
-knitr::kable(table,align = "ccccc")
+knitr::kable(table,align = "ccccc",
+             caption = "data update by 2020-07-11") 
+  
+
 
 ```
 
