@@ -5,5 +5,56 @@ date: "6/25/2020"
 output: html_document
 ---
 
+```{r, message=FALSE, include=FALSE}
+library(tidyverse)
+library(viridis)
+
+library(plotly)
+```
 
 # Time Trends
+
+```{r ex}
+strDates <- c("Feb/5/1965", "Feb/16/1975")
+dates <- as.Date(strDates, "%b/%d/%Y") # not work
+
+
+fig1 <- plot_ly(economics, x = ~date, y = ~unemploy)
+fig1 <- fig1 %>% add_lines(name = ~"unemploy")
+fig2 <- plot_ly(economics, x = ~date, y = ~uempmed)
+fig2 <- fig2 %>% add_lines(name = ~"uempmed")
+fig <- subplot(fig1, fig2)
+
+nyc_airbnb %>% 
+  plot_ly(x = ~lat, y = ~long, type = "scatter", mode = "markers",
+          color = ~price, alpha = 0.5)
+
+today <- Sys.Date()
+tm <- seq(0, 600, by = 10)
+x <- today - tm
+y <- rnorm(length(x))
+fig <- plot_ly(x = ~x, y = ~y, mode = 'lines', text = paste(tm, "days from today"))
+```
+
+```{r data, message=FALSE}
+df.apr = read_csv("data/Aprildata_with_nebhod.csv") %>% 
+  rename(day = date) %>% 
+  mutate(date_char = str_c("4", day, "2020", sep = "/")) %>% 
+  mutate(date = as.Date(date_char, "%m/%d/%Y")) %>% 
+  select(-date_char) %>% 
+  mutate(MODZCTA = as.factor(MODZCTA), neighborhood_name = as.factor(neighborhood_name)) %>% 
+  mutate(text_label = str_c(neighborhood_name, "<br>", positive, " commulative cases and ", newcases_apr_day, " new cases in ", MODZCTA)) %>%
+  group_by(MODZCTA)
+```
+
+```{r plotly}
+df.apr.bronx = dplyr::filter(df.apr, borough_group == "Bronx")
+plot.apr.bronx = plot_ly(data = df.apr.bronx, x = ~date, y = ~positive, type = "scatter", mode = "lines", text = ~text_label,
+                   color = ~MODZCTA, alpha = 0.5)
+plot.apr.bronx
+df.apr.queens = dplyr::filter(df.apr, borough_group == "Queens")
+plot.apr.queens = plot_ly(data = df.apr.queens, x = ~date, y = ~positive, type = "scatter", mode = "lines", text = ~text_label,
+                   color = ~MODZCTA, alpha = 0.5)
+plot.apr.queens
+```
+
