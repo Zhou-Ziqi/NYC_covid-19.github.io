@@ -20,7 +20,7 @@ library(ggthemes)
 library(RColorBrewer)
 
 
-spdf = rgdal::readOGR(".data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf = rgdal::readOGR("data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
 data_by_modzcta = read_csv("data/data-by-modzcta.csv") %>% 
     select(1:3) %>% 
