@@ -3,19 +3,105 @@ title: "intro"
 output: html_document
 ---
 
-## Introduction
+## The Tracker
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
 
-### About the COVID-19
+data_yester = read.csv("./data/data_for_table/data-by-modzcta0710.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-07-10"))
 
-### About the policy timeline of New York City
+data_today = read.csv("./data/data_for_table/data-by-modzcta0711.csv")%>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-07-11"))
 
-### About the asthma
+data = rbind(data_today,data_yester)
+new_case = 0
+new_death = 0
 
-### About the zip code of New York City
+for (i in 1:177) {
+  new_case[i] = data[i,4] - data[i+177,4]
+  new_case
+  
+  new_death[i] = data[i,7] - data[i+177,7]
+  new_death
+}
 
-### NTA
+for (i in 178:354) {
+  
+  new_case[i] = NA
 
-### Median Income of New York City at NTA level
+  new_death[i] = NA
+}
 
-### Demographic of different boroughs in the New York City
+data = data %>% 
+  mutate(new_case = new_case,
+         new_death = new_death) 
+
+for (i in 1:177) {
+  data[i,14] = NA
+  data[i,15] = NA
+  
+  if(data[i,12] >= 0 & data[i,13] >= 0){
+    
+  data[i,14] =  paste0("+",data[i,12],
+                          "<br>",
+                          data[i,4])
+  
+  data[i,15] = paste0("+",data[i,13],
+                           "<br>",
+                          data[i,7])
+  }
+  
+  if(data[i,12] < 0 & data[i,13] >= 0){
+    
+  data[i,14] =  paste0(data[i,12],
+                          "<br>",
+                          data[i,4])
+  
+  data[i,15] = paste0("+",data[i,13],
+                           "<br>",
+                          data[i,7])
+  }
+  
+  if(data[i,12] >= 0 & data[i,13] < 0){
+    
+  data[i,14] =  paste0("+",data[i,12],
+                          "<br>",
+                          data[i,4])
+  
+  data[i,15] = paste0(data[i,13],
+                           "<br>",
+                          data[i,7])
+  }
+  
+  if(data[i,12] < 0 & data[i,13] < 0){
+    
+  data[i,14] =  paste0(data[i,12],
+                          "<br>",
+                          data[i,4])
+  
+  data[i,15] = paste0(" ",data[i,13],
+                           "<br>",
+                          data[i,7])
+  }
+}
+
+```
+
+```{r,echo = FALSE}
+table = data %>% 
+  filter(date == max(date)) %>% 
+  rename(Positive = V14,
+         Death = V15) %>% 
+  select(modified_zcta, neighborhood_name,borough_group,Positive,Death) %>%
+  arrange(modified_zcta)
+
+knitr::kable(table,align = "ccccc")
+
+```
+
+data update by 2020-07-11

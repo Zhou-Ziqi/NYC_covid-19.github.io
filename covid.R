@@ -224,7 +224,7 @@ server = function(input, output) {
     plot = switch (input$outcome_selection,
                    positive = positive,
                    death_count = death_count,
-                   case_count = case_count,
+                   case_count = case_rate,
                    death_rate = death_rate,
                    newcase = newcase
     )

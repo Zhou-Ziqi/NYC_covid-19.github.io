@@ -3,11 +3,25 @@ title: "index"
 output: html_document
 ---
 
-## The new cases of NYC at zipcode level
-
 
 
 ## This is the Introduction
 
 
-## This is the map
+
+## Introduction
+
+
+### About the COVID-19
+
+### About the policy timeline of New York City
+
+### About the asthma
+
+### About the zip code of New York City
+
+### NTA
+
+### Median Income of New York City at NTA level
+
+### Demographic of different boroughs in the New York City
