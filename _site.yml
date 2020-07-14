@@ -7,11 +7,11 @@ navbar:
     - text: "Tracker"
       href: intro.html
     - text: "Distribution of COVID-19 in NYC"
-      href: https://cumc2020zzq.shinyapps.io/covid_map/
+      href: https://nyc-neighborhoods-covid.shinyapps.io/distribution_of_covid-19/
     - text: "Time Trend"
       href: time_trends.html
     - text: "Demographics"
-      href: https://cumc2020zzq.shinyapps.io/demographics/
+      href:  https://nyc-neighborhoods-covid.shinyapps.io/demographics/
     - text: "Comorbidity"
       href: comorbidity.html
     - text: "About"
