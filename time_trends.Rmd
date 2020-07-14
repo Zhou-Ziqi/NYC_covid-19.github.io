@@ -14,7 +14,7 @@ library(plotly)
 
 # Time Trends
 
-```{r ex}
+```{r ex, echo=FALSE, warning=FALSE}
 strDates <- c("Feb/5/1965", "Feb/16/1975")
 dates <- as.Date(strDates, "%b/%d/%Y") # not work
 
@@ -25,9 +25,6 @@ fig2 <- plot_ly(economics, x = ~date, y = ~uempmed)
 fig2 <- fig2 %>% add_lines(name = ~"uempmed")
 fig <- subplot(fig1, fig2)
 
-nyc_airbnb %>% 
-  plot_ly(x = ~lat, y = ~long, type = "scatter", mode = "markers",
-          color = ~price, alpha = 0.5)
 
 today <- Sys.Date()
 tm <- seq(0, 600, by = 10)
@@ -36,7 +33,7 @@ y <- rnorm(length(x))
 fig <- plot_ly(x = ~x, y = ~y, mode = 'lines', text = paste(tm, "days from today"))
 ```
 
-```{r data, message=FALSE}
+```{r data, message=FALSE, echo=FALSE, warning=FALSE}
 df.apr = read_csv("data/Aprildata_with_nebhod.csv") %>% 
   rename(day = date) %>% 
   mutate(date_char = str_c("4", day, "2020", sep = "/")) %>% 
@@ -47,7 +44,7 @@ df.apr = read_csv("data/Aprildata_with_nebhod.csv") %>%
   group_by(MODZCTA)
 ```
 
-```{r plotly}
+```{r plotly, echo=FALSE, warning=FALSE}
 df.apr.bronx = dplyr::filter(df.apr, borough_group == "Bronx")
 plot.apr.bronx = plot_ly(data = df.apr.bronx, x = ~date, y = ~positive, type = "scatter", mode = "lines", text = ~text_label,
                    color = ~MODZCTA, alpha = 0.5)
