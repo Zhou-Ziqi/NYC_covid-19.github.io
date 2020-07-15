@@ -13,7 +13,8 @@ library(shiny)
 spdf = rgdal::readOGR("./data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 spdf@data
 
-Junedata = read.csv("./data/final_Junedata.csv")
+Junedata = read.csv("./data/final_Junedata.csv") %>% 
+    mutate(day = as.Date(day))
 #input the widges
 date = Junedata %>% distinct(day) %>% pull()
 
@@ -191,10 +192,13 @@ ui =  fluidPage(
         sidebarPanel(
             helpText("Create maps for the distribution of Cumulative Positive cases in NYC."),
             
-            selectInput(
-                "date_choice", 
-                label = h3("Select date"),
-                choices = date),
+            dateInput(
+                inputId = "date_choice", 
+                label = "Select Date",
+                format = "yyyy-mm-dd",
+                value = "2020-06-01",
+                language = "en"
+               ),
             
             radioButtons(inputId = "outcome_selection",
                          label =  "Outcome:",   

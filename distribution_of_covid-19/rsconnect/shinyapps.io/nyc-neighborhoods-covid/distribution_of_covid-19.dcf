@@ -5,8 +5,8 @@ account: nyc-neighborhoods-covid
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2571602
-bundleId: 3392501
+bundleId: 3392781
 url: https://nyc-neighborhoods-covid.shinyapps.io/distribution_of_covid-19/
-when: 1594757824.74721
+when: 1594762987.43137
 asMultiple: FALSE
 asStatic: FALSE
