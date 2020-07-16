@@ -1,8 +1,10 @@
 ---
 title: "time_trends"
-author: "Ziqi Zhou"
-date: "6/25/2020"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
 ---
 
 ```{r, message=FALSE, include=FALSE}
@@ -11,6 +13,12 @@ library(viridis)
 
 library(plotly)
 ```
+
+#Trends Gif
+
+![Rank_Trend](./data/positive_rank_apr.gif)
+
+![AprilMapTrend](./data/Aprmap.gif)
 
 # Time Trends
 
