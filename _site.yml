@@ -7,7 +7,11 @@ navbar:
     - text: "Tracker"
       href: intro.html
     - text: "Distribution of COVID-19 in NYC"
-      href: https://nyc-neighborhoods-covid.shinyapps.io/distribution_of_covid-19/
+      menu:
+      - text: "Map"
+        href: https://nyc-neighborhoods-covid.shinyapps.io/distribution_of_covid-19/
+      - text: "Pie Chart"
+        href: covid_by_demo.html
     - text: "Time Trend"
       href: time_trends.html
     - text: "Demographics"

@@ -22,6 +22,7 @@ date = Junedata %>% distinct(day) %>% pull()
 choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Death Rate","New cases")
 
 
+
 ### write the functions to draw the map
 ###positive
 positive = function(date){
@@ -53,7 +54,6 @@ positive = function(date){
     p1
 }
 ### case rate
-
 case_rate = function(date){ 
     
     data_to_plot = Junedata %>% filter(day == date)
@@ -83,12 +83,7 @@ case_rate = function(date){
                   title = "Number")
     
 }
-
-
-
-
 ##death count
-
 death_count = function(date){
     
     data_to_plot = Junedata %>% filter(day == date)
@@ -118,7 +113,6 @@ death_count = function(date){
                   title = "Number")
     p1
 }
-
 ##death rate
 death_rate = function(date){
     data_to_plot = Junedata %>% filter(day == date)
@@ -148,8 +142,6 @@ death_rate = function(date){
                   title = "Number")
     p1
 }
-
-
 ###new cases
 newcase = function(date){
     
@@ -180,7 +172,6 @@ newcase = function(date){
                   title = "Number")
     p1
 }
-
 
 ##########
 
@@ -234,6 +225,10 @@ server = function(input, output) {
         )
         
         plot(input$date_choice)
+    })
+    
+    output$piechart = renderPlotly({
+        
     })
     
 }

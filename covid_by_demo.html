@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>covid_by_demographics</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.9.2.1/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.1.0.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.0.1/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-1.52.2/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-1.52.2/plotly-latest.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="intro.html">Tracker</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Distribution of COVID-19 in NYC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://nyc-neighborhoods-covid.shinyapps.io/distribution_of_covid-19/">Map</a>
+    </li>
+    <li>
+      <a href="covid_by_demo.html">Pie Chart</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="time_trends.html">Time Trend</a>
+</li>
+<li>
+  <a href="https://nyc-neighborhoods-covid.shinyapps.io/demographics/">Demographics</a>
+</li>
+<li>
+  <a href="comorbidity.html">Comorbidity</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">covid_by_demographics</h1>
+
+</div>
+
+
+<div id="by-age" class="section level1">
+<h1>by age</h1>
+<p>258x5</p>
+<pre class="r"><code>data_to_plot = boro_age_case_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+case_map_data = boro_age_case_count %&gt;% 
+  filter(group == &quot;Boroughwide&quot; &amp; day == &quot;2020-06-30&quot;) 
+
+case_map = geo_join(boromap,case_map_data,&quot;boro_name&quot; ,&quot;location&quot;)
+
+pal &lt;- colorNumeric(&quot;Greens&quot;, domain=case_map_data $count)
+    
+    popup_sb &lt;- paste0(&quot;BORO Name: &quot;, as.character(case_map_data$location),
+                       &quot;&lt;br&gt;&quot;, 
+                       &quot;Total Number of Cumulative Positive Cases: &quot;, as.character(case_map_data$count)
+    )
+    
+leaflet() %&gt;%
+        addProviderTiles(&quot;CartoDB.Positron&quot;) %&gt;%
+        setView(lng = -73.99653, lat = 40.75074, zoom = 10) %&gt;% 
+        addPolygons(data =  case_map , 
+                    fillColor = ~pal(case_map_data$count), 
+                    fillOpacity = 0.7, 
+                    weight = 0.2, 
+                    smoothFactor = 0.2, 
+                    popup = ~popup_sb) %&gt;%
+        addLegend(pal = pal, 
+                  values =  case_map_data$count, 
+                  position = &quot;bottomright&quot;, 
+                  title = &quot;Number&quot;)</code></pre>
+<div id="brooklyn-case-count-age-distribution." class="section level3">
+<h3>Brooklyn Case Count Age Distribution.</h3>
+<pre class="r"><code>data_to_plot = boro_age_case_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<pre><code>## Warning: `arrange_()` is deprecated as of dplyr 0.7.0.
+## Please use `arrange()` instead.
+## See vignette(&#39;programming&#39;) for more help
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_warnings()` to see where this warning was generated.</code></pre>
+<div id="htmlwidget-839a338ac5aa6abe8396" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-839a338ac5aa6abe8396">{"x":{"visdat":{"ba84387ce4b":["function () ","plotlyVisDat"]},"cur_data":"ba84387ce4b","attrs":{"ba84387ce4b":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1825,21211,20305,8100,7344],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1825,21211,20305,8100,7344],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="bronx-case-count-age-distribution." class="section level3">
+<h3>Bronx Case Count Age Distribution.</h3>
+<pre class="r"><code>data_to_plot = boro_age_case_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Bronx&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-9ea436a92b970f021b05" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9ea436a92b970f021b05">{"x":{"visdat":{"ba832a328a":["function () ","plotlyVisDat"]},"cur_data":"ba832a328a","attrs":{"ba832a328a":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-hospitalization-count-age-distribution." class="section level3">
+<h3>Brooklyn Hospitalization Count Age Distribution.</h3>
+<pre class="r"><code>data_to_plot2 = boro_age_hosp_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot2$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-7f185aafbcf6b3e24d18" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7f185aafbcf6b3e24d18">{"x":{"visdat":{"ba869f36a3c":["function () ","plotlyVisDat"]},"cur_data":"ba869f36a3c","attrs":{"ba869f36a3c":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-death-count-age-distribution." class="section level3">
+<h3>Brooklyn Death Count Age Distribution.</h3>
+<pre class="r"><code>data_to_plot3 = boro_age_death_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot3$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-5270c5a63a185ad951f3" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5270c5a63a185ad951f3">{"x":{"visdat":{"ba8505b83":["function () ","plotlyVisDat"]},"cur_data":"ba8505b83","attrs":{"ba8505b83":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-case-rate-age-distribution." class="section level3">
+<h3>Brooklyn Case Rate Age Distribution.</h3>
+<pre class="r"><code>data_to_plot4 = boro_age_case_rate %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot4$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-2ddb7fa1b1aefde7d048" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2ddb7fa1b1aefde7d048">{"x":{"visdat":{"ba82fee6641":["function () ","plotlyVisDat"]},"cur_data":"ba82fee6641","attrs":{"ba82fee6641":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-hospitalization-rate-age-distribution." class="section level3">
+<h3>Brooklyn Hospitalization Rate Age Distribution.</h3>
+<pre class="r"><code>data_to_plot5 = boro_age_hosp_rate %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot5$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-f3420a0433b50ab8fadc" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f3420a0433b50ab8fadc">{"x":{"visdat":{"ba8333d029e":["function () ","plotlyVisDat"]},"cur_data":"ba8333d029e","attrs":{"ba8333d029e":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-death-rate-age-distribution." class="section level3">
+<h3>Brooklyn Death Rate Age Distribution.</h3>
+<pre class="r"><code>data_to_plot6 = boro_age_death_rate %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot6$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-660cf35df37b6bf13b61" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-660cf35df37b6bf13b61">{"x":{"visdat":{"ba825d8a4aa":["function () ","plotlyVisDat"]},"cur_data":"ba825d8a4aa","attrs":{"ba825d8a4aa":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="brooklyn-hospitalization-count-age-distribution.-1" class="section level3">
+<h3>Brooklyn Hospitalization Count Age Distribution.</h3>
+<pre class="r"><code>data_to_plot7 = boro_age_hosp_count %&gt;% 
+  filter(day == &quot;2020-06-30&quot; &amp; 
+           location == &quot;Brooklyn&quot; &amp; 
+           group != &quot;Boroughwide&quot;) 
+
+plot_ly(labels = paste0(&quot;Age Group: &quot;, data_to_plot7$group),
+                    values = data_to_plot$count,
+                    type = &quot;pie&quot;,
+                    marker = list(colors = brewer.pal(7,&quot;Blues&quot;)),
+                    sort = FALSE,
+                    opacity=0.8) %&gt;% 
+                layout(legend=list(title=list(text=&#39;&lt;b&gt; Age Group &lt;/b&gt;&#39;),orientation = &#39;h&#39;, 
+                                   xanchor = &quot;center&quot;, 
+                                   x = 0.5, y = -0.5))</code></pre>
+<div id="htmlwidget-3e2554207d78a8fff413" style="width:672px;height:480px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3e2554207d78a8fff413">{"x":{"visdat":{"ba8157f440":["function () ","plotlyVisDat"]},"cur_data":"ba8157f440","attrs":{"ba8157f440":{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"]},"sort":false,"opacity":0.8,"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"pie"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"legend":{"title":{"text":"<b> Age Group <\/b>"},"orientation":"h","xanchor":"center","x":0.5,"y":-0.5},"hovermode":"closest","showlegend":true},"source":"A","config":{"showSendToCloud":false},"data":[{"labels":["Age Group: 0-17","Age Group: 18-44","Age Group: 45-64","Age Group: 65-74","Age Group: 75+"],"values":[1696,17718,17706,5439,4919],"marker":{"color":"rgba(31,119,180,1)","colors":["#EFF3FF","#C6DBEF","#9ECAE1","#6BAED6","#4292C6","#2171B5","#084594"],"line":{"color":"rgba(255,255,255,1)"}},"sort":false,"opacity":0.8,"type":"pie","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<pre class="r"><code>demo_by_age = read.csv(&quot;./distribution_of_covid-19/data/demoage_data.csv&quot;)
+boros1 = rep(c(&quot;Brooklyn&quot;,&quot;Bronx&quot;,&quot;Manhattan&quot;,&quot;Queens&quot;,&quot;Staten Island&quot;),258)
+
+boro_age_case_count = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;CASE_COUNT&quot;)) %&gt;% 
+    mutate(location = boros1)
+
+boro_age_hosp_count = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;HOSPITALIZED_COUNT&quot;)) %&gt;% 
+    mutate(location = boros1)
+
+boro_age_death_count = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;DEATH_COUNT&quot;)) %&gt;% 
+    mutate(location = boros1)
+
+boro_age_case_rate = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;CASE_RATE&quot;)) %&gt;% 
+    mutate(location = boros1)
+
+boro_age_hosp_rate = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;HOSPITALIZED_RATE&quot;)) %&gt;% 
+    mutate(location = boros1)
+
+boro_age_death_rate = demo_by_age %&gt;% 
+    filter(str_detect(location_n_event,&quot;DEATH_RATE&quot;)) %&gt;% 
+    mutate(location = boros1)</code></pre>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
