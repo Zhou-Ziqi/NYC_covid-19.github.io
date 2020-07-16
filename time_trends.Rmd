@@ -41,6 +41,7 @@ y <- rnorm(length(x))
 fig <- plot_ly(x = ~x, y = ~y, mode = 'lines', text = paste(tm, "days from today"))
 ```
 
+## Bronx
 ```{r data, message=FALSE, echo=FALSE, warning=FALSE}
 df.apr = read_csv("data/Aprildata_with_nebhod.csv") %>% 
   rename(day = date) %>% 
@@ -51,7 +52,7 @@ df.apr = read_csv("data/Aprildata_with_nebhod.csv") %>%
   mutate(text_label = str_c(neighborhood_name, "<br>", positive, " commulative cases and ", newcases_apr_day, " new cases in ", MODZCTA)) %>%
   group_by(MODZCTA)
 ```
-
+## Queens
 ```{r plotly, echo=FALSE, warning=FALSE}
 df.apr.bronx = dplyr::filter(df.apr, borough_group == "Bronx")
 plot.apr.bronx = plot_ly(data = df.apr.bronx, x = ~date, y = ~positive, type = "scatter", mode = "lines", text = ~text_label,
