@@ -20,27 +20,34 @@ library(ggthemes)
 library(RColorBrewer)
 
 
-spdf = rgdal::readOGR("data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+spdf = rgdal::readOGR("./data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
-data_by_modzcta = read_csv("data/data-by-modzcta.csv") %>% 
+data_by_modzcta = read_csv("./data/data-by-modzcta.csv") %>% 
     select(1:3) %>% 
     janitor::clean_names() %>% 
     rename(zipcode = modified_zcta)
 
 
-sex_age_raw = read_csv("data/predictor_data/sex_by_age_zipcode_nyc.csv") %>% select(-1)
+sex_age_raw = read_csv("./data/predictor_data/sex_by_age_zipcode_nyc.csv") %>% select(-1)
 sex_age = left_join(sex_age_raw, data_by_modzcta) %>% 
     select(zipcode, neighborhood_name, borough_group, everything())
 
-income_raw = read_csv("data/predictor_data/median_income_nyc.csv") %>% select(-1)
+income_raw = read_csv("./data/predictor_data/median_income_nyc.csv") %>% select(-1)
 income = left_join(income_raw, data_by_modzcta) %>% 
     select(zipcode, neighborhood_name, borough_group, everything())
 
-household_raw = read_csv("data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
+household_raw = read_csv("./data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
 household = left_join(household_raw, data_by_modzcta) %>% 
-    select(zipcode, neighborhood_name, borough_group, everything())
+    select(zipcode, neighborhood_name, borough_group, everything()) %>% 
+    rename(size_2 = person_2,
+           size_1 = person_1,
+           size_3 = person_3,
+           size_4 = person_4,
+           size_5 = person_5,
+           size_6 = person_6,
+           size_7_or_more = person_7_or_more,)
 
-race_raw = read_csv("data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
+race_raw = read_csv("./data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
 race = left_join(race_raw, data_by_modzcta) %>% 
     select(zipcode, neighborhood_name, borough_group, everything())
 
@@ -489,7 +496,7 @@ shinyApp(
             
             house_gp = household %>% 
                 filter(borough_group == which_boro$borough_group) %>% 
-                pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>% 
+                pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>% 
                 group_by(size) %>% 
                 summarise(num = sum(number)) %>% 
                 mutate(size = factor(size)) %>% 
@@ -508,13 +515,13 @@ shinyApp(
         output$household_nbh <- renderPlotly({
             household_nbh = household %>% 
                 filter(neighborhood_name == input$nbhid2) %>%
-                pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
+                pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
                 group_by(neighborhood_name, size) %>% 
                 summarise(num = sum(number)) %>% 
                 mutate(size = factor(size)) %>% 
                 drop_na()
             
-            plot_ly(labels = factor(household_nbh$size, levels = c("person_1", "person_2", "person_3", "person_4", "person_5", "person_6", "person_7_or_more")),
+            plot_ly(labels = factor(household_nbh$size, levels = c("size_1", "size_2", "size_3", "size_4", "size_5", "size_6", "size_7_or_more")),
                     values = household_nbh$num,
                     type = "pie",
                     marker = list(colors = brewer.pal(7,"Blues")),
@@ -525,7 +532,7 @@ shinyApp(
         })
         output$household_nyc <- renderPlotly({
             house_nyc = household %>% 
-                pivot_longer(person_1:person_7_or_more, names_to = "size", values_to = "number") %>%
+                pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
                 group_by(size) %>% 
                 summarise(num = sum(number)) %>% 
                 mutate(size = factor(size)) %>% 
