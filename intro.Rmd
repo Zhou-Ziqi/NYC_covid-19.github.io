@@ -99,13 +99,19 @@ table = data %>%
   rename(Positive = V14,
          Death = V15) %>% 
   select(modified_zcta, neighborhood_name,borough_group,Positive,Death) %>%
+  rename(MOZCTA = modified_zcta,
+         "Neighborhood Name" = neighborhood_name,
+         "Borough Name" = borough_group)
   arrange(modified_zcta)
 
 knitr::kable(table,align = "ccccc",
              caption = "data update by 2020-07-11") 
-  
-
 
 ```
+
+
+
+
+
 
 data update by 2020-07-11

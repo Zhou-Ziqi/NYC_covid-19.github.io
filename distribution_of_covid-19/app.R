@@ -193,13 +193,28 @@ ui =  fluidPage(
             
             radioButtons(inputId = "outcome_selection",
                          label =  "Outcome:",   
-                         c("Cumulative Cases Count" = "positive", 
+                         c("Cumulative Cases Count" = "positive",
+                           "Positive Cases Rate (per 100,000 people)" = "case_count", 
                            "Death Count" = "death_count", 
-                           "Positive Cases Rate" = "case_count", 
-                           "Death Rate" = "death_rate",
+                           "Death Rate (per 100,000 people)" = "death_rate",
                            "New cases" = "newcase")
-                         
-            )),
+                         ),
+            
+            helpText("Cumulative Case Count is the count of confirmed cases."),
+            helpText("Positive Case Rate is the rate of confirmed cases per 100,000 people by ZCTA."),
+            helpText("Population denominators for ZCTAs derived from intercensal estimates by the Bureau of Epidemiology Services"),
+            helpText("Death Count is the count of confirmed deaths"),
+            helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA"),
+            helpText("Rates per 100,000 people"),
+            helpText("Rates for annual citywide-, borough-, ZCTA (ZIP Code Tabulation Area)-, and demographic-specific categories were calculated using interpolated intercensal population estimates updated in 2019. These rates differ from previously reported rates based on the 2000 Census or previous versions of population estimates. The Health Department produced these population estimates based on estimates from the U.S. Census Bureau and NYC Department of City Planning.
+           ")
+            
+           
+            
+            
+            
+            
+            ),
         
         
         mainPanel(leafletOutput(outputId = "map",width="100%",height="600px"))
