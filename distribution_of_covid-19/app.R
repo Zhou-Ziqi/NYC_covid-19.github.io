@@ -181,7 +181,7 @@ ui =  fluidPage(
     
     sidebarLayout(
         sidebarPanel(
-            helpText("Create maps for the distribution of Cumulative Positive cases in NYC."),
+            helpText("Create maps for the distribution of COVID-19 in NYC."),
             
             dateInput(
                 inputId = "date_choice", 
