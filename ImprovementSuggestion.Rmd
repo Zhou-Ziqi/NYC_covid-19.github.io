@@ -13,7 +13,7 @@ output: pdf_document
 
 3. Write the description of the outcome in the covid map. Make it clear! (done)(but maybe need some improve)
 
-4. Write the descriptive part in the distribution of covid-19 map!!!!
+4. Write the descriptive part in the distribution of covid-19 map!!!! (done but it is ugly; waiting for make it look good.)
 
 ```{r}
 library(tidyverse)
@@ -57,6 +57,9 @@ tab1 = table1(~ positive + covid_case_rate + covid_death_count + covid_death_rat
 11. Write the introduction of the website.
 
 12. Combine all the things into one website!!
+
+
+
 
 # What makes our website special?
 
