@@ -56,8 +56,8 @@ ui <- fluidPage(
   helpText("input the zipcode you interested in in the search box"),
   # Sidebar with a slider input for number of bins 
   fluidRow(
-    
-    DT::dataTableOutput("table")
+    h4("Some word to describe the table"),
+   column(width = 10, align="center",DT::dataTableOutput("table"))
   )
   
 )
