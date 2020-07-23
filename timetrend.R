@@ -146,7 +146,8 @@ shinyApp(
                 y = ~positive,
                 type="scatter",
                 mode = 'lines+markers',
-                color= ~zipcode) %>% 
+                color= ~zipcode,
+                linetype = ~zipcode) %>% 
         layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
                xaxis = list(
                  type = "date",
@@ -163,7 +164,8 @@ shinyApp(
                 y = ~covid_death_count,
                 type="scatter",
                 mode = 'lines+markers',
-                color= ~zipcode) %>% 
+                color= ~zipcode,
+                linetype = ~zipcode) %>% 
         layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
                xaxis = list(
                  type = "date",
@@ -178,7 +180,8 @@ shinyApp(
                 y = ~covid_case_rate,
                 type="scatter",
                 mode = 'lines+markers',
-                color= ~zipcode) %>% 
+                color= ~zipcode,
+                linetype = ~zipcode) %>% 
         layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
                xaxis = list(
                  type = "date",
@@ -192,7 +195,8 @@ shinyApp(
                 y = ~covid_death_rate,
                 type="scatter",
                 mode = 'lines+markers',
-                color= ~zipcode) %>% 
+                color= ~zipcode,
+                linetype = ~zipcode) %>% 
         layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
                xaxis = list(
                  type = "date",
@@ -207,7 +211,8 @@ shinyApp(
                 y = ~new_cases,
                 type="scatter",
                 mode = 'lines+markers',
-                color= ~zipcode) %>% 
+                color= ~zipcode,
+                linetype = ~zipcode) %>% 
         layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
                xaxis = list(
                  type = "date",
