@@ -1,13 +1,14 @@
 library(sp)
 library(tmap)  
 library(tidyverse)
-library(readxl)
 library(viridis)
 library(leaflet)
 library(tigris)
 library(plotly)
 library(shinyWidgets)
 library(shiny)
+library(table1)
+library(htmlTable)
 
 #get data
 spdf = rgdal::readOGR("./data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
@@ -20,7 +21,6 @@ date = Junedata %>% distinct(day) %>% pull()
 
 
 choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Death Rate","New cases")
-
 
 
 ### write the functions to draw the map
@@ -181,7 +181,7 @@ ui =  fluidPage(
     
     sidebarLayout(
         sidebarPanel(
-            helpText("Create maps for the distribution of Cumulative Positive cases in NYC."),
+            helpText("Create maps for the distribution of COVID-19 in NYC."),
             
             dateInput(
                 inputId = "date_choice", 
@@ -193,25 +193,43 @@ ui =  fluidPage(
             
             radioButtons(inputId = "outcome_selection",
                          label =  "Outcome:",   
-                         c("Cumulative Cases Count" = "positive", 
+                         c("Cumulative Cases Count" = "positive",
+                           "Positive Cases Rate (per 100,000 people)" = "case_count", 
                            "Death Count" = "death_count", 
-                           "Positive Cases Rate" = "case_count", 
-                           "Death Rate" = "death_rate",
+                           "Death Rate (per 100,000 people)" = "death_rate",
                            "New cases" = "newcase")
-                         
-            )),
+                         ),
+            
+            helpText("Cumulative Case Count is the count of confirmed cases."),
+            helpText("Positive Case Rate is the rate of confirmed cases per 100,000 people by ZCTA."),
+            helpText("Population denominators for ZCTAs derived from intercensal estimates by the Bureau of Epidemiology Services"),
+            helpText("Death Count is the count of confirmed deaths"),
+            helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA"),
+            helpText("Rates per 100,000 people"),
+            helpText("Rates for annual citywide-, borough-, ZCTA (ZIP Code Tabulation Area)-, and demographic-specific categories were calculated using interpolated intercensal population estimates updated in 2019. These rates differ from previously reported rates based on the 2000 Census or previous versions of population estimates. The Health Department produced these population estimates based on estimates from the U.S. Census Bureau and NYC Department of City Planning.
+           ")
+            
+           
+            
+            
+            
+            
+            ),
         
         
-        mainPanel(leafletOutput(outputId = "map",width="100%",height="600px"))
+        mainPanel(
+            fluidRow(column(12,
+                            leafletOutput(outputId = "map",width="100%",height="600px")),
+                     column(12,
+                            tableOutput(outputId = "descriptive"))
+        )
         
-    ))
+    )))
 
 
 ###### server
 
 server = function(input, output) {
-    
-    
     
     
     output$map = renderLeaflet({
@@ -227,16 +245,26 @@ server = function(input, output) {
         plot(input$date_choice)
     })
     
-    output$piechart = renderPlotly({
+    
+    
+   
+    output$descriptive = renderText({
+        data = Junedata[as.character(Junedata$day) %in% as.character(input$date_choice),]
+        data$borough_group <- as.factor(data$borough_group)
         
-    })
+        table1 = table1(~ positive + covid_case_rate + covid_death_count + covid_death_rate | borough_group ,
+                        data = data,
+                        total = FALSE,
+                        
+                        footnote = paste0("date: ",data$day[1]),
+                        transpose = FALSE)
+        
+
+        return(table1)
+        
+        })
     
 }
-
-
-
-
-
 
 
 shinyApp(ui, server)
