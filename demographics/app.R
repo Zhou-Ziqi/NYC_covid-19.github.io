@@ -82,7 +82,7 @@ shinyApp(
                                                         "Race" = "race",
                                                         "Income" = "income",
                                                         "Household Size" = "house"))),
-            column(width = 5, "this part will have some instructions"),
+            column(width = 5, "this part will have some instructions")
         ),
         hr(),
         
