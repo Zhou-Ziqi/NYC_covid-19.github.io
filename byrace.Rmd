@@ -450,6 +450,12 @@ BYRACE = byage
 
 
 ```{r,include=FALSE,message=FALSE,warning=FALSE}
+
+BYRACE = BYRACE %>% separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
 write_csv(BYRACE,"./distribution_of_covid-19/data/BYRACE_demoage_data.csv")
 ```
 

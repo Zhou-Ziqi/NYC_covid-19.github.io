@@ -194,18 +194,18 @@ ui =  fluidPage(
             radioButtons(inputId = "outcome_selection",
                          label =  "Outcome:",   
                          c("Cumulative Cases Count" = "positive",
-                           "Positive Cases Rate (per 100,000 people)" = "case_count", 
+                           "Positive Cases Rate (per 100,000 people)" = "case_rate", 
                            "Death Count" = "death_count", 
                            "Death Rate (per 100,000 people)" = "death_rate",
                            "New cases" = "newcase")
                          ),
             
-            helpText("Cumulative Case Count is the count of confirmed cases."),
+            helpText("Cumulative Case Count is the count of confirmed cases since the first case occured in NYC."),
             helpText("Positive Case Rate is the rate of confirmed cases per 100,000 people by ZCTA."),
             helpText("Population denominators for ZCTAs derived from intercensal estimates by the Bureau of Epidemiology Services"),
             helpText("Death Count is the count of confirmed deaths"),
             helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA"),
-            helpText("Rates per 100,000 people"),
+        
             helpText("Rates for annual citywide-, borough-, ZCTA (ZIP Code Tabulation Area)-, and demographic-specific categories were calculated using interpolated intercensal population estimates updated in 2019. These rates differ from previously reported rates based on the 2000 Census or previous versions of population estimates. The Health Department produced these population estimates based on estimates from the U.S. Census Bureau and NYC Department of City Planning.
            ")
             
@@ -220,6 +220,7 @@ ui =  fluidPage(
         mainPanel(
             fluidRow(column(12,
                             leafletOutput(outputId = "map",width="100%",height="600px")),
+                    
                      column(12,
                             tableOutput(outputId = "descriptive"))
         )
@@ -237,7 +238,7 @@ server = function(input, output) {
         plot = switch (input$outcome_selection,
                        positive = positive,
                        death_count = death_count,
-                       case_count = case_rate,
+                       case_rate = case_rate,
                        death_rate = death_rate,
                        newcase = newcase
         )
@@ -256,7 +257,7 @@ server = function(input, output) {
                         data = data,
                         total = FALSE,
                         
-                        footnote = paste0("date: ",data$day[1]),
+                        caption = paste0("date: ",data$day[1]),
                         transpose = FALSE)
         
 

@@ -42,6 +42,8 @@ tab1 = table1(~ positive + covid_case_rate + covid_death_count + covid_death_rat
 
 4. Make the plot of the time trends of the cases by demographics(sex; age; race)
 
+Add the policy time line in the plot
+
 5. Make the "Description of COVID-19" in one page.
 
 6. ?Maybe we could put the time trend near the map page? but we already have our own website structure.

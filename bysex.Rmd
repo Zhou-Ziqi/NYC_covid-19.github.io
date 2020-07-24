@@ -456,6 +456,11 @@ bysex = rbind(bysex,bysex0712)
 bysex = rbind(bysex,bysex0713)
 bysex = rbind(bysex,bysex0714)
 
+bysex = bysex %>% separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
 write_csv(bysex,"./distribution_of_covid-19/data/demoage_data_sex.csv")
 ```
 

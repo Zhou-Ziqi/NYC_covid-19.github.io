@@ -462,54 +462,72 @@ byage = rbind(byage,byage0711)
 byage = rbind(byage,byage0712)
 byage = rbind(byage,byage0713)
 byage = rbind(byage,byage0714)
-write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
 ```
 
 
 ```{r,include=FALSE,message=FALSE,warning=FALSE}
-boro_age_case_count = byage %>% 
-  filter(str_detect(location_n_event,"CASE_COUNT"))
+byage = byage %>% separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
 
-boro_age_hosp_count = byage %>% 
-  filter(str_detect(location_n_event,"HOSPITALIZED_COUNT"))
+#write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
+```
 
-boro_age_death_count = byage %>% 
-  filter(str_detect(location_n_event,"DEATH_COUNT"))
+### Rate per 100,000 people
 
-boro_age_case_rate = byage %>% 
-  filter(str_detect(location_n_event,"CASE_RATE"))
+```{r,include=FALSE,message=FALSE,warning=FALSE}
 
-boro_age_hosp_rate = byage %>% 
-  filter(str_detect(location_n_event,"HOSPITALIZED_RATE"))
 
-boro_age_death_rate = byage %>% 
-  filter(str_detect(location_n_event,"DEATH_RATE"))
+
+#boro_age_hosp_count = byage %>% 
+#  filter(str_detect(location_n_event,"HOSPITALIZED_COUNT"))
+
 
 ```
 
 ```{r, include=FALSE}
-boromap = rgdal::readOGR("./Geography-resources/Borough Boundaries.geojson")
-boromap@data
+#boromap = rgdal::readOGR("./Geography-resources/Borough Boundaries.geojson")
+#boromap@data
 ```
 
-258x5
+342x5
 
-```{r,include=FALSE,message=FALSE,warning=FALSE}
-boros = rep(c("Brooklyn","Bronx","Manhattan","Queens","Staten Island"),258)
 
-boro_age_case_count = boro_age_case_count %>% 
-  mutate(location = boros)
-boro_age_hosp_count = boro_age_hosp_count%>% 
-  mutate(location = boros)
-boro_age_death_count = boro_age_death_count%>% 
-  mutate(location = boros)
-boro_age_case_rate = boro_age_case_rate%>% 
-  mutate(location = boros)
-boro_age_hosp_rate = boro_age_hosp_rate%>% 
-  mutate(location = boros)
-boro_age_death_rate = boro_age_death_rate%>% 
-  mutate(location = boros)
+
+
+Bar chart ; pie chart; Time trend
+### Bar chart
+
+```{r}
+a = byage %>% filter(day == "2020-05-18" & group != "Boroughwide") %>% 
+  ggplot(aes(fill = group, y = count, x = location)) + 
+  geom_bar(position="dodge", stat="identity")
+
+ggplotly(a)
 ```
+
+
+```{r}
+b = boro_age_death_rate %>% filter(day == "2020-05-18" & group != "Boroughwide") %>% 
+  ggplot(aes(fill = group, y = count, x = location)) + 
+  geom_bar(position="stack", stat="identity")
+
+library(patchwork)
+a+b
+ggplotly(b)
+```
+### Time trend
+```{r}
+c = boro_age_death_rate %>% 
+  filter(group == "18-44") %>% 
+  ggplot(aes(x = day, y = count ,color = location)) + 
+  geom_line()
+
+ggplotly(c)
+```
+
+
 
 ```{r, eval = FALSE}
 data_to_plot = boro_age_case_count %>% 
@@ -544,18 +562,23 @@ leaflet() %>%
                   title = "Number")
 ```
 
+
+
+
+
+
 ```{r}
 ```
 
 ### Brooklyn Case Count Age Distribution.
 ```{r}
-data_to_plot = boro_age_case_count %>% 
+data_to_plot = byage %>% 
   filter(day == "2020-06-30" & 
-           location == "Brooklyn" & 
-           group != "Boroughwide") 
+           boro == "BK" & 
+           group != "Boroughwide" &
+           outcome =="CASE_COUNT") 
 
-
-plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
+a = plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
                     values = data_to_plot$count,
                     type = "pie",
                     marker = list(colors = brewer.pal(7,"Blues")),
@@ -563,18 +586,20 @@ plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
                     opacity=0.8) %>% 
                 layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
                                    xanchor = "center", 
-                                   x = 0.5, y = -0.5))
+                                   x = 0.5, y = -0.5),
+                       title = "Brooklyn" )
 ```
 
 ### Bronx Case Count Age Distribution.
 
 ```{r}
-data_to_plot = boro_age_case_count %>% 
+data_to_plot = byage %>% 
   filter(day == "2020-06-30" & 
-           location == "Bronx" & 
-           group != "Boroughwide") 
+           boro == "BX" & 
+           group != "Boroughwide" &
+           outcome == "CASE_COUNT") 
 
-plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
+b = plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
                     values = data_to_plot$count,
                     type = "pie",
                     marker = list(colors = brewer.pal(7,"Blues")),
@@ -583,6 +608,21 @@ plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
                 layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
                                    xanchor = "center", 
                                    x = 0.5, y = -0.5))
+
+subplot(a,b)
+
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = count(diamonds, cut), labels = ~cut, values = ~n,
+          name = "Cut", domain = list(x = c(0, 0.4), y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(diamonds, color), labels = ~color, values = ~n,
+          name = "Color", domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+fig <- fig %>% add_pie(data = count(diamonds, clarity), labels = ~clarity, values = ~n,
+          name = "Clarity", domain = list(x = c(0.25, 0.75), y = c(0, 0.6)))
+fig <- fig %>% layout(title = "Pie Charts with Subplots", showlegend = F,
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+fig
 ```
 
 

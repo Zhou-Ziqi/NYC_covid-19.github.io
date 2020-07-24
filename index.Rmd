@@ -14,17 +14,60 @@ output: html_document
 
 ### About the COVID-19
 
+
 ### About the policy timeline of New York City
+
+https://en.wikipedia.org/wiki/COVID-19_pandemic_in_New_York_(state)
+
+March 1st: Gov. Andrew Cuomo on Sunday confirmed the first case of COVID-19 in New York City.
+
+On March 7, Governor Andrew Cuomo declared a state of emergency
+
+A number of schools and school districts announced closings or schedule modifications by March 8 due to the virus. Additionally, all school trips were canceled for those in New York City.
+
+On March 12, Cuomo announced restrictions on mass gatherings, directing events with more than 500 people to be cancelled or postponed and any gathering with fewer than 500 people to cut capacity by 50 percent. In addition, only medically necessary visits would be allowed at nursing homes.[82]
+
+Cuomo announced that all Broadway theaters had been ordered to shut down at 5 p.m. that day, and that public gatherings in congregate spaces with more than 500 people were prohibited beginning 5 p.m. the following day. The legal capacity of any venue with a capacity of 500 people or fewer was also reduced by half to discourage large gatherings
+
+A field hospital begins operations in the Javits Center, March 30, 2020.
+
+On March 30, the U.S. Navy medical ship USNS Comfort arrived in New York City to assist with non-COVID operations, relieving land hospitals to stop the city's growing COVID-19 pandemic.[123]
+
+On April 15, Cuomo signed an executive order requiring all New York State residents to wear face masks or coverings in public places where social distancing is not possible
+
+On May 26, the Hudson Valley region began Phase 1 of reopening, followed by Long Island on May 27.[citation needed]
+
+On June 8, the New York City region partially reopened with Phase 1 after meeting seven conditions of the PAUSE order, which had been put in place three months earlier.[144]
+
+Cuomo announced that New York City is on track to enter Phase 2 of reopening on June 22.
+
 
 ### About the asthma
 
 ### About the zip code of New York City
 
+"A ZIP Code doesn’t actually refer to an area, but rather a collection of points that make up a mail delivery route. Furthermore, there are some buildings that have their own ZIP Code, and some non-residential areas with ZIP Codes. To deal with the challenges of ZIP Codes, the Health Department uses ZCTAs which solidify ZIP codes into units of area. Often, data reported by ZIP code are actually mapped by ZCTA. The ZCTA geography was developed by the U.S. Census Bureau.
+
+Modified ZCTA combines census blocks with smaller populations to allow more stable estimates of population size for rate calculation."
+
+
 ### NTA
+
+Neighborhood names represent the Neighborhood Organizing Census Committee boundaries(https://www1.nyc.gov/site/census/index.page), which were recently developed by the U.S. Census Bureau with input from community groups.
+
 
 ### Median Income of New York City at NTA level
 
+2010 Census
+
 ### Demographic of different boroughs in the New York City
 
+2010 Census
 
+
+### Data Sources
+
+1. Data on Coronavirus Disease 2019 (COVID-19) in New York City,
+
+https://github.com/nychealth/coronavirus-data
 
