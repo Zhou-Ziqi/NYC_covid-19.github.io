@@ -137,7 +137,7 @@ shinyApp(
                 column(width = 3,
                        sidebarPanel(width = 12,
                                     selectInput("nbhid2", 
-                                                label = "Choose a Neibourhood", 
+                                                label = "Choose a Neighborhood", 
                                                 choices =nbh_name, 
                                                 selected = NULL))),
                 column(width = 9, h4("some words to describe the pie chart"))),

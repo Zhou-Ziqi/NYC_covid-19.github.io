@@ -73,11 +73,7 @@ ui =  fluidPage(
           h4(),
           #column(width = 4, plotlyOutput(outputId = "piechart_age_SI")),
           #column(width = 4, plotlyOutput(outputId = "piechart_age_QN")),
-          column(width = 12, plotlyOutput(outputId = "Barchart_age")),
-          column(width = 9, selectInput("group", 
-                                        label = "Choose an age group", 
-                                        choices =group_age))),
-          column(width = 12, plotlyOutput(outputId = "timetrend_age"))),
+          column(width = 12, plotlyOutput(outputId = "Barchart_age"))),
           
        
        
@@ -104,8 +100,7 @@ ui =  fluidPage(
         h4(),
         column(width = 3, plotlyOutput(outputId = "piechart_sex_SI")),
         column(width = 3, plotlyOutput(outputId = "piechart_sex_QN")),
-        column(width = 12, plotlyOutput(outputId = "Barchart_sex")),
-        column(width = 12, plotlyOutput(outputId = "timetrend_sex")))
+        column(width = 12, plotlyOutput(outputId = "Barchart_sex")))
       
       
       
@@ -130,8 +125,7 @@ ui =  fluidPage(
       h4(),
       column(width = 3, plotlyOutput(outputId = "piechart_race_SI")),
       column(width = 3, plotlyOutput(outputId = "piechart_race_QN")),
-      column(width = 12, plotlyOutput(outputId = "Barchart_race")),
-      column(width = 12, plotlyOutput(outputId = "timetrend_race")))
+      column(width = 12, plotlyOutput(outputId = "Barchart_race")))
     
     
     
@@ -289,18 +283,7 @@ server = function(input, output) {
     })
     
     
-    output$timetrend_age = renderPlotly({
-      
-      b = byage %>% 
-        filter(outcome == input$outcome_age &
-                 group != "Boroughwide" 
-                 ) %>% 
-        filter(group == as.character(input$group)) %>% 
-        ggplot(aes(x = day, y = count ,color = boro)) + 
-        geom_line()
-      
-      ggplotly(b)
-    })
+   
     
     ######
     output$piechart_sex_MN = renderPlotly({

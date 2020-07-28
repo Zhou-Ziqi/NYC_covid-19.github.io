@@ -1,5 +1,4 @@
 # Recently COVID-19 in NYC tracker
-
 library(tidyverse)
 library(shiny)
 library(DT)
@@ -15,6 +14,7 @@ library(shinyWidgets)
 library(table1)
 library(htmlTable)
 
+library(flexdashboard)
 
 ##read data
 
@@ -77,6 +77,24 @@ data_to_plot = data %>%
 spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
 choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Death Rate","New cases")
+
+
+
+######
+#demographics
+byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") 
+
+byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv")
+
+bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv")
+
+
+# Define UI for application that draws plot
+
+outcome_age = byage %>% distinct(outcome) %>% pull()
+outcome_race = byrace %>% distinct(outcome) %>% pull()
+outcome_sex = bysex %>% distinct(outcome) %>% pull()
+
 
 ### write the functions to draw the map
 ###positive
@@ -231,11 +249,15 @@ newcase = function(date){
 
 
 ## ui
-ui <- tagList(
-  #shinythemes::themeSelector(),
+ui <- #shinythemes::themeSelector(),
   navbarPage(
-    theme = "cosmo",
-    "COVID-19",
+    
+    title = div(img(src='logo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 60)),
+    windowTitle = "NYC covid-19 dashboard",
+    id = 'menus',
+    tabPanel('Home',
+             shinyjs::useShinyjs()),
+
   
   tabPanel(
   # Application title
@@ -249,50 +271,93 @@ ui <- tagList(
   )
   ),
   
-  tabPanel(title = "Distribution of COVID-19 at zipcode level",
-  sidebarLayout(
-    sidebarPanel(
+  tabPanel(
+    title = "Distribution of COVID-19 at zipcode level",
+    h2("If here needs a title"),
+    fluidRow(column(12, "This part is for instructions")),
+        
+    sidebarLayout(
+      sidebarPanel(
+      helpText("Create maps for the distribution of COVID-19 in NYC."),
+      radioButtons(inputId = "outcome_selection",
+                                    label =  "Outcome:",   
+                                    c("Cumulative Cases Count" = "positive",
+                                      "Positive Cases Rate (per 100,000 people)" = "case_rate", 
+                                      "Death Count" = "death_count", 
+                                      "Death Rate (per 100,000 people)" = "death_rate",
+                                      "New cases" = "newcase")),
+      
+      
       helpText("Create maps for the distribution of COVID-19 in NYC."),
       helpText("data update by 2020-07-23"),
-      radioButtons(inputId = "outcome_selection",
-                   label =  "Outcome:",   
-                   c("Cumulative Cases Count" = "positive",
-                     "Positive Cases Rate (per 100,000 people)" = "case_rate", 
-                     "Death Count" = "death_count", 
-                     "Death Rate (per 100,000 people)" = "death_rate",
-                     "New cases" = "newcase")
-      ),
+      
       
       helpText("Cumulative Case Count is the count of confirmed cases since the first case occured in NYC."),
       helpText("Positive Case Rate is the rate of confirmed cases per 100,000 people by ZCTA."),
       helpText("Population denominators for ZCTAs derived from intercensal estimates by the Bureau of Epidemiology Services"),
       helpText("Death Count is the count of confirmed deaths"),
-      helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA")
+      helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA"))
+    
+      ,
       
+      mainPanel(fluidRow(column(12,leafletOutput(outputId = "map",width="95%",height="550px"))))
       
+      ),
       
-      
-      
-      
-      
-      
+    h3(),
+    fluidPage(column(12,
+                      tableOutput(outputId = "descriptive")),
+              column(4, 
+                     selectInput("outcome_age", 
+                                 label = "Choose an Outcome", 
+                                 choices = outcome_age
+                     )),
+              column(12,
+                      plotlyOutput(outputId = "piechart_age")),
+              br(),
+              column(12,
+                      plotlyOutput(outputId = "barchart_age", width = "100%")),
+              column(12, 
+                     helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
+            
+              column(4, 
+                     selectInput("outcome_sex", 
+                                 label = "Choose an Outcome", 
+                                 choices = outcome_sex
+                     )),
+              column(12,plotlyOutput(outputId = "piechart_sex")),
+              column(12,
+                      plotlyOutput(outputId = "barchart_sex", width = "100%")),
+              
+              column(12,
+                     helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
+              
+              column(4, 
+                     selectInput("outcome_race", 
+                                 label = "Choose an Outcome", 
+                                 choices = outcome_race
+                     )),
+              column(12,plotlyOutput(outputId = "piechart_race")),
+              column(12,
+                      plotlyOutput(outputId = "barchart_race", width = "100%")),
+              column(12,
+                     helpText(paste0("Race data updated by ",as.character(max(byrace$day)))))
+      )
     ),
-    
-    
-    mainPanel(
-      fluidRow(column(12,
-                      leafletOutput(outputId = "map",width="100%",height="600px")),
-               
-               column(12,
-                      tableOutput(outputId = "descriptive"))
-      ))))
       
+  tabPanel("Distribution"),
+  tabPanel("Time Trend"),
+  tabPanel("Demographics"),
+  tabPanel("Comorbidity"),
+  tabPanel("About")
   
-))
+)
 
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  shinyjs::addClass(id = "menus", class = "navbar-right")
   
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
@@ -312,6 +377,155 @@ server <- function(input, output) {
     plot(input$date_choice)
   })
   
+  output$barchart_age = renderPlotly({
+    
+    a =  byage %>% filter(day == max(byage$day) & group != "Boroughwide") %>% 
+      ggplot(aes(fill = group, y = count, x = boro)) + 
+      geom_bar(position="stack", stat="identity") + 
+      facet_grid(~outcome)
+    
+    ggplotly(a)
+    
+  })
+  
+  output$barchart_sex = renderPlotly({
+    
+    b =  bysex %>%filter(day == max(bysex$day) & group != "Boroughwide") %>% 
+      ggplot(aes(fill = group, y = count, x = boro)) + 
+      geom_bar(position="stack", stat="identity") + 
+      facet_grid(~outcome)
+    
+    ggplotly(b)
+  })
+  
+  
+  output$barchart_race = renderPlotly({
+    
+    c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
+      ggplot(aes(fill = group, y = count, x = boro)) + 
+      geom_bar(position="stack", stat="identity") + 
+      facet_grid(~outcome)
+    
+    ggplotly(c)
+  })
+  
+  output$piechart_age = renderPlotly({
+    
+    pie1data = byage %>% 
+      filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+    pie2data = byage %>% 
+      filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+    pie3data = byage %>% 
+      filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+    pie4data = byage %>% 
+      filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+    pie5data = byage %>% 
+      filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+    
+    fig <- plot_ly()
+    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
+                           labels = ~paste0("Age Group: ", pie1data$group), values = ~count,
+                           name =  pie1data$boro, domain = list(row = 0, column = 0))
+    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
+                           labels = ~paste0("Age Group: ", pie2data$group), values = ~count,
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
+    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
+                           labels = ~paste0("Age Group: ", pie3data$group), values = ~count,
+                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
+                           labels = ~paste0("Age Group: ", pie4data$group), 
+                           values = ~count,
+                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
+                           labels = ~paste0("Age Group: ", pie5data$group), 
+                           values = ~count,
+                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    fig <- fig %>% layout(title = "Age Group Pie Chart", showlegend = T,
+                          grid=list(rows=1, columns=5),
+                          xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+    
+    fig
+  })
+  
+  output$piechart_sex = renderPlotly({
+    
+    pie1data = bysex %>% 
+      filter(boro == "BX"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    pie2data = bysex %>% 
+      filter(boro == "MN"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    pie3data = bysex %>% 
+      filter(boro == "BK"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    pie4data = bysex %>% 
+      filter(boro == "QN"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    pie5data = bysex %>% 
+      filter(boro == "SI"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    
+    fig <- plot_ly()
+    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
+                           labels = ~paste0("Gender: ", pie1data$group), values = ~count,
+                           name =  pie1data$boro, domain = list(row = 0, column = 0))
+    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
+                           labels = ~paste0("Gender: ", pie2data$group), values = ~count,
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
+    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
+                           labels = ~paste0("Gender: ", pie3data$group), values = ~count,
+                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
+                           labels = ~paste0("Gender: ", pie4data$group), 
+                           values = ~count,
+                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
+                           labels = ~paste0("Gender: ", pie5data$group), 
+                           values = ~count,
+                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    fig <- fig %>% layout(title = "Gender Group Pie Charts", showlegend = T,
+                          grid=list(rows=1, columns=5),
+                          xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+    
+    fig
+  })
+  
+  
+  output$piechart_race = renderPlotly({
+    
+    pie1data = byrace %>% 
+      filter(boro == "BX"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    pie2data = byrace %>% 
+      filter(boro == "MN"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    pie3data = byrace %>% 
+      filter(boro == "BK"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    pie4data = byrace %>% 
+      filter(boro == "QN"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    pie5data = byrace %>% 
+      filter(boro == "SI"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    
+    fig <- plot_ly()
+    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
+                           labels = ~paste0("Race: ", pie1data$group), values = ~count,
+                           name =  pie1data$boro, domain = list(row = 0, column = 0))
+    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
+                           labels = ~paste0("Race: ", pie2data$group), values = ~count,
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
+    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
+                           labels = ~paste0("Race: ", pie3data$group), values = ~count,
+                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
+                           labels = ~paste0("Race: ", pie4data$group), 
+                           values = ~count,
+                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
+                           labels = ~paste0("Race: ", pie5data$group), 
+                           values = ~count,
+                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    fig <- fig %>% layout(title = "Race Group Pie Charts", showlegend = T,
+                          grid=list(rows=1, columns=5),
+                          xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+    
+    fig
+  })
   
 }
 
