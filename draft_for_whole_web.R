@@ -17,6 +17,7 @@ library(table1)
 library(htmlTable)
 
 library(flexdashboard)
+library(RColorBrewer)
 
 ##read data
 
@@ -96,6 +97,10 @@ bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv")
 outcome_age = byage %>% distinct(outcome) %>% pull()
 outcome_race = byrace %>% distinct(outcome) %>% pull()
 outcome_sex = bysex %>% distinct(outcome) %>% pull()
+#for time trend
+outcome_age_tt = byage %>% distinct(outcome) %>% pull()
+outcome_race_tt = byrace %>% distinct(outcome) %>% pull()
+outcome_sex_tt = bysex %>% distinct(outcome) %>% pull()
 
 
 data_by_modzcta = read_csv("./data/data-by-modzcta.csv") %>% 
@@ -534,9 +539,9 @@ ui <- navbarPage(
                conditionalPanel(
                  condition = "input.character_by_demo == 'age'",
                  fluidRow(column(width = 12,
-                                   selectInput("outcome_age",
+                                   selectInput("outcome_age_tt",
                                       label = "Choose an outcome",
-                                      choices = outcome_age)),
+                                      choices = outcome_age_tt)),
                           column(width = 12,
                                    plotlyOutput("timetrend_age", width="100%",height="500px"))
                           )),
@@ -545,9 +550,9 @@ ui <- navbarPage(
                  condition = "input.character_by_demo == 'sex'",
                  fluidRow(
                    column(width = 12,
-                          selectInput("outcome_sex",
+                          selectInput("outcome_sex_tt",
                                       label = "Choose an outcome",
-                                      choices = outcome_sex)),
+                                      choices = outcome_sex_tt)),
                    column(width = 12,
                           plotlyOutput("timetrend_sex", width="100%",height="500px"))
                  )),
@@ -556,9 +561,9 @@ ui <- navbarPage(
                  condition = "input.character_by_demo == 'race'",
                  fluidRow(
                    column(width = 12,
-                          selectInput("outcome_race",
+                          selectInput("outcome_race_tt",
                                       label = "Choose an outcome",
-                                      choices = outcome_race)),
+                                      choices = outcome_race_tt)),
                    column(width = 12,
                           plotlyOutput("timetrend_race", width="100%",height="500px"))
                  ))
@@ -1229,7 +1234,7 @@ server <- function(input, output) {
   #### Time Trend
   output$timetrend_age = renderPlotly({
     a = byage %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      filter(group != "Boroughwide" & outcome == input$outcome_age_tt) %>% 
       filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
                day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
@@ -1241,7 +1246,7 @@ server <- function(input, output) {
   })
   output$timetrend_sex = renderPlotly({
     a = bysex %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_sex) %>% 
+      filter(group != "Boroughwide" & outcome == input$outcome_sex_tt)%>% 
       filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
                day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
@@ -1253,7 +1258,7 @@ server <- function(input, output) {
   })
   output$timetrend_race = renderPlotly({
     a = byrace %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_race) %>% 
+      filter(group != "Boroughwide" & outcome == input$outcome_race_tt) %>% 
       filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
                day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
