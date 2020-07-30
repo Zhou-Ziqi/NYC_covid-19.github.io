@@ -64,7 +64,7 @@ data_to_table = data %>%
          "Borough"= borough_group,
          "Cumulative Positive Case Count" = covid_case_count,
          "Cumulative Death Count" = covid_death_count,
-         "Incidence Rate" = incidence_rate)
+         "Incidence Rate (Per 100,000 people)" = incidence_rate)
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
@@ -344,18 +344,18 @@ ui <- navbarPage(
     
     tabPanel(
       # Application title
-      title= "Tracker of COVID-19 in NYC",
+      title= "COVID Tracker",
       helpText("data update by 2020-07-23"),
       helpText("input the zipcode you interested in in the search box"),
       # Sidebar with a slider input for number of bins 
       fluidRow(
-        h4("Some word to describe the table"),
-        column(width = 10, align="center",DT::dataTableOutput("table"))
+        column(width = 12, offset = 1, h4("Some word to describe the table")),
+        column(width = 10, offset = 1, align="center",DT::dataTableOutput("table"))
       )
     ),
     
     tabPanel(
-      title = "Distribution of COVID-19 at zipcode level",
+      title = "COVID Distribution",
       h2("If here needs a title"),
       fluidRow(column(12, "This part is for instructions")),
       
@@ -427,7 +427,7 @@ ui <- navbarPage(
                        helpText(paste0("Race data updated by ",as.character(max(byrace$day)))))
       )
     ),
-    tabPanel(title = "Time Trends",
+    tabPanel(title = "COVID Trends",
              
              hr(),
              fluidRow(
