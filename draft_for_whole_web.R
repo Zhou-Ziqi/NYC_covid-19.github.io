@@ -187,7 +187,7 @@ positive = function(date){
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   #data_to_plot = subset(data_to_plot, !is.na(covid_case_count))
-  pal <- colorNumeric("Greens", domain=data_to_plot$covid_case_count)
+  pal <- colorNumeric("Blues", domain=data_to_plot$covid_case_count)
   
   popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
@@ -216,7 +216,7 @@ case_rate = function(date){
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot = subset(data_to_plot, !is.na(covid_case_rate))
-  pal <- colorNumeric("Greens", domain=data_to_plot$covid_case_rate)
+  pal <- colorNumeric("Blues", domain=data_to_plot$covid_case_rate)
   
   popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
@@ -306,7 +306,7 @@ newcase = function(date){
     mutate(new_case = as.numeric(new_case))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot = subset(data_to_plot, !is.na(new_case))
-  pal <- colorNumeric("Greens", domain=data_to_plot$new_case)
+  pal <- colorNumeric("Blues", domain=data_to_plot$new_case)
   
   popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
                      "<br>", 
