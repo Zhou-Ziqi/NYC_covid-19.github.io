@@ -357,11 +357,12 @@ ui <- navbarPage(
     
     tabPanel(
       title = "COVID Distribution",
-      h2("If here needs a title"),
-      fluidRow(column(12, "This part is for instructions")),
+      h2(offset = 1 ,"If here needs a title"),
+      fluidRow(column(12,offset = 1, "This part is for instructions")),
       
       sidebarLayout(
         sidebarPanel(
+          offset = 1,
           helpText("Create maps for the distribution of COVID-19 in NYC."),
           radioButtons(inputId = "outcome_selection",
                        label =  "Outcome:",   
@@ -397,10 +398,11 @@ ui <- navbarPage(
                                    choices = outcome_age
                        )),
                 column(12,
-                       plotlyOutput(outputId = "piechart_age")),
+                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
                 br(),
                 column(12,
-                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
+                       plotlyOutput(outputId = "piechart_age")),
+                br(),
                 column(12, 
                        helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
                 
@@ -409,10 +411,10 @@ ui <- navbarPage(
                                    label = "Choose an Outcome", 
                                    choices = outcome_sex
                        )),
-                column(12,plotlyOutput(outputId = "piechart_sex")),
                 column(12,
                        plotlyOutput(outputId = "barchart_sex", width = "100%",height = "550px")),
-                
+                column(12,plotlyOutput(outputId = "piechart_sex")),
+                br(),
                 column(12,
                        helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
                 
@@ -421,9 +423,11 @@ ui <- navbarPage(
                                    label = "Choose an Outcome", 
                                    choices = outcome_race
                        )),
-                column(12,plotlyOutput(outputId = "piechart_race")),
                 column(12,
                        plotlyOutput(outputId = "barchart_race", width = "100%",height = "550px")),
+                br(),
+                column(12,plotlyOutput(outputId = "piechart_race")),
+                br(),
                 column(12,
                        helpText(paste0("Race data updated by ",as.character(max(byrace$day)))))
       )
@@ -820,7 +824,7 @@ server <- function(input, output) {
                            labels = ~label5, 
                            values = ~count,
                            name = pie5data$boro, domain = list(row = 0, column = 4)) 
-    fig <- fig %>% layout(title = "Age Group Pie Chart", showlegend = T,
+    fig <- fig %>% layout(title = "Brooklyn, Manhatten, Bronx, State Island, Queens", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
