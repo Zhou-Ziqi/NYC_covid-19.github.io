@@ -15,6 +15,7 @@ library(plotly)
 library(shinyWidgets)
 library(table1)
 library(htmlTable)
+library(scales)
 
 library(flexdashboard)
 library(RColorBrewer)
@@ -335,7 +336,7 @@ newcase = function(date){
 ## ui
 ui <- navbarPage(
     
-    title = div(img(src='logo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 60)),
+    title = div(img(src='logo1.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 60)),
     windowTitle = "NYC covid-19 dashboard",
     id = 'menus',
     tabPanel('Home',
@@ -399,7 +400,7 @@ ui <- navbarPage(
                        plotlyOutput(outputId = "piechart_age")),
                 br(),
                 column(12,
-                       plotlyOutput(outputId = "barchart_age", width = "100%")),
+                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
                 column(12, 
                        helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
                 
@@ -410,7 +411,7 @@ ui <- navbarPage(
                        )),
                 column(12,plotlyOutput(outputId = "piechart_sex")),
                 column(12,
-                       plotlyOutput(outputId = "barchart_sex", width = "100%")),
+                       plotlyOutput(outputId = "barchart_sex", width = "100%",height = "550px")),
                 
                 column(12,
                        helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
@@ -422,7 +423,7 @@ ui <- navbarPage(
                        )),
                 column(12,plotlyOutput(outputId = "piechart_race")),
                 column(12,
-                       plotlyOutput(outputId = "barchart_race", width = "100%")),
+                       plotlyOutput(outputId = "barchart_race", width = "100%",height = "550px")),
                 column(12,
                        helpText(paste0("Race data updated by ",as.character(max(byrace$day)))))
       )
@@ -597,7 +598,7 @@ ui <- navbarPage(
                  column(width = 3,
                         sidebarPanel(width = 12,
                                      selectInput("nbhid1", 
-                                                 label = "Choose a Neibourhood", 
+                                                 label = "Choose a Neighbourhood", 
                                                  choices =nbh_name, 
                                                  selected = NULL))),
                  column(width = 9, h4("some words to describe the pie chart"))),
@@ -682,7 +683,7 @@ ui <- navbarPage(
                         verticalLayout(
                           sidebarPanel(width = 12,
                                        selectInput("nbhid3", 
-                                                   label = "Choose a Neibourhood", 
+                                                   label = "Choose a Neighbourhood", 
                                                    choices =nbh_name, 
                                                    selected = NULL)),
                           hr(),
@@ -736,7 +737,7 @@ server <- function(input, output) {
     a =  byage %>% filter(day == max(byage$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
-      facet_grid(~outcome)
+      facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(a)
     
@@ -747,9 +748,11 @@ server <- function(input, output) {
     b =  bysex %>%filter(day == max(bysex$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
-      facet_grid(~outcome)
+      facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(b)
+
+    
   })
   
   
@@ -758,40 +761,63 @@ server <- function(input, output) {
     c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
-      facet_grid(~outcome)
+      facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(c)
+    
+    
   })
   
   output$piechart_age = renderPlotly({
-    
     pie1data = byage %>% 
-      filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+      filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
+    
     pie2data = byage %>% 
-      filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+      filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
+    
     pie3data = byage %>% 
-      filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+      filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
+    
     pie4data = byage %>% 
-      filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+      filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
+    
     pie5data = byage %>% 
-      filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome ==input$outcome_age)
+      filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
+    label1 = paste0("Age Group: ", pie1data$group)
+    label2 = paste0("Age Group: ", pie2data$group)
+    label3 = paste0("Age Group: ", pie3data$group)
+    label4 = paste0("Age Group: ", pie4data$group)
+    label5 = paste0("Age Group: ", pie5data$group)
     
     fig <- plot_ly()
+    
     fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
-                           labels = ~paste0("Age Group: ", pie1data$group), values = ~count,
-                           name =  pie1data$boro, domain = list(row = 0, column = 0))
+                           labels = ~label1, values = ~count,
+                           name =  ~pie1data$boro, domain = list(row = 0, column = 0),
+                           sort = FALSE
+    )
     fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
-                           labels = ~paste0("Age Group: ", pie2data$group), values = ~count,
+                           labels = ~label2, values = ~count,
                            name =  pie2data$boro, domain = list(row = 0, column = 1)) 
     fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
-                           labels = ~paste0("Age Group: ", pie3data$group), values = ~count,
+                           labels = ~label3, values = ~count,
                            name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
-                           labels = ~paste0("Age Group: ", pie4data$group), 
+                           labels = ~label4, 
                            values = ~count,
                            name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
-                           labels = ~paste0("Age Group: ", pie5data$group), 
+                           labels = ~label5, 
                            values = ~count,
                            name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "Age Group Pie Chart", showlegend = T,
@@ -800,6 +826,7 @@ server <- function(input, output) {
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
     
     fig
+    
   })
   
   output$piechart_sex = renderPlotly({
@@ -1233,36 +1260,67 @@ server <- function(input, output) {
   
   #### Time Trend
   output$timetrend_age = renderPlotly({
-    a = byage %>% 
+    Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == input$outcome_age_tt) %>% 
-      filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
-               day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
-      geom_line() + facet_grid(~boro)
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
     
     ggplotly(a)
+    
     
     
   })
   output$timetrend_sex = renderPlotly({
-    a = bysex %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_sex_tt)%>% 
-      filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
-               day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
+    
+    Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
+    weeklysex <- bysex %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklysex %>% 
+      filter(group != "Boroughwide" & outcome == input$outcome_sex_tt) %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
-      geom_line() + facet_grid(~boro)
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45)) 
     
     ggplotly(a)
-    
-    
+   
   })
   output$timetrend_race = renderPlotly({
-    a = byrace %>% 
+    Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
+    weeklyrace <- byrace %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == input$outcome_race_tt) %>% 
-      filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
-               day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
-      geom_line() + facet_grid(~boro)
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
     
     ggplotly(a)
     
