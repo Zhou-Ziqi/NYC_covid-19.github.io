@@ -527,6 +527,40 @@ ggplotly(a)
       facet_grid(~outcome)
     
     ggplotly(b)
+    
+    
+plotting_df <- bysex %>% 
+  filter(day == max(bysex$day) & group != "Boroughwide") %>% 
+  mutate(count = if_else(group == "Male", -count, count))
+
+temp_df <- plotting_df %>%
+  filter(group == "Female") %>% 
+  arrange(count)
+the_order <- temp_df$boro
+    
+ 
+p <- 
+  plotting_df %>%
+  ggplot(aes(x = boro, y = count, group = group, fill = group)) +
+  geom_bar(stat = "identity", width = 0.75) +
+  coord_flip() +
+  scale_x_discrete(limits = the_order) +
+  # another trick!
+  scale_y_continuous(breaks = seq(-35000,35000,5000), 
+                     labels = abs(seq(-35000,35000, 5000))) +
+  labs(x = "Boroughs", y = "Count", title = "Back-to-back bar chart") +
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        panel.background = element_rect(fill =  "grey90")) +
+  # reverse the order of items in legend
+  # guides(fill = guide_legend(reverse = TRUE)) +
+  # change the default colors of bars
+  scale_fill_manual(values=c("red", "blue"),
+                    name="",
+                    breaks=c("Male", "Female"),
+                    labels=c("Male", "Female")) 
+p
 ```
 
 
@@ -559,13 +593,26 @@ c = byage %>%
 
 ggplotly(c)
 
+Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+weeklyage <- byage %>% 
+  filter(day %in% Week)
 
-    byage %>% 
+x_min_us = min(weeklyage$day)
+x_max_us = max(weeklyage$day)
+
+break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+
+   weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "DEATH_COUNT") %>% 
-      filter(day == "2020-05-18" | day == "2020-05-25" | day == "2020-06-01" | day == "2020-06-08" | day == "2020-06-15" |
-               day == "2020-06-22" | day == "2020-06-29" | day == "2020-07-06" | day == "2020-07-13") %>% 
+      
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
-      geom_line() + facet_grid(~boro)
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() + 
+    
+     scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+     theme(axis.text.x = element_text(angle = 45)) 
+     
+
 ```
 
 
@@ -606,50 +653,9 @@ leaflet() %>%
 
 
 
-
-
-```{r}
-```
-
-### Brooklyn Case Count Age Distribution.
-```{r}
-data_to_plot = byage %>% 
-  filter(day == "2020-06-30" & 
-           boro == "BK" & 
-           group != "Boroughwide" &
-           outcome =="CASE_COUNT") 
-
-a = plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
-                    values = data_to_plot$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5),
-                       title = "Brooklyn" )
-```
-
-### Bronx Case Count Age Distribution.
+###  Case Count Age Distribution.
 
 ```{r}
-data_to_plot = byage %>% 
-  filter(day == "2020-06-30" & 
-           boro == "BX" & 
-           group != "Boroughwide" &
-           outcome == "CASE_COUNT") 
-
-b = plot_ly(labels = paste0("Age Group: ", data_to_plot$group),
-            values = data_to_plot$count,
-            type = "pie",
-            marker = list(colors = brewer.pal(7,"Blues")),
-            sort = FALSE,
-            opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-
 
 
 data = byage %>% 
@@ -678,169 +684,87 @@ ggplot(data, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=boro)) +
   
 ```
 
-### Brooklyn Hospitalization Count Age Distribution.
-```{r}
-data_to_plot2 = byage %>% 
-  filter(day == "2020-06-30" & 
-           boro == "BK" & 
-           group != "Boroughwide" &
-           outcome == "HOSPITALIZED_RATE") 
-
-t = plot_ly(labels = paste0("Age Group: ", data_to_plot2$group),
-                    values = data_to_plot2$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-  
-  
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-subplot()
-
-```
 
 
-
-
-
-### Brooklyn Death Count Age Distribution.
-```{r}
-data_to_plot3 = byage %>% 
-  filter(day == "2020-06-30" & 
-           boro == "BX" & 
-           group != "Boroughwide" &
-           outcome == "HOSPITALIZED_RATE") 
-
-e = plot_ly(labels = paste0("Age Group: ", data_to_plot3$group),
-                    values = data_to_plot3$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-
-```
-
-
-### Brooklyn Case Rate Age Distribution.
-```{r}
-data_to_plot4 = boro_age_case_rate %>% 
-  filter(day == "2020-06-30" & 
-           location == "Brooklyn" & 
-           group != "Boroughwide") 
-
-plot_ly(labels = paste0("Age Group: ", data_to_plot4$group),
-                    values = data_to_plot$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-```
-
-### Brooklyn Hospitalization Rate Age Distribution.
-```{r}
-data_to_plot5 = boro_age_hosp_rate %>% 
-  filter(day == "2020-06-30" & 
-           location == "Brooklyn" & 
-           group != "Boroughwide") 
-plot_ly(labels = paste0("Age Group: ", data_to_plot5$group),
-                    values = data_to_plot$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-```
-
-### Brooklyn Death Rate Age Distribution.
-```{r}
-data_to_plot6 = boro_age_death_rate %>% 
-  filter(day == "2020-06-30" & 
-           location == "Brooklyn" & 
-           group != "Boroughwide") 
-plot_ly(labels = paste0("Age Group: ", data_to_plot6$group),
-                    values = data_to_plot$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-```
-
-### Brooklyn Hospitalization Count Age Distribution.
-
-```{r}
-data_to_plot7 = boro_age_hosp_count %>% 
-  filter(day == "2020-06-30" & 
-           location == "Brooklyn" & 
-           group != "Boroughwide") 
-
-plot_ly(labels = paste0("Age Group: ", data_to_plot7$group),
-                    values = data_to_plot$count,
-                    type = "pie",
-                    marker = list(colors = brewer.pal(7,"Blues")),
-                    sort = FALSE,
-                    opacity=0.8) %>% 
-                layout(legend=list(title=list(text='<b> Age Group </b>'),orientation = 'h', 
-                                   xanchor = "center", 
-                                   x = 0.5, y = -0.5))
-```
 
 ```{r}
 library(plotly)
-
-count(diamonds, cut)
-
 ```
 
 
 ```{r}
-pie1data = byage %>% filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
-```
-```{r}
+
+pie1data = byage %>% 
+  filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT") %>% mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+  arrange(group)
+  
+pie2data = byage %>% 
+  filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT") %>% mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+  arrange(group)
+
+pie3data = byage %>% 
+  filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT") %>% mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+  arrange(group)
+
+pie4data = byage %>% 
+  filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT") %>% mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+  arrange(group)
+
+pie5data = byage %>% 
+  filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")%>% mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+  arrange(group)
+label1 = paste0("Age Group: ", pie1data$group)
+label2 = paste0("Age Group: ", pie2data$group)
+label3 = paste0("Age Group: ", pie3data$group)
+label4 = paste0("Age Group: ", pie4data$group)
+label5 = paste0("Age Group: ", pie5data$group)
+
+fig <- plot_ly(sort = FALSE)
+
+    fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
+                           labels = ~label1, values = ~count,
+                           type = 'pie',
+                           
+                           name =  ~pie1data$boro, domain = list(row = 0, column = 0)
+                           )
+    fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
+                           labels = ~label2, values = ~count,
+                           type = 'pie',
+                           
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
+    fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
+                           labels = ~label3, values = ~count,
+                           type = 'pie',
+                           
+                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+    fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
+                           labels = ~label4, 
+                           values = ~count,
+                           type = 'pie',
+                           
+                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+    fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
+                           labels = ~label5, 
+                           values = ~count,
+                           type = 'pie',
+                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    
+    fig <- fig %>% layout(title = "Age Group Pie Chart", showlegend = T,
+                          grid=list(rows=1, columns=5),
+                          xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+      add_annotations(x=seq(0.2,0.2+4*0.2,0.2),
+                          y=0.3,
+                          text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
+                          xref = "paper",
+                          yref = "paper",
+                          xanchor = "center",
+                          showarrow = FALSE
+                )
+    
+    fig
 
 
-fig <- plot_ly()
-fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
-                       labels = ~paste0("Age Group: ", pie1data$group), values = ~count,
-          name =  pie1data$boro, domain = list(row = 0, column = 0))
-fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
-                       labels = ~paste0("Age Group: ", pie2data$group), values = ~count,
-          name =  pie2data$boro, domain = list(row = 0, column = 1)) 
-
-
-fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
-                       labels = ~paste0("Age Group: ", pie3data$group), values = ~count,
-          name = pie3data$boro, domain = list(row = 0, column = 2)) 
-
-
-fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
-                       labels = ~paste0("Age Group: ", pie4data$group), 
-                       values = ~count,
-          name = pie4data$boro, domain = list(row = 0, column = 3)) 
-
-
-fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
-                       labels = ~paste0("Age Group: ", pie5data$group), 
-                       values = ~count,
-          name = pie5data$boro, domain = list(row = 0, column = 4)) 
-
-fig <- fig %>% layout(title = "Pie Charts with Subplots", showlegend = T,
-                      grid=list(rows=1, columns=5),
-         xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-         yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
-
-fig
 ```
 
 
@@ -885,7 +809,7 @@ boro_age_death_rate = demo_by_age %>%
 
 pie1data = byage %>% filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
 
-pie1data = pie1data[order(pie1data$count, decreasing = TRUE),]
+pie1data = pie1data[order(pie1data$group, decreasing = TRUE),]
 myLabel = as.vector(pie1data$group)   
 myLabel = paste(myLabel, "(", round(pie1data$count / sum(pie1data$count) * 100, 2), "%)", sep = "")   
 
@@ -906,17 +830,6 @@ p = ggplot(pie1data, aes(x = "", y = count, fill = group)) +
 
 ```{r}
 
-pie2data = byage %>% filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
-
-pie3data = byage %>% filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
-
-
-pie4data = byage %>% filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
-
-
-pie5data = byage %>% filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome =="CASE_COUNT")
-
-pie1data = pie1data[order(pie1data$count, decreasing = TRUE),]
 myLabel = as.vector(pie1data$group)   
 myLabel = paste(myLabel, "(", round(pie1data$count / sum(pie1data$count) * 100, 2), "%)", sep = "")   
 
@@ -933,17 +846,6 @@ p2 = ggplot(pie1data, aes(x = "", y = count, fill = group)) +
   theme(panel.border=element_blank()) 
 
 
-
-
-
 ```
 
-```{r}
- b = bysex %>% 
-        filter(group != "Boroughwide" ) %>% 
-        ggplot(aes(x = day, y = count ,color = group,group = group)) + 
-        geom_line() + facet_grid(boro~outcome)
-      
-      ggplotly(b)
-```
 

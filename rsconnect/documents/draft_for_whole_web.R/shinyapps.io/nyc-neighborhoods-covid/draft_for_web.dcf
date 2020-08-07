@@ -5,9 +5,9 @@ account: nyc-neighborhoods-covid
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2618723
-bundleId: 3446554
+bundleId: 3460610
 url: https://nyc-neighborhoods-covid.shinyapps.io/draft_for_web/
-when: 1595953799.61881
+when: 1596222533.13413
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: _site.yml|about.html|about.Rmd|byrace.Rmd|bysex.Rmd|covid_by_demo.html|covid_by_demo.R|covid_by_demo.Rmd|demographics.R|draft_of_first_two_tab.R|ImprovementSuggestion.html|ImprovementSuggestion.Rmd|index.html|index.Rmd|intro.html|intro.Rmd|layout.R|README.md|time_trends.html|time_trends.Rmd|timetrend.R|trackershinytable.R|comorbidity_files/figure-html/unnamed-chunk-2-1.png|demographics_files/figure-html/using ggplot-1.png|demographics_files/figure-html/using ggplot-2.png|demographics_files/figure-html/using plot()-1.png|index/app.R|Introduction/app.R|trackerofcovid19/.DS_Store|trackerofcovid19/app.R|trackerofcovid19/data_for_table/data-by-modzcta0710.csv|trackerofcovid19/data_for_table/data-by-modzcta0711.csv|trackerofcovid19/rsconnect/shinyapps.io/nyc-neighborhoods-covid/nyc-neighborhoods-covid.dcf

@@ -86,11 +86,47 @@ choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Dea
 
 ######
 #demographics
-byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") 
+byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
+  
 
-byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv")
+byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
 
-bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv")
+
+bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
+
 
 
 # Define UI for application that draws plot
@@ -208,7 +244,8 @@ positive = function(date){
     addLegend(pal = pal, 
               values =  data_to_plot$covid_case_count, 
               position = "bottomright", 
-              title = "Number")
+              title = "Number") 
+    
   p1
 }
 ### case rate
@@ -389,43 +426,44 @@ ui <- navbarPage(
         
       ),
       
-      h3(),
+      hr(),
       fluidPage(column(12,
                        tableOutput(outputId = "descriptive")),
+                column(12,
+                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
+                br(),
                 column(4, 
                        selectInput("outcome_age", 
                                    label = "Choose an Outcome", 
                                    choices = outcome_age
                        )),
                 column(12,
-                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
-                br(),
-                column(12,
                        plotlyOutput(outputId = "piechart_age")),
                 br(),
                 column(12, 
                        helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
                 
+                column(12,
+                       plotlyOutput(outputId = "barchart_sex", width = "100%",height = "550px")),
                 column(4, 
                        selectInput("outcome_sex", 
                                    label = "Choose an Outcome", 
                                    choices = outcome_sex
                        )),
-                column(12,
-                       plotlyOutput(outputId = "barchart_sex", width = "100%",height = "550px")),
                 column(12,plotlyOutput(outputId = "piechart_sex")),
                 br(),
                 column(12,
                        helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
                 
+                
+                column(12,
+                       plotlyOutput(outputId = "barchart_race", width = "100%",height = "550px")),
+                br(),
                 column(4, 
                        selectInput("outcome_race", 
                                    label = "Choose an Outcome", 
                                    choices = outcome_race
                        )),
-                column(12,
-                       plotlyOutput(outputId = "barchart_race", width = "100%",height = "550px")),
-                br(),
                 column(12,plotlyOutput(outputId = "piechart_race")),
                 br(),
                 column(12,
@@ -741,6 +779,15 @@ server <- function(input, output) {
     a =  byage %>% filter(day == max(byage$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") +
+      ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(a)
@@ -752,6 +799,15 @@ server <- function(input, output) {
     b =  bysex %>%filter(day == max(bysex$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") +
+      ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(b)
@@ -765,6 +821,15 @@ server <- function(input, output) {
     c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
+      theme_bw() + 
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") +
+      ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(c)
@@ -774,60 +839,70 @@ server <- function(input, output) {
   
   output$piechart_age = renderPlotly({
     pie1data = byage %>% 
-      filter(boro == "BX"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      filter(boro == "Bronx"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
       mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
       arrange(group)
     
     pie2data = byage %>% 
-      filter(boro == "BK"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      filter(boro == "Brooklyn"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
       mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
       arrange(group)
     
     pie3data = byage %>% 
-      filter(boro == "MN"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
-      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
-      arrange(group)
-    
-    pie4data = byage %>% 
-      filter(boro == "SI"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      filter(boro == "Manhattan"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
       mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
       arrange(group)
     
     pie5data = byage %>% 
-      filter(boro == "QN"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      filter(boro == "Staten Island"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
       mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
       arrange(group)
-    label1 = paste0("Age Group: ", pie1data$group)
-    label2 = paste0("Age Group: ", pie2data$group)
-    label3 = paste0("Age Group: ", pie3data$group)
-    label4 = paste0("Age Group: ", pie4data$group)
-    label5 = paste0("Age Group: ", pie5data$group)
     
-    fig <- plot_ly()
+    pie4data = byage %>% 
+      filter(boro == "Queens"& day == max(byage$day) &group != "Boroughwide" & outcome == input$outcome_age) %>% 
+      mutate(group = factor(group,levels = c("0-17","18-44","45-64","65-74","75+"))) %>% 
+      arrange(group)
     
-    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
-                           labels = ~label1, values = ~count,
-                           name =  ~pie1data$boro, domain = list(row = 0, column = 0),
-                           sort = FALSE
+    
+    fig <- plot_ly(sort = FALSE)
+    
+    fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
+                           labels = ~pie1data$group, values = ~count,
+                           type = 'pie',
+                           name =  ~pie1data$boro, domain = list(row = 0, column = 0)
+                           
     )
-    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
-                           labels = ~label2, values = ~count,
-                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
-    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
-                           labels = ~label3, values = ~count,
+    fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
+                           labels = ~pie2data$group, values = ~count,
+                           type = 'pie',
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)
+                           ) 
+    fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
+                           labels = ~pie3data$group, values = ~count,
+                           type = 'pie',
                            name = pie3data$boro, domain = list(row = 0, column = 2)) 
-    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
-                           labels = ~label4, 
+    fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
+                           labels = ~pie4data$group, 
                            values = ~count,
+                           type = 'pie',
                            name = pie4data$boro, domain = list(row = 0, column = 3)) 
-    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
-                           labels = ~label5, 
+    fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
+                           labels = ~pie5data$group, 
                            values = ~count,
+                           type = 'pie',
                            name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "Brooklyn, Manhatten, Bronx, State Island, Queens", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+      add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
+                      y=0.05,
+                      text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
     
     fig
     
@@ -836,38 +911,51 @@ server <- function(input, output) {
   output$piechart_sex = renderPlotly({
     
     pie1data = bysex %>% 
-      filter(boro == "BX"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
-    pie2data = bysex %>% 
-      filter(boro == "MN"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+      filter(boro == "Bronx"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
     pie3data = bysex %>% 
-      filter(boro == "BK"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+      filter(boro == "Manhattan"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+    pie2data = bysex %>% 
+      filter(boro == "Brooklyn"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
     pie4data = bysex %>% 
-      filter(boro == "QN"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+      filter(boro == "Queens"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
     pie5data = bysex %>% 
-      filter(boro == "SI"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
+      filter(boro == "Staten Island"& day == max(bysex$day) &group != "Boroughwide" & outcome ==input$outcome_sex)
     
-    fig <- plot_ly()
-    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
-                           labels = ~paste0("Gender: ", pie1data$group), values = ~count,
+    fig <- plot_ly(sort = FALSE)
+    fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
+                           labels = ~pie1data$group, values = ~count,
+                           type = 'pie',
                            name =  pie1data$boro, domain = list(row = 0, column = 0))
-    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
-                           labels = ~paste0("Gender: ", pie2data$group), values = ~count,
+    fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
+                           labels = ~pie2data$group, values = ~count,
+                           type = 'pie',
                            name =  pie2data$boro, domain = list(row = 0, column = 1)) 
-    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
-                           labels = ~paste0("Gender: ", pie3data$group), values = ~count,
+    fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
+                           labels = ~pie3data$group, values = ~count,
+                           type = 'pie',
                            name = pie3data$boro, domain = list(row = 0, column = 2)) 
-    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
-                           labels = ~paste0("Gender: ", pie4data$group), 
+    fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
+                           labels = ~pie4data$group, 
                            values = ~count,
+                           type = 'pie',
                            name = pie4data$boro, domain = list(row = 0, column = 3)) 
-    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
-                           labels = ~paste0("Gender: ", pie5data$group), 
+    fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
+                           labels = ~pie5data$group, 
                            values = ~count,
+                           type = "pie",
                            name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "Gender Group Pie Charts", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+      add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
+                      y=0.05,
+                      text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
     
     fig
   })
@@ -876,38 +964,58 @@ server <- function(input, output) {
   output$piechart_race = renderPlotly({
     
     pie1data = byrace %>% 
-      filter(boro == "BX"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
-    pie2data = byrace %>% 
-      filter(boro == "MN"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
     pie3data = byrace %>% 
-      filter(boro == "BK"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+    pie2data = byrace %>% 
+      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
     pie4data = byrace %>% 
-      filter(boro == "QN"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
     pie5data = byrace %>% 
-      filter(boro == "SI"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
     
-    fig <- plot_ly()
-    fig <- fig %>% add_pie(data = pie1data %>% select(group,count), 
-                           labels = ~paste0("Race: ", pie1data$group), values = ~count,
-                           name =  pie1data$boro, domain = list(row = 0, column = 0))
-    fig <- fig %>% add_pie(data = pie2data %>% select(group,count), 
-                           labels = ~paste0("Race: ", pie2data$group), values = ~count,
-                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
-    fig <- fig %>% add_pie(data = pie3data %>% select(group,count), 
-                           labels = ~paste0("Race: ", pie3data$group), values = ~count,
-                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
-    fig <- fig %>% add_pie(data = pie4data %>% select(group,count), 
-                           labels = ~paste0("Race: ", pie4data$group), 
+    fig <- plot_ly(sort = FALSE)
+    fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
+                           labels = ~pie1data$group, values = ~count,
+                           type = 'pie',
+                           name =  pie1data$boro, domain = list(row = 0, column = 0)
+                           )
+    fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
+                           labels = ~pie2data$group, values = ~count,
+                           type = 'pie',
+                           name =  pie2data$boro, domain = list(row = 0, column = 1)
+                           )
+    fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
+                           labels = ~pie3data$group, values = ~count,
+                           type = 'pie',
+                           name = pie3data$boro, domain = list(row = 0, column = 2)
+                           ) 
+    fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
+                           labels = ~pie4data$group, 
                            values = ~count,
-                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
-    fig <- fig %>% add_pie(data = pie5data %>% select(group,count), 
-                           labels = ~paste0("Race: ", pie5data$group), 
+                           type = 'pie',
+                           
+                           name = pie4data$boro, domain = list(row = 0, column = 3)
+                           ) 
+    fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
+                           labels = ~pie5data$group, 
                            values = ~count,
-                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
-    fig <- fig %>% layout(title = "Race Group Pie Charts", showlegend = T,
+                           type = 'pie',
+                           name = pie5data$boro, domain = list(row = 0, column = 4)
+                           )
+    fig <- fig %>% layout(title = "Race", 
+                          showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F))
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+      add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
+                      y=0.05,
+                      text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
     
     fig
   })
