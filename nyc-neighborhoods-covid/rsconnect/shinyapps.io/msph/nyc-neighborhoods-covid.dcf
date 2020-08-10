@@ -5,8 +5,8 @@ account: msph
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2656994
-bundleId: 3497508
+bundleId: 3498945
 url: https://msph.shinyapps.io/nyc-neighborhoods-covid/
-when: 1597070686.10332
+when: 1597094572.54155
 asMultiple: FALSE
 asStatic: FALSE

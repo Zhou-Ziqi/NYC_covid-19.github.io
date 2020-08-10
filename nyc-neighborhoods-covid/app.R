@@ -20,6 +20,15 @@ library(scales)
 library(flexdashboard)
 library(RColorBrewer)
 
+##
+url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url2 = "https://www.facebook.com/sharer.php?u=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url3 = "https://www.instagram.com/columbiapublichealth/"
+url4 = "https://www.linkedin.com/shareArticle?mini=true&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title=&summary=&source="
+url5 = "mailto:info@example.com?&subject=&body=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
+
 ##read data
 
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
@@ -59,7 +68,7 @@ data_to_table = data %>%
                 covid_case_count,new_case,incidence_rate,
                 covid_death_count,new_death) %>% 
   rename("New Cases" = new_case,
-         "New Death" = new_death,
+         "New Deaths" = new_death,
          Zipcode = modified_zcta,
          "Neighborhood" = neighborhood_name,
          "Borough"= borough_group,
@@ -106,7 +115,7 @@ byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>%
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
          outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -376,14 +385,49 @@ newcase = function(date){
 ## ui
 ui <- navbarPage(
   
-  title = div(img(src='logo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
+  title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           
-           column(width = 10, offset = 1, imageOutput("myImage",height = "50%")),
-           column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))
+           fluidRow(align = "center", img(src = "newlogo3.png", height = "50%", width = "50%")),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px;line-height:150%"))),
+           hr(),
+           fluidRow(align="center",
+                    img(src='cu_logo_biostat.png', height="50", width="30%"),
+                    h5("Share on"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #FFFFFF;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #FFFFFF;")
+                    
+           )
   ),
   
   
@@ -393,10 +437,40 @@ ui <- navbarPage(
     # Sidebar with a slider input for number of bins 
     fluidRow(
       column(width = 10, offset = 1, h2("COVID Tracking")),
-      column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 18px; text-indent : 2em; line-height:150%")),
+      column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+    ),
+    hr(),
+    fluidRow(align="center",
+             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
     )
   ),
   
@@ -404,7 +478,7 @@ ui <- navbarPage(
     title = "COVID Distribution",
     column(width = 10, offset = 1, h2("COVID Data by neighborhoods and demographics")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
-                                        style="font-size: 18px; text-indent : 2em; line-height:150%")),
+                                        style="font-size: 18px;  line-height:150%")),
     column(width = 10,offset = 1,
            sidebarLayout(
              
@@ -427,7 +501,7 @@ ui <- navbarPage(
     
     hr(),
     fluidPage(
-      column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; line-height:150%")),
       
       column(10, offset = 1,
              plotlyOutput(outputId = "barchart_age", width = "100%",height = "100%")),
@@ -442,7 +516,7 @@ ui <- navbarPage(
       column(10, offset = 1,
              helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
       hr(),
-      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; line-height:150%")),
       
       
       column(10,offset = 1,
@@ -459,7 +533,7 @@ ui <- navbarPage(
       column(10,offset = 1,
              helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
       hr(),
-      column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; line-height:150%")),
       
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_race", width = "100%",height = "100%")),
@@ -474,6 +548,36 @@ ui <- navbarPage(
       column(10,offset = 1,
              helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
       column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+    ),
+    hr(),
+    fluidRow(align="center",
+             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
     )
   ),
   tabPanel(title = "COVID Trends",
@@ -623,11 +727,37 @@ ui <- navbarPage(
                         plotlyOutput("timetrend_race", width="100%",height="100%")),
                  column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
                ))
+           ),
+           hr(),
+           fluidRow(align="center",
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    h5("Share on"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #FFFFFF;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #FFFFFF;")
            )
-           
-           
-           
-           
   ),
   
   
@@ -757,10 +887,70 @@ ui <- navbarPage(
                column(width = 9,leafletOutput("income_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
+           ),
+           hr(),
+           fluidRow(align="center",
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    h5("Share on"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #FFFFFF;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #FFFFFF;")
            )
   ),
   
-  tabPanel("About")
+  tabPanel("About",
+           hr(),
+           fluidRow(align="center",
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    h5("Share on"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #FFFFFF;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #FFFFFF;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #FFFFFF;")
+           ))
   
 )
 
@@ -770,16 +960,7 @@ server <- function(input, output) {
   
   shinyjs::addClass(id = "menus", class = "navbar-right")
   
-  output$myImage = renderImage({
-    
-    return(list(
-      src = "newlogo3.png",
-      contentType = "image/png",
-      style="display: block; margin-left: auto; margin-right: auto;",
-      alt = "  "
-    ))
-    
-  },deleteFile = FALSE)
+  
   
   output$Hometext = renderText({
     return(
@@ -787,16 +968,16 @@ server <- function(input, output) {
     The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <span>&#8226;</span> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
     <br>
     <br>
-    <p style=text-indent: 2em> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <span>&#8226;</span> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <span>&#8226;</span> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    <span>&#8226;</span> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
       
     )
   })
@@ -812,9 +993,8 @@ server <- function(input, output) {
       The population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning updated in 2019. 
       
       <br> <br>
-      <p style=text-indent: 2em> Choose number of records to show in each page or search neighborhoods using the search box. 
-      <br> <br>
-      <p style=text-indent: 2em> The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
+      Choose number of records to show in each page or search neighborhoods using the search box. 
+      The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
       <br> <br>"
     )
   })
