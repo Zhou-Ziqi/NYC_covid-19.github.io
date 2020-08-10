@@ -423,7 +423,8 @@ ui <- navbarPage(
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
              
-           )
+           ),
+           hr()
   ),
   
   
@@ -462,12 +463,18 @@ ui <- navbarPage(
                    icon = icon("linkedin"),
                    onclick = sprintf("window.open('%s')", url4),
                    style = "border-color: #FFFFFF;"),
+      actionButton("whats_index",
+                   label = "",
+                   icon = icon("whatsapp"),
+                   onclick = sprintf("window.open('%s')", url6),
+                   style = "border-color: #FFFFFF;"),
       actionButton("email_index",
                    label = "",
                    icon = icon("envelope"),
                    onclick = sprintf("window.open('%s')", url5),
                    style = "border-color: #FFFFFF;")
-    )
+    ),
+    hr()
   ),
   
   tabPanel(
@@ -569,12 +576,18 @@ ui <- navbarPage(
                    icon = icon("linkedin"),
                    onclick = sprintf("window.open('%s')", url4),
                    style = "border-color: #FFFFFF;"),
+      actionButton("whats_index",
+                   label = "",
+                   icon = icon("whatsapp"),
+                   onclick = sprintf("window.open('%s')", url6),
+                   style = "border-color: #FFFFFF;"),
       actionButton("email_index",
                    label = "",
                    icon = icon("envelope"),
                    onclick = sprintf("window.open('%s')", url5),
                    style = "border-color: #FFFFFF;")
-    )
+    ),
+    hr()
   ),
   tabPanel(title = "COVID Trends",
            
@@ -697,12 +710,18 @@ ui <- navbarPage(
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
                           style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
-           )
+           ),
+           hr()
   ),
   
   
@@ -857,12 +876,18 @@ ui <- navbarPage(
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
                           style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
-           )
+           ),
+           hr()
   ),
   
   tabPanel("About",
@@ -890,12 +915,18 @@ ui <- navbarPage(
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
                           style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
-           ))
+           ),
+           hr())
   
 )
 
