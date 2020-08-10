@@ -68,7 +68,7 @@ data_to_table = data %>%
                 covid_case_count,new_case,incidence_rate,
                 covid_death_count,new_death) %>% 
   rename("New Cases" = new_case,
-         "New Death" = new_death,
+         "New Deaths" = new_death,
          Zipcode = modified_zcta,
          "Neighborhood" = neighborhood_name,
          "Borough"= borough_group,
@@ -115,7 +115,7 @@ byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>%
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
          outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -390,11 +390,11 @@ ui <- navbarPage(
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(column(width = 10, offset = 1, imageOutput("myImage",height = "15%",width = "50%")),
-                    column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))),
+           fluidRow(align = "center", img(src = "newlogo3.png", height = "50%", width = "50%")),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
-                    img(src='logo.png', height="50", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -437,14 +437,14 @@ ui <- navbarPage(
     # Sidebar with a slider input for number of bins 
     fluidRow(
       column(width = 10, offset = 1, h2("COVID Tracking")),
-      column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 18px; text-indent : 2em; line-height:150%")),
+      column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
     hr(),
     fluidRow(align="center",
-             img(src='logo.png', height="50%", width="30%"),
+             img(src='cu_logo_biostat.png', height="50%", width="30%"),
       h5("Share on"),
       actionButton("twitter_index",
                    label = "",
@@ -478,7 +478,7 @@ ui <- navbarPage(
     title = "COVID Distribution",
     column(width = 10, offset = 1, h2("COVID Data by neighborhoods and demographics")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
-                                        style="font-size: 18px; text-indent : 2em; line-height:150%")),
+                                        style="font-size: 18px;  line-height:150%")),
     column(width = 10,offset = 1,
            sidebarLayout(
              
@@ -501,7 +501,7 @@ ui <- navbarPage(
     
     hr(),
     fluidPage(
-      column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; line-height:150%")),
       
       column(10, offset = 1,
              plotlyOutput(outputId = "barchart_age", width = "100%",height = "100%")),
@@ -516,7 +516,7 @@ ui <- navbarPage(
       column(10, offset = 1,
              helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
       hr(),
-      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; line-height:150%")),
       
       
       column(10,offset = 1,
@@ -533,7 +533,7 @@ ui <- navbarPage(
       column(10,offset = 1,
              helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
       hr(),
-      column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; line-height:150%")),
       
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_race", width = "100%",height = "100%")),
@@ -551,7 +551,7 @@ ui <- navbarPage(
     ),
     hr(),
     fluidRow(align="center",
-             img(src='logo.png', height="50%", width="30%"),
+             img(src='cu_logo_biostat.png', height="50%", width="30%"),
       h5("Share on"),
       actionButton("twitter_index",
                    label = "",
@@ -730,7 +730,7 @@ ui <- navbarPage(
            ),
            hr(),
            fluidRow(align="center",
-                    img(src='logo.png', height="50%", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -890,7 +890,7 @@ ui <- navbarPage(
            ),
            hr(),
            fluidRow(align="center",
-                    img(src='logo.png', height="50%", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -923,7 +923,7 @@ ui <- navbarPage(
   tabPanel("About",
            hr(),
            fluidRow(align="center",
-                    img(src='logo.png', height="50%", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -960,16 +960,7 @@ server <- function(input, output) {
   
   shinyjs::addClass(id = "menus", class = "navbar-right")
   
-  output$myImage = renderImage({
-    
-    return(list(
-      src = "newlogo3.png",
-      contentType = "image/png",
-      style="display: block; margin-left: auto; margin-right: auto;",
-      alt = "  "
-    ))
-    
-  },deleteFile = FALSE)
+  
   
   output$Hometext = renderText({
     return(
@@ -977,16 +968,16 @@ server <- function(input, output) {
     The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <span>&#8226;</span> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
     <br>
     <br>
-    <p style=text-indent: 2em> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <span>&#8226;</span> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <span>&#8226;</span> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
     <br>
     <br>
-    <p style=text-indent: 2em> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    <span>&#8226;</span> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
     
     )
   })
@@ -1002,9 +993,8 @@ server <- function(input, output) {
       The population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning updated in 2019. 
       
       <br> <br>
-      <p style=text-indent: 2em> Choose number of records to show in each page or search neighborhoods using the search box. 
-      <br> <br>
-      <p style=text-indent: 2em> The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
+      Choose number of records to show in each page or search neighborhoods using the search box. 
+      The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
       <br> <br>"
     )
   })
