@@ -376,7 +376,7 @@ newcase = function(date){
 ## ui
 ui <- navbarPage(
   
-  title = div(img(src='logo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
+  title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
   tabPanel('Home',
