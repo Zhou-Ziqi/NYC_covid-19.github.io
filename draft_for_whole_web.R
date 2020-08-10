@@ -222,27 +222,27 @@ zipcode = data %>% distinct(zipcode) %>% pull()
 positive = function(date){
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
-  #data_to_plot = subset(data_to_plot, !is.na(covid_case_count))
-  pal <- colorNumeric("Blues", domain=data_to_plot$covid_case_count)
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(covid_case_count))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$covid_case_count)
   
-  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
+  popup_sb <- paste0("<b> Neighborhood Name: </b>", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(data_to_plot$modified_zcta),
+                     "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Total Number of Case Count: ", as.character(data_to_plot$covid_case_count)
+                     "<b>Total Number of Case Count: </b>", as.character(data_to_plot_geo$covid_case_count)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot$covid_case_count), 
+                fillColor = ~pal(data_to_plot_geo$covid_case_count), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot$covid_case_count, 
+              values =  data_to_plot_geo$covid_case_count, 
               position = "bottomright", 
               title = "Number") 
   
@@ -252,27 +252,27 @@ positive = function(date){
 case_rate = function(date){ 
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
-  data_to_plot = subset(data_to_plot, !is.na(covid_case_rate))
-  pal <- colorNumeric("Blues", domain=data_to_plot$covid_case_rate)
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(covid_case_rate))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$covid_case_rate)
   
-  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(data_to_plot$modified_zcta),
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Case Rate of COVID-19: ", as.character(data_to_plot$covid_case_rate)
+                     "Case Rate of COVID-19: ", as.character(data_to_plot_geo$covid_case_rate)
   )
   
   leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot$covid_case_rate), 
+                fillColor = ~pal(data_to_plot_geo$covid_case_rate), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot$covid_case_rate, 
+              values =  data_to_plot_geo$covid_case_rate, 
               position = "bottomright", 
               title = "Number")
   
@@ -282,27 +282,27 @@ death_count = function(date){
   
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
-  data_to_plot = subset(data_to_plot, !is.na(covid_death_count))
-  pal <- colorNumeric("Reds", domain=data_to_plot$covid_death_count)
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(covid_death_count))
+  pal <- colorNumeric("Reds", domain=data_to_plot_geo$covid_death_count)
   
-  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(data_to_plot$modified_zcta),
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Total Number of Death: ", as.character(data_to_plot$covid_death_count)
+                     "Total Number of Death: ", as.character(data_to_plot_geo$covid_death_count)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot$covid_death_count), 
+                fillColor = ~pal(data_to_plot_geo$covid_death_count), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values = data_to_plot$covid_death_count, 
+              values = data_to_plot_geo$covid_death_count, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -311,27 +311,27 @@ death_count = function(date){
 death_rate = function(date){
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
-  data_to_plot = subset(data_to_plot, !is.na(covid_death_rate))
-  pal <- colorNumeric("Reds", domain=data_to_plot$covid_death_rate)
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(covid_death_rate))
+  pal <- colorNumeric("Reds", domain=data_to_plot_geo$covid_death_rate)
   
-  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(data_to_plot$modified_zcta),
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Death Rate: ", as.character(data_to_plot$covid_death_rate)
+                     "Death Rate: ", as.character(data_to_plot_geo$covid_death_rate)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot$covid_death_rate), 
+                fillColor = ~pal(data_to_plot_geo$covid_death_rate), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot$covid_death_rate, 
+              values =  data_to_plot_geo$covid_death_rate, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -342,27 +342,27 @@ newcase = function(date){
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
     mutate(new_case = as.numeric(new_case))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
-  data_to_plot = subset(data_to_plot, !is.na(new_case))
-  pal <- colorNumeric("Blues", domain=data_to_plot$new_case)
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_case))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$new_case)
   
-  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot$neighborhood_name),
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
-                     "MODZCTA: ", as.character(data_to_plot$modified_zcta),
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Total Number of New Cases: ", as.character(data_to_plot$new_case)
+                     "Total Number of New Cases: ", as.character(data_to_plot_geo$new_case)
   )
   
   p1 = leaflet() %>%
     addProviderTiles("CartoDB.Positron") %>%
     setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
     addPolygons(data =  data_to_plot_geo , 
-                fillColor = ~pal(data_to_plot$new_case), 
+                fillColor = ~pal(data_to_plot_geo$new_case), 
                 fillOpacity = 0.7, 
                 weight = 0.2, 
                 smoothFactor = 0.2, 
                 popup = ~popup_sb) %>%
     addLegend(pal = pal, 
-              values =  data_to_plot$new_case, 
+              values =  data_to_plot_geo$new_case, 
               position = "bottomright", 
               title = "Number")
   p1
@@ -387,32 +387,32 @@ ui <- navbarPage(
   tabPanel(
     # Application title
     title= "COVID Tracker",
-    column(width = 12, offset = 1, helpText("data update by 2020-07-23")),
-    column(width = 12, offset = 1, helpText("input the zipcode you interested in in the search box")),
     # Sidebar with a slider input for number of bins 
     fluidRow(
-      column(width = 12, offset = 1, h4("Some word to describe the table")),
-      column(width = 10, offset = 1, align="center",DT::dataTableOutput("table"))
+      column(width = 10, offset = 1, h2("COVID Tracking")),
+      column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 18px; text-indent : 2em; line-height:150%")),
+      column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
+      column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
+      column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     )
   ),
   
   tabPanel(
     title = "COVID Distribution",
-    column(width = 10, offset = 1, h2("The Distribution of the COVID-19 in NYC")),
-    column(width = 10, offset = 1, "This part is for instructions"),
+    column(width = 10, offset = 1, h2("COVID Data by neighborhoods and demographics")),
+    column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
+                                        style="font-size: 18px; text-indent : 2em; line-height:150%")),
     column(width = 10,offset = 1,
            sidebarLayout(
              
              sidebarPanel(
-               
-               helpText("Create maps for the distribution of COVID-19 in NYC."),
                radioButtons(inputId = "outcome_selection",
-                            label =  "Outcome:",   
-                            c("Cases Count" = "positive",
+                            label =  "Data Display:",   
+                            c("Case Count" = "positive",
                               "Case Rate (per 100,000 people)" = "case_rate", 
                               "Death Count" = "death_count", 
                               "Death Rate (per 100,000 people)" = "death_rate",
-                              "New cases" = "newcase")),
+                              "New Cases" = "newcase")),
                
                
                
@@ -802,6 +802,41 @@ server <- function(input, output) {
     )
   })
   
+  
+  output$Trackertext = renderText({
+    return(
+      "Tracking daily COVID cases and deaths by <b> NYC ZIP Code Tabulation Areas (ZCTAs) </b>. 
+      Data are presented as case count, new cases, incidence rate, death count, and new deaths. 
+      <b> Case count and death count </b> are <b> total cumulative numbers </b> of COVID cases and deaths by the updated date. 
+      <b> New cases and new deaths </b> are incremental numbers of COVID positive cases and deaths on the updated date. 
+      <b> Incidence rate </b> is calculated as new cases divided by ZCTA population size and multiplied by 100,000 and are interpreted as daily new cases per 100,000 people in the ZCTA. 
+      The population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning updated in 2019. 
+      
+      <br> <br>
+      <p style=text-indent: 2em> Choose number of records to show in each page or search neighborhoods using the search box. 
+      <br> <br>
+      <p style=text-indent: 2em> The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
+      <br> <br>"
+    )
+  })
+  
+  output$Distributionmaptext = renderText({
+    return(
+      "Use this map to see how COVID cases and deaths vary by NYC ZIP Code Tabulation Areas (ZCTAs). 
+      Select the date and available display options to visualize the data. 
+      Case count and death count are total cumulative numbers of COVID positive cases and deaths by the selected date. 
+      Case rate and death rate are calculated using case count and death count divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID positive cases and deaths per 100,000 people in the ZCTA. 
+      New cases are incremental number of COVID positive cases on the selected date.  
+      <br> <br>"
+    )
+  })
+  
+  
+  
+  
+  
+  
+  ###########
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
   },rownames = FALSE))
