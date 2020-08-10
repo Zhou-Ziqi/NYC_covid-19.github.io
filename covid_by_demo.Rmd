@@ -849,3 +849,76 @@ p2 = ggplot(pie1data, aes(x = "", y = count, fill = group)) +
 ```
 
 
+
+```{r}
+byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
+  
+
+byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
+
+
+bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"))
+
+
+
+```
+
+```{r}
+
+Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a)
+    
+```
+

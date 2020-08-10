@@ -382,7 +382,7 @@ ui <- navbarPage(
   tabPanel('Home',
            shinyjs::useShinyjs(),
            
-           column(width = 10, offset = 1, imageOutput("myImage",height = "50%")),
+           column(width = 10, offset = 1, imageOutput("myImage",height = "15%",width = "50%")),
            column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))
   ),
   
