@@ -88,44 +88,47 @@ choices = c("Cases Count", "Death Count", "Cases Rate", "Death Rate","New cases"
 #demographics
 byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
-         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
-         boro = str_replace_all(boro, "SI","Staten Island"))
+         boro = str_replace_all(boro, "SI","Staten Island"),
+         count = round(count))
 
 
 byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
-         outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalized Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
-         boro = str_replace_all(boro, "SI","Staten Island"))
+         boro = str_replace_all(boro, "SI","Staten Island"),
+         count = round(count))
 
 
 bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalized Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
-         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalized Rate(per 100,000 people)"),
-         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate(per 100,000 people)"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
-         boro = str_replace_all(boro, "SI","Staten Island"))
+         boro = str_replace_all(boro, "SI","Staten Island"),
+         count = round(count))
 
 
 
@@ -413,9 +416,7 @@ ui <- navbarPage(
                               "Death Count" = "death_count", 
                               "Death Rate (per 100,000 people)" = "death_rate",
                               "New Cases" = "newcase")),
-               
-               
-               
+            
                helpText("data update by 2020-07-23"))
              
              ,
@@ -426,8 +427,8 @@ ui <- navbarPage(
     
     hr(),
     fluidPage(
-      column(10, offset = 1, h4("This is for age  demo")),
-      column(10, offset = 1, h5("Write sth here")),
+      column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      
       column(10, offset = 1,
              plotlyOutput(outputId = "barchart_age", width = "100%",height = "100%")),
       br(),
@@ -441,8 +442,8 @@ ui <- navbarPage(
       column(10, offset = 1,
              helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
       hr(),
-      column(10, offset = 1, h4("This is for gender  demo")),
-      column(10, offset = 1, h5("Write sth here")),
+      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      
       
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_sex", width = "100%",height = "100%")),
@@ -458,8 +459,8 @@ ui <- navbarPage(
       column(10,offset = 1,
              helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
       hr(),
-      column(10, offset = 1, h4("This is for race  demo")),
-      column(10, offset = 1, h5("Write sth here")),
+      column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; text-indent : 2em; line-height:150%")),
+      
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_race", width = "100%",height = "100%")),
       br(),
@@ -481,8 +482,7 @@ ui <- navbarPage(
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Choose a characteristics",
-                                                       c("please select..." = "plz",
-                                                         "Cases Count" = "pocase", 
+                                                       c("Cases Count" = "pocase", 
                                                          "Death Count" = "death", 
                                                          "Cases Rate" = "porate", 
                                                          "Death Rate" = "derate",
@@ -637,8 +637,7 @@ ui <- navbarPage(
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
                                                        "Choose a characteristics",
-                                                       c("please select..." = "plz",
-                                                         "Race" = "race",
+                                                       c("Race" = "race",
                                                          "Income" = "income",
                                                          "Household Size" = "house"))),
              column(width = 5, "this part will have some instructions")
@@ -832,7 +831,25 @@ server <- function(input, output) {
   })
   
   
+  output$DistribAgetext = renderText({
+    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by age groups and NYC boroughs. 
+           The bar charts present counts and rates per 100,000 people. 
+           The pie charts show percentage of age groups in each NYC borough.<br>")
+    
+  })
   
+  output$DistribRacetext = renderText({
+    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by race/ethnicity and NYC boroughs. 
+           The bar charts present counts and rates per 100,000 people. 
+           The pie charts show percentage of race and ethnicity groups in each NYC borough.<br>")
+  })
+  
+  output$DistribSextext = renderText({
+    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by Sex and NYC boroughs. 
+    The bar charts present counts and rates per 100,000 people.
+    The pie charts show percentage of sex groups in each NYC borough. <br>
+")
+  })
   
   
   
