@@ -390,7 +390,7 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -942,18 +942,10 @@ server <- function(input, output) {
     return(
     "The NYC-Neighborhoods-COVID Dashboard is a data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
     The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span>  <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
-    <br>
-    <br>
-    <span>&#8226;</span>  <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span>  <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span>  <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
     
     )
   })
