@@ -20,6 +20,15 @@ library(scales)
 library(flexdashboard)
 library(RColorBrewer)
 
+##
+url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url2 = "https://www.facebook.com/sharer.php?u=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url3 = "https://www.instagram.com/columbiapublichealth/"
+url4 = "https://www.linkedin.com/shareArticle?mini=true&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title=&summary=&source="
+url5 = "mailto:info@example.com?&subject=&body=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
+
 ##read data
 
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
@@ -381,9 +390,44 @@ ui <- navbarPage(
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           
-           column(width = 10, offset = 1, imageOutput("myImage",height = "15%",width = "50%")),
-           column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))
+           fluidRow(column(width = 10, offset = 1, imageOutput("myImage",height = "15%",width = "50%")),
+                    column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))),
+           hr(),
+           fluidRow(align="center",
+                    img(src='logo.png', height="50", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
+             
+           )
   ),
   
   
@@ -397,6 +441,36 @@ ui <- navbarPage(
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+    ),
+    hr(),
+    fluidRow(align="center",
+             img(src='logo.png', height="50%", width="30%"),
+      h5("Share on"),
+      actionButton("twitter_index",
+                   label = "",
+                   icon = icon("twitter"),
+                   onclick = sprintf("window.open('%s')", url1),
+                   style = "border-color: #FFFFFF;"),
+      actionButton("fb_index",
+                   label = "",
+                   icon = icon("facebook"),
+                   onclick = sprintf("window.open('%s')", url2),
+                   style = "border-color: #FFFFFF;"),
+      #actionButton("ins_index",
+      #             label = "",
+      #             icon = icon("instagram"),
+      #             onclick = sprintf("window.open('%s')", url3),
+      #             style = "border-color: #FFFFFF;"),
+      actionButton("linkedin_index",
+                   label = "",
+                   icon = icon("linkedin"),
+                   onclick = sprintf("window.open('%s')", url4),
+                   style = "border-color: #FFFFFF;"),
+      actionButton("email_index",
+                   label = "",
+                   icon = icon("envelope"),
+                   onclick = sprintf("window.open('%s')", url5),
+                   style = "border-color: #FFFFFF;")
     )
   ),
   
@@ -474,6 +548,36 @@ ui <- navbarPage(
       column(10,offset = 1,
              helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
       column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+    ),
+    hr(),
+    fluidRow(align="center",
+             img(src='logo.png', height="50%", width="30%"),
+      h5("Share on"),
+      actionButton("twitter_index",
+                   label = "",
+                   icon = icon("twitter"),
+                   onclick = sprintf("window.open('%s')", url1),
+                   style = "border-color: #FFFFFF;"),
+      actionButton("fb_index",
+                   label = "",
+                   icon = icon("facebook"),
+                   onclick = sprintf("window.open('%s')", url2),
+                   style = "border-color: #FFFFFF;"),
+      #actionButton("ins_index",
+      #             label = "",
+      #             icon = icon("instagram"),
+      #             onclick = sprintf("window.open('%s')", url3),
+      #             style = "border-color: #FFFFFF;"),
+      actionButton("linkedin_index",
+                   label = "",
+                   icon = icon("linkedin"),
+                   onclick = sprintf("window.open('%s')", url4),
+                   style = "border-color: #FFFFFF;"),
+      actionButton("email_index",
+                   label = "",
+                   icon = icon("envelope"),
+                   onclick = sprintf("window.open('%s')", url5),
+                   style = "border-color: #FFFFFF;")
     )
   ),
   tabPanel(title = "COVID Trends",
@@ -623,11 +727,37 @@ ui <- navbarPage(
                         plotlyOutput("timetrend_race", width="100%",height="100%")),
                  column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
                ))
+           ),
+           hr(),
+           fluidRow(align="center",
+                    img(src='logo.png', height="50%", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
            )
-           
-           
-           
-           
   ),
   
   
@@ -757,10 +887,70 @@ ui <- navbarPage(
                column(width = 9,leafletOutput("income_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
+           ),
+           hr(),
+           fluidRow(align="center",
+                    img(src='logo.png', height="50%", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
            )
   ),
   
-  tabPanel("About")
+  tabPanel("About",
+           hr(),
+           fluidRow(align="center",
+                    img(src='logo.png', height="50%", width="30%"),
+             h5("Share on"),
+             actionButton("twitter_index",
+                          label = "",
+                          icon = icon("twitter"),
+                          onclick = sprintf("window.open('%s')", url1),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("fb_index",
+                          label = "",
+                          icon = icon("facebook"),
+                          onclick = sprintf("window.open('%s')", url2),
+                          style = "border-color: #FFFFFF;"),
+             #actionButton("ins_index",
+             #             label = "",
+             #             icon = icon("instagram"),
+             #             onclick = sprintf("window.open('%s')", url3),
+             #             style = "border-color: #FFFFFF;"),
+             actionButton("linkedin_index",
+                          label = "",
+                          icon = icon("linkedin"),
+                          onclick = sprintf("window.open('%s')", url4),
+                          style = "border-color: #FFFFFF;"),
+             actionButton("email_index",
+                          label = "",
+                          icon = icon("envelope"),
+                          onclick = sprintf("window.open('%s')", url5),
+                          style = "border-color: #FFFFFF;")
+           ))
   
 )
 
