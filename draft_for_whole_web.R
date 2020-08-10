@@ -146,10 +146,6 @@ bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>%
 outcome_age = byage %>% distinct(outcome) %>% pull()
 outcome_race = byrace %>% distinct(outcome) %>% pull()
 outcome_sex = bysex %>% distinct(outcome) %>% pull()
-#for time trend
-outcome_age_tt = byage %>% distinct(outcome) %>% pull()
-outcome_race_tt = byrace %>% distinct(outcome) %>% pull()
-outcome_sex_tt = bysex %>% distinct(outcome) %>% pull()
 
 
 data_by_modzcta = read_csv("./data/data-by-modzcta.csv") %>% 
@@ -586,12 +582,11 @@ ui <- navbarPage(
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Choose a characteristics",
-                                                       c("Cases Count" = "pocase", 
+                                                       c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
-                                                         "Cases Rate" = "porate", 
+                                                         "Case Rate" = "porate", 
                                                          "Death Rate" = "derate",
-                                                         "New cases" = "newcase",
-                                                         "Demographics" = "demo"
+                                                         "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
              column(width = 5, "this part will have some instructions")
@@ -678,56 +673,6 @@ ui <- navbarPage(
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           
-           #### Demo
-           
-           conditionalPanel(
-             condition = "input.character_timetrend == 'demo'",
-             column(10, offset = 1, h2("By Demographics")),
-             fluidRow(
-               column(width = 10, offset = 1,
-                      selectInput("character_by_demo",
-                                  label = "Choose a Characteristics",
-                                  c("Age" = "age",
-                                    "Gender" = "sex",
-                                    "Race" = "race")))),
-             hr(),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'age'",
-               fluidRow(column(width = 10, offset = 1,
-                               selectInput("outcome_age_tt",
-                                           label = "Choose an outcome",
-                                           choices = outcome_age_tt)),
-                        column(width = 10, offset = 1,
-                               plotlyOutput("timetrend_age", width="100%",height="100%")),
-                        column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               )),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'sex'",
-               fluidRow(
-                 column(width = 10, offset = 1,
-                        selectInput("outcome_sex_tt",
-                                    label = "Choose an outcome",
-                                    choices = outcome_sex_tt)),
-                 column(width = 10, offset = 1,
-                        plotlyOutput("timetrend_sex", width="100%",height="100%")),
-                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               )),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'race'",
-               fluidRow(
-                 column(width = 10, offset = 1,
-                        selectInput("outcome_race_tt",
-                                    label = "Choose an outcome",
-                                    choices = outcome_race_tt)),
-                 column(width = 10, offset = 1,
-                        plotlyOutput("timetrend_race", width="100%",height="100%")),
-                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               ))
-           ),
            hr(),
            fluidRow(align="center",
                     img(src='cu_logo_biostat.png', height="50%", width="30%"),
@@ -968,16 +913,16 @@ server <- function(input, output) {
     The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
     <br>
     <br>
-    <span>&#8226;</span> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <span>&#8226;</span>  <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
     <br>
     <br>
-    <span>&#8226;</span> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <span>&#8226;</span>  <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
     <br>
     <br>
-    <span>&#8226;</span> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <span>&#8226;</span>  <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
     <br>
     <br>
-    <span>&#8226;</span> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    <span>&#8226;</span>  <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
     
     )
   })
@@ -1660,7 +1605,7 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyage %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_age_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -1687,7 +1632,7 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklysex %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_sex_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -1711,7 +1656,7 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyrace %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_race_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
