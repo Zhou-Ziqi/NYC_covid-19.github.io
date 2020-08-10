@@ -58,13 +58,13 @@ data_to_table = data %>%
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
                 covid_death_count,new_death) %>% 
-  rename("Incremental Positive Cases" = new_case,
-         "Incremental Death Cases" = new_death,
+  rename("New Cases" = new_case,
+         "New Death" = new_death,
          Zipcode = modified_zcta,
          "Neighborhood" = neighborhood_name,
          "Borough"= borough_group,
-         "Cumulative Positive Case Count" = covid_case_count,
-         "Cumulative Death Count" = covid_death_count,
+         "Case Count" = covid_case_count,
+         "Death Count" = covid_death_count,
          "Incidence Rate (Per 100,000 people)" = incidence_rate)
 
 data_to_plot = data %>% 
@@ -80,7 +80,7 @@ data_to_plot = data %>%
 
 spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
-choices = c("Cumulative Cases Count", "Death Count", "Positive Cases Rate", "Death Rate","New cases")
+choices = c("Cases Count", "Death Count", "Cases Rate", "Death Rate","New cases")
 
 
 
@@ -98,7 +98,7 @@ byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>%
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"))
-  
+
 
 byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
@@ -163,7 +163,7 @@ household = left_join(household_raw, data_by_modzcta) %>%
          size_4 = person_4,
          size_5 = person_5,
          size_6 = person_6,
-         size_7_or_more = person_7_or_more,)
+         size_7_or_more = person_7_or_more)
 
 race_raw = read_csv("./data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
 race = left_join(race_raw, data_by_modzcta) %>% 
@@ -229,7 +229,7 @@ positive = function(date){
                      "<br>", 
                      "MODZCTA: ", as.character(data_to_plot$modified_zcta),
                      "<br>", 
-                     "Total Number of Cumulative Positive Cases: ", as.character(data_to_plot$covid_case_count)
+                     "Total Number of Case Count: ", as.character(data_to_plot$covid_case_count)
   )
   
   p1 = leaflet() %>%
@@ -245,7 +245,7 @@ positive = function(date){
               values =  data_to_plot$covid_case_count, 
               position = "bottomright", 
               title = "Number") 
-    
+  
   p1
 }
 ### case rate
@@ -372,389 +372,435 @@ newcase = function(date){
 
 ## ui
 ui <- navbarPage(
+  
+  title = div(img(src='logo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
+  windowTitle = "NYC covid-19 dashboard",
+  id = 'menus',
+  tabPanel('Home',
+           shinyjs::useShinyjs(),
+           
+           column(width = 10, offset = 1, imageOutput("myImage",height = "50%")),
+           column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px; text-indent : 2em; line-height:150%"))
+  ),
+  
+  
+  tabPanel(
+    # Application title
+    title= "COVID Tracker",
+    column(width = 12, offset = 1, helpText("data update by 2020-07-23")),
+    column(width = 12, offset = 1, helpText("input the zipcode you interested in in the search box")),
+    # Sidebar with a slider input for number of bins 
+    fluidRow(
+      column(width = 12, offset = 1, h4("Some word to describe the table")),
+      column(width = 10, offset = 1, align="center",DT::dataTableOutput("table"))
+    )
+  ),
+  
+  tabPanel(
+    title = "COVID Distribution",
+    column(width = 10, offset = 1, h2("The Distribution of the COVID-19 in NYC")),
+    column(width = 10, offset = 1, "This part is for instructions"),
+    column(width = 10,offset = 1,
+           sidebarLayout(
+             
+             sidebarPanel(
+               
+               helpText("Create maps for the distribution of COVID-19 in NYC."),
+               radioButtons(inputId = "outcome_selection",
+                            label =  "Outcome:",   
+                            c("Cases Count" = "positive",
+                              "Case Rate (per 100,000 people)" = "case_rate", 
+                              "Death Count" = "death_count", 
+                              "Death Rate (per 100,000 people)" = "death_rate",
+                              "New cases" = "newcase")),
+               
+               
+               
+               helpText("data update by 2020-07-23"))
+             
+             ,
+             
+             mainPanel(column(10,leafletOutput(outputId = "map",width="120%",height="585px"))),
+             position = c("left","right")
+           )),
     
-    title = div(img(src='logo1.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 60)),
-    windowTitle = "NYC covid-19 dashboard",
-    id = 'menus',
-    tabPanel('Home',
-             shinyjs::useShinyjs()),
-    
-    
-    tabPanel(
-      # Application title
-      title= "COVID Tracker",
-      helpText("data update by 2020-07-23"),
-      helpText("input the zipcode you interested in in the search box"),
-      # Sidebar with a slider input for number of bins 
-      fluidRow(
-        column(width = 12, offset = 1, h4("Some word to describe the table")),
-        column(width = 10, offset = 1, align="center",DT::dataTableOutput("table"))
-      )
-    ),
-    
-    tabPanel(
-      title = "COVID Distribution",
-      h2(offset = 1 ,"If here needs a title"),
-      fluidRow(column(12,offset = 1, "This part is for instructions")),
-      
-      sidebarLayout(
-        sidebarPanel(
-          offset = 1,
-          helpText("Create maps for the distribution of COVID-19 in NYC."),
-          radioButtons(inputId = "outcome_selection",
-                       label =  "Outcome:",   
-                       c("Cumulative Cases Count" = "positive",
-                         "Positive Cases Rate (per 100,000 people)" = "case_rate", 
-                         "Death Count" = "death_count", 
-                         "Death Rate (per 100,000 people)" = "death_rate",
-                         "New cases" = "newcase")),
-          
-          
-          helpText("Create maps for the distribution of COVID-19 in NYC."),
-          helpText("data update by 2020-07-23"),
-          
-          
-          helpText("Cumulative Case Count is the count of confirmed cases since the first case occured in NYC."),
-          helpText("Positive Case Rate is the rate of confirmed cases per 100,000 people by ZCTA."),
-          helpText("Population denominators for ZCTAs derived from intercensal estimates by the Bureau of Epidemiology Services"),
-          helpText("Death Count is the count of confirmed deaths"),
-          helpText("Death Rate is the rate of confirmed deaths per 100,000 people by ZCTA"))
-        
-        ,
-        
-        mainPanel(fluidRow(column(12,leafletOutput(outputId = "map",width="95%",height="550px"))))
-        
-      ),
-      
+    hr(),
+    fluidPage(
+      column(10, offset = 1, h4("This is for age  demo")),
+      column(10, offset = 1, h5("Write sth here")),
+      column(10, offset = 1,
+             plotlyOutput(outputId = "barchart_age", width = "100%",height = "100%")),
+      br(),
+      column(4, offset = 1,
+             selectInput("outcome_age", 
+                         label = "Choose an Outcome", 
+                         choices = outcome_age
+             )),
+      column(10,offset = 1,
+             plotlyOutput(outputId = "piechart_age")),
+      column(10, offset = 1,
+             helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
       hr(),
-      fluidPage(column(12,
-                       tableOutput(outputId = "descriptive")),
-                column(12,
-                       plotlyOutput(outputId = "barchart_age", width = "100%",height = "550px")),
-                br(),
-                column(4, 
-                       selectInput("outcome_age", 
-                                   label = "Choose an Outcome", 
-                                   choices = outcome_age
-                       )),
-                column(12,
-                       plotlyOutput(outputId = "piechart_age")),
-                br(),
-                column(12, 
-                       helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
-                
-                column(12,
-                       plotlyOutput(outputId = "barchart_sex", width = "100%",height = "550px")),
-                column(4, 
-                       selectInput("outcome_sex", 
-                                   label = "Choose an Outcome", 
-                                   choices = outcome_sex
-                       )),
-                column(12,plotlyOutput(outputId = "piechart_sex")),
-                br(),
-                column(12,
-                       helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
-                
-                
-                column(12,
-                       plotlyOutput(outputId = "barchart_race", width = "100%",height = "550px")),
-                br(),
-                column(4, 
-                       selectInput("outcome_race", 
-                                   label = "Choose an Outcome", 
-                                   choices = outcome_race
-                       )),
-                column(12,plotlyOutput(outputId = "piechart_race")),
-                br(),
-                column(12,
-                       helpText(paste0("Race data updated by ",as.character(max(byrace$day)))))
-      )
-    ),
-    tabPanel(title = "COVID Trends",
-             
-             hr(),
+      column(10, offset = 1, h4("This is for gender  demo")),
+      column(10, offset = 1, h5("Write sth here")),
+      
+      column(10,offset = 1,
+             plotlyOutput(outputId = "barchart_sex", width = "100%",height = "100%")),
+      br(),
+      column(4, offset = 1,
+             selectInput("outcome_sex", 
+                         label = "Choose an Outcome", 
+                         choices = outcome_sex
+             )),
+      column(10,offset = 1,
+             plotlyOutput(outputId = "piechart_sex")),
+      
+      column(10,offset = 1,
+             helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
+      hr(),
+      column(10, offset = 1, h4("This is for race  demo")),
+      column(10, offset = 1, h5("Write sth here")),
+      column(10,offset = 1,
+             plotlyOutput(outputId = "barchart_race", width = "100%",height = "100%")),
+      br(),
+      column(4, offset = 1,
+             selectInput("outcome_race", 
+                         label = "Choose an Outcome", 
+                         choices = outcome_race
+             )),
+      column(10,offset = 1,
+             plotlyOutput(outputId = "piechart_race")),
+      column(10,offset = 1,
+             helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
+      column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+    )
+  ),
+  tabPanel(title = "COVID Trends",
+           
+           hr(),
+           fluidRow(
+             column(width = 4, offset = 1, selectInput("character_timetrend",
+                                                       "Choose a characteristics",
+                                                       c("please select..." = "plz",
+                                                         "Cases Count" = "pocase", 
+                                                         "Death Count" = "death", 
+                                                         "Cases Rate" = "porate", 
+                                                         "Death Rate" = "derate",
+                                                         "New cases" = "newcase",
+                                                         "Demographics" = "demo"
+                                                       ),
+                                                       selected = NULL)),
+             column(width = 5, "this part will have some instructions")
+           ),
+           hr(),
+           
+           #### Cumulative Cases Count
+           conditionalPanel(
+             condition = "input.character_timetrend == 'pocase'",
+             column(10, offset = 1,h2("Cases Count")),
              fluidRow(
-               column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                         "Choose a characteristics",
-                                                         c("please select..." = "plz",
-                                                           "Cumulative Cases Count" = "pocase", 
-                                                           "Death Count" = "death", 
-                                                           "Positive Cases Rate" = "porate", 
-                                                           "Death Rate" = "derate",
-                                                           "New cases" = "newcase",
-                                                           "Demographics" = "demo"
-                                                         ),
-                                                         selected = NULL)),
-               column(width = 5, "this part will have some instructions"),
-             ),
-             hr(),
-             
-             #### Cumulative Cases Count
-             conditionalPanel(
-               condition = "input.character_timetrend == 'pocase'",
-               h2("Cumulative Cases Count"),
-               fluidRow(
-                 column(width = 12,
-                        sidebarPanel(pickerInput("zip1", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zipcode,
-                                                 multiple = TRUE,
-                                                 selected = zipcode[1:5],
-                                                 options = list(`actions-box` = TRUE))),
-                        mainPanel(plotlyOutput("pocase", width="100%",height="500px"))))
-             ),
-             
-             #### Death Count
-             conditionalPanel(
-               condition = "input.character_timetrend == 'death'",
-               h2("Death Count"),
-               fluidRow(
-                 column(width = 12,
-                        sidebarPanel(pickerInput("zip2", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zipcode, 
-                                                 multiple = TRUE,
-                                                 selected = zipcode[1:5],
-                                                 options = list(`actions-box` = TRUE))),
-                        mainPanel(plotlyOutput("death", width="100%",height="500px"))))
-             ),
-             
-             #### Positive Cases Rate
-             conditionalPanel(
-               condition = "input.character_timetrend == 'porate'",
-               h2("Positive Cases Rate"),
-               fluidRow(
-                 column(width = 12,
-                        sidebarPanel(pickerInput("zip3", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zipcode, 
-                                                 multiple = TRUE,
-                                                 selected = zipcode[1:5],
-                                                 options = list(`actions-box` = TRUE))),
-                        mainPanel(plotlyOutput("porate", width="100%",height="500px"))))
-             ),
-             
-             #### Death Rate
-             conditionalPanel(
-               condition = "input.character_timetrend == 'derate'",
-               h2("Death Rate"),
-               fluidRow(
-                 column(width = 12,
-                        sidebarPanel(pickerInput("zip4", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zipcode,
-                                                 multiple = TRUE,
-                                                 selected = zipcode[1:5],
-                                                 options = list(`actions-box` = TRUE))),
-                        mainPanel(plotlyOutput("derate", width="100%",height="500px"))))
-             ),
-             
-             #### New cases
-             conditionalPanel(
-               condition = "input.character_timetrend == 'newcase'",
-               h2("New cases"),
-               fluidRow(
-                 column(width = 12,
-                        sidebarPanel(pickerInput("zip5", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zipcode,
-                                                 multiple = TRUE,
-                                                 selected = zipcode[1:5],
-                                                 options = list(`actions-box` = TRUE))),
-                        mainPanel(plotlyOutput("newcases", width="100%",height="500px"))))
-             ),
-             
-             
-             #### Demo
-             
-             conditionalPanel(
-               condition = "input.character_timetrend == 'demo'",
-               h2("By Demographics"),
-               fluidRow(
-                 column(width = 12,
-                        selectInput("character_by_demo",
-                                    label = "Choose a Characteristics",
-                                    c("Age" = "age",
-                                      "Gender" = "sex",
-                                      "Race" = "race")))),
-                        hr(),
-                        
-               conditionalPanel(
-                 condition = "input.character_by_demo == 'age'",
-                 fluidRow(column(width = 12,
-                                   selectInput("outcome_age_tt",
-                                      label = "Choose an outcome",
-                                      choices = outcome_age_tt)),
-                          column(width = 12,
-                                   plotlyOutput("timetrend_age", width="100%",height="500px"))
-                          )),
-               
-               conditionalPanel(
-                 condition = "input.character_by_demo == 'sex'",
-                 fluidRow(
-                   column(width = 12,
-                          selectInput("outcome_sex_tt",
-                                      label = "Choose an outcome",
-                                      choices = outcome_sex_tt)),
-                   column(width = 12,
-                          plotlyOutput("timetrend_sex", width="100%",height="500px"))
-                 )),
-               
-               conditionalPanel(
-                 condition = "input.character_by_demo == 'race'",
-                 fluidRow(
-                   column(width = 12,
-                          selectInput("outcome_race_tt",
-                                      label = "Choose an outcome",
-                                      choices = outcome_race_tt)),
-                   column(width = 12,
-                          plotlyOutput("timetrend_race", width="100%",height="500px"))
-                 ))
-                 )
-             
-             
-             
-             
-    ),
-    
-    
-    tabPanel(title = "Demographics",
-             
-             hr(),
+               column(width = 10, offset = 1,
+                      sidebarPanel(pickerInput("zip1", 
+                                               label = "Choose zipcodes", 
+                                               choices =zipcode,
+                                               multiple = TRUE,
+                                               selected = zipcode[1:5],
+                                               options = list(`actions-box` = TRUE))),
+                      mainPanel(plotlyOutput("pocase", width="100%",height="500px"))),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
+           #### Death Count
+           conditionalPanel(
+             condition = "input.character_timetrend == 'death'",
+             column(10, offset = 1, h2("Death Count")),
              fluidRow(
-               column(width = 4, offset = 1, selectInput("character",
-                                                         "Choose a characteristics",
-                                                         c("please select..." = "plz",
-                                                           "Race" = "race",
-                                                           "Income" = "income",
-                                                           "Household Size" = "house"))),
-               column(width = 5, "this part will have some instructions")
-             ),
+               column(width = 10, offset = 1,
+                      sidebarPanel(pickerInput("zip2", 
+                                               label = "Choose zipcodes", 
+                                               choices =zipcode, 
+                                               multiple = TRUE,
+                                               selected = zipcode[1:5],
+                                               options = list(`actions-box` = TRUE))),
+                      mainPanel(plotlyOutput("death", width="100%",height="500px"))),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
+           #### Positive Cases Rate
+           conditionalPanel(
+             condition = "input.character_timetrend == 'porate'",
+             column(10, offset = 1, h2("Cases Rate")),
+             fluidRow(
+               column(width = 10, offset = 1,
+                      sidebarPanel(pickerInput("zip3", 
+                                               label = "Choose zipcodes", 
+                                               choices =zipcode, 
+                                               multiple = TRUE,
+                                               selected = zipcode[1:5],
+                                               options = list(`actions-box` = TRUE))),
+                      mainPanel(plotlyOutput("porate", width="100%",height="500px"))),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
+           #### Death Rate
+           conditionalPanel(
+             condition = "input.character_timetrend == 'derate'",
+             column(10, offset = 1, h2("Death Rate")),
+             fluidRow(
+               column(width = 10, offset = 1,
+                      sidebarPanel(pickerInput("zip4", 
+                                               label = "Choose zipcodes", 
+                                               choices =zipcode,
+                                               multiple = TRUE,
+                                               selected = zipcode[1:5],
+                                               options = list(`actions-box` = TRUE))),
+                      mainPanel(plotlyOutput("derate", width="100%",height="500px"))),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
+           #### New cases
+           conditionalPanel(
+             condition = "input.character_timetrend == 'newcase'",
+             column(10, offset = 1, h2("New cases")),
+             fluidRow(
+               column(width = 10, offset = 1,
+                      sidebarPanel(pickerInput("zip5", 
+                                               label = "Choose zipcodes", 
+                                               choices =zipcode,
+                                               multiple = TRUE,
+                                               selected = zipcode[1:5],
+                                               options = list(`actions-box` = TRUE))),
+                      mainPanel(plotlyOutput("newcases", width="100%",height="500px"))),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
+           
+           #### Demo
+           
+           conditionalPanel(
+             condition = "input.character_timetrend == 'demo'",
+             column(10, offset = 1, h2("By Demographics")),
+             fluidRow(
+               column(width = 10, offset = 1,
+                      selectInput("character_by_demo",
+                                  label = "Choose a Characteristics",
+                                  c("Age" = "age",
+                                    "Gender" = "sex",
+                                    "Race" = "race")))),
              hr(),
              
-             #### Race
              conditionalPanel(
-               condition = "input.character == 'race'",
-               h2("Comparison"),
+               condition = "input.character_by_demo == 'age'",
+               fluidRow(column(width = 10, offset = 1,
+                               selectInput("outcome_age_tt",
+                                           label = "Choose an outcome",
+                                           choices = outcome_age_tt)),
+                        column(width = 10, offset = 1,
+                               plotlyOutput("timetrend_age", width="100%",height="100%")),
+                        column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+               )),
+             
+             conditionalPanel(
+               condition = "input.character_by_demo == 'sex'",
                fluidRow(
-                 column(width = 3,
+                 column(width = 10, offset = 1,
+                        selectInput("outcome_sex_tt",
+                                    label = "Choose an outcome",
+                                    choices = outcome_sex_tt)),
+                 column(width = 10, offset = 1,
+                        plotlyOutput("timetrend_sex", width="100%",height="100%")),
+                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+               )),
+             
+             conditionalPanel(
+               condition = "input.character_by_demo == 'race'",
+               fluidRow(
+                 column(width = 10, offset = 1,
+                        selectInput("outcome_race_tt",
+                                    label = "Choose an outcome",
+                                    choices = outcome_race_tt)),
+                 column(width = 10, offset = 1,
+                        plotlyOutput("timetrend_race", width="100%",height="100%")),
+                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
+               ))
+           )
+           
+           
+           
+           
+  ),
+  
+  
+  tabPanel(title = "Neighborhoods",
+           
+           hr(),
+           fluidRow(
+             column(width = 4, offset = 1, selectInput("character",
+                                                       "Choose a characteristics",
+                                                       c("please select..." = "plz",
+                                                         "Race" = "race",
+                                                         "Income" = "income",
+                                                         "Household Size" = "house"))),
+             column(width = 5, "this part will have some instructions")
+           ),
+           hr(),
+           
+           #### Race
+           conditionalPanel(
+             condition = "input.character == 'race'",
+             h2("Comparison"),
+             fluidRow(
+               column(width = 3,
+                      sidebarPanel(width = 12,
+                                   selectInput("nbhid1", 
+                                               label = "Choose a Neighbourhood", 
+                                               choices =nbh_name, 
+                                               selected = NULL))),
+               column(width = 9, h4("some words to describe the pie chart"))),
+             br(),
+             fluidRow(
+               
+               column(width = 4,align="center",
+                      textOutput("nbh1"),
+                      plotlyOutput("race_nbh", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("boro1"),
+                      plotlyOutput("race_boro", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("nyc1"),
+                      plotlyOutput("race_nyc", width="100%",height="500px"))),
+             hr(),
+             h1("Map"),
+             fluidRow(
+               column(width = 3,
+                      verticalLayout(
                         sidebarPanel(width = 12,
-                                     selectInput("nbhid1", 
+                                     pickerInput(inputId = "raceid",
+                                                 label = "Choose a Race",
+                                                 choices = str_replace_all(race_name, "_", " "),
+                                                 multiple = TRUE,
+                                                 selected = str_replace_all(race_name, "_", " ")[1],
+                                                 options = list(`actions-box` = TRUE)
+                                     )),
+                        hr(),
+                        h4("some words to describe the map"))),
+               column(width = 9,leafletOutput("race_map", width="100%",height="700px"))),
+             column(10, offset = 1, helpText("Data Sources: Census 2010"))
+           ),
+           
+           
+           #### Household
+           conditionalPanel(
+             condition = "input.character == 'house'",
+             h2("Comparison"),
+             fluidRow(
+               column(width = 3,
+                      sidebarPanel(width = 12,
+                                   selectInput("nbhid2", 
+                                               label = "Choose a Neighborhood", 
+                                               choices =nbh_name, 
+                                               selected = NULL))),
+               column(width = 9, h4("some words to describe the pie chart"))),
+             br(),
+             fluidRow(
+               
+               column(width = 4,align="center",
+                      textOutput("nbh2"),
+                      plotlyOutput("household_nbh", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("boro2"),
+                      plotlyOutput("household_boro", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("nyc2"),
+                      plotlyOutput("household_nyc", width="100%",height="500px"))),
+             hr(),
+             h1("Map"),
+             fluidRow(
+               column(width = 3,
+                      verticalLayout(
+                        sidebarPanel(width = 12,
+                                     pickerInput(inputId = "houseid",
+                                                 label = "Choose a Household size",
+                                                 choices = str_replace_all(house_name, "_", " "),
+                                                 multiple = TRUE,
+                                                 selected = str_replace_all(house_name, "_", " ")[1],
+                                                 options = list(`actions-box` = TRUE))),
+                        hr(),
+                        h4("some words to describe the map"))),
+               column(width = 9,leafletOutput("household_map", width="100%",height="700px"))),
+             column(10, offset = 1, helpText("Data Sources: Census 2010"))
+           ),
+           
+           #### income
+           conditionalPanel(
+             condition = "input.character == 'income'",
+             h2("Comparison"),
+             fluidRow(
+               column(width = 3,
+                      verticalLayout(
+                        sidebarPanel(width = 12,
+                                     selectInput("nbhid3", 
                                                  label = "Choose a Neighbourhood", 
                                                  choices =nbh_name, 
-                                                 selected = NULL))),
-                 column(width = 9, h4("some words to describe the pie chart"))),
-               br(),
-               fluidRow(
-                 
-                 column(width = 4,align="center",
-                        textOutput("nbh1"),
-                        plotlyOutput("race_nbh", width="100%",height="500px")),
-                 column(width = 4,align="center",
-                        textOutput("boro1"),
-                        plotlyOutput("race_boro", width="100%",height="500px")),
-                 column(width = 4,align="center",
-                        textOutput("nyc1"),
-                        plotlyOutput("race_nyc", width="100%",height="500px"))),
-               hr(),
-               h1("Map"),
-               fluidRow(
-                 column(width = 3,
-                        verticalLayout(
-                          sidebarPanel(width = 12,
-                                       pickerInput(inputId = "raceid",
-                                                   label = "Choose a Race",
-                                                   choices = str_replace_all(race_name, "_", " "),
-                                                   multiple = TRUE,
-                                                   selected = str_replace_all(race_name, "_", " ")[1],
-                                                   options = list(`actions-box` = TRUE)
-                                       )),
-                          hr(),
-                          h4("some words to describe the map"))),
-                 column(width = 9,leafletOutput("race_map", width="100%",height="700px")))
-             ),
+                                                 selected = NULL)),
+                        hr(),
+                        h4("some words to describe the bar chart")
+                      )),
+               column(width = 9, textOutput("nbh3"),textOutput("boro3"),textOutput("nyc3"),
+                      plotlyOutput("income_nbh", width="80%",height="600px"))),
              
+             hr(),
+             h1("Map"),
+             fluidRow(
+               column(width = 3,
+                      verticalLayout(
+                        h4("some words to describe the map"))),
+               column(width = 9,leafletOutput("income_map", width="100%",height="700px"))),
+             column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
-             #### Household
-             conditionalPanel(
-               condition = "input.character == 'house'",
-               h2("Comparison"),
-               fluidRow(
-                 column(width = 3,
-                        sidebarPanel(width = 12,
-                                     selectInput("nbhid2", 
-                                                 label = "Choose a Neighborhood", 
-                                                 choices =nbh_name, 
-                                                 selected = NULL))),
-                 column(width = 9, h4("some words to describe the pie chart"))),
-               br(),
-               fluidRow(
-                 
-                 column(width = 4,align="center",
-                        textOutput("nbh2"),
-                        plotlyOutput("household_nbh", width="100%",height="500px")),
-                 column(width = 4,align="center",
-                        textOutput("boro2"),
-                        plotlyOutput("household_boro", width="100%",height="500px")),
-                 column(width = 4,align="center",
-                        textOutput("nyc2"),
-                        plotlyOutput("household_nyc", width="100%",height="500px"))),
-               hr(),
-               h1("Map"),
-               fluidRow(
-                 column(width = 3,
-                        verticalLayout(
-                          sidebarPanel(width = 12,
-                                       pickerInput(inputId = "houseid",
-                                                   label = "Choose a Household size",
-                                                   choices = str_replace_all(house_name, "_", " "),
-                                                   multiple = TRUE,
-                                                   selected = str_replace_all(house_name, "_", " ")[1],
-                                                   options = list(`actions-box` = TRUE))),
-                          hr(),
-                          h4("some words to describe the map"))),
-                 column(width = 9,leafletOutput("household_map", width="100%",height="700px")))
-             ),
-             
-             #### income
-             conditionalPanel(
-               condition = "input.character == 'income'",
-               h2("Comparison"),
-               fluidRow(
-                 column(width = 3,
-                        verticalLayout(
-                          sidebarPanel(width = 12,
-                                       selectInput("nbhid3", 
-                                                   label = "Choose a Neighbourhood", 
-                                                   choices =nbh_name, 
-                                                   selected = NULL)),
-                          hr(),
-                          h4("some words to describe the bar chart")
-                        )),
-                 column(width = 9, textOutput("nbh3"),textOutput("boro3"),textOutput("nyc3"),
-                        plotlyOutput("income_nbh", width="80%",height="600px"))),
-               
-               hr(),
-               h1("Map"),
-               fluidRow(
-                 column(width = 3,
-                        verticalLayout(
-                          h4("some words to describe the map"))),
-                 column(width = 9,leafletOutput("income_map", width="100%",height="700px")))
-               
-               )
-    ),
-    
-    tabPanel("Comorbidity"),
-    tabPanel("About")
-    
-  )
+           )
+  ),
+  
+  tabPanel("About")
+  
+)
 
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
   shinyjs::addClass(id = "menus", class = "navbar-right")
+  
+  output$myImage = renderImage({
+    
+    return(list(
+      src = "newlogo3.png",
+      contentType = "image/png",
+      style="display: block; margin-left: auto; margin-right: auto;",
+      alt = "  "
+    ))
+    
+  },deleteFile = FALSE)
+  
+  output$Hometext = renderText({
+    return(
+    "The NYC-Neighborhoods-COVID Dashboard is a data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
+    The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
+    <br>
+    <br>
+    <p style=text-indent: 2em> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <br>
+    <br>
+    <p style=text-indent: 2em> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <br>
+    <br>
+    <p style=text-indent: 2em> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <br>
+    <br>
+    <p style=text-indent: 2em> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    
+    )
+  })
   
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
@@ -811,7 +857,7 @@ server <- function(input, output) {
       facet_wrap(outcome ~ ., scales = "free")
     
     ggplotly(b)
-
+    
     
   })
   
@@ -867,31 +913,31 @@ server <- function(input, output) {
     fig <- plot_ly(sort = FALSE)
     
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
-                           labels = ~pie1data$group, values = ~count,
-                           type = 'pie',
-                           name =  ~pie1data$boro, domain = list(row = 0, column = 0)
-                           
+                             labels = ~pie1data$group, values = ~count,
+                             type = 'pie',
+                             name =  ~pie1data$boro, domain = list(row = 0, column = 0)
+                             
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
-                           labels = ~pie2data$group, values = ~count,
-                           type = 'pie',
-                           name =  pie2data$boro, domain = list(row = 0, column = 1)
-                           ) 
+                             labels = ~pie2data$group, values = ~count,
+                             type = 'pie',
+                             name =  pie2data$boro, domain = list(row = 0, column = 1)
+    ) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
-                           labels = ~pie3data$group, values = ~count,
-                           type = 'pie',
-                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+                             labels = ~pie3data$group, values = ~count,
+                             type = 'pie',
+                             name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
-                           labels = ~pie4data$group, 
-                           values = ~count,
-                           type = 'pie',
-                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+                             labels = ~pie4data$group, 
+                             values = ~count,
+                             type = 'pie',
+                             name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
-                           labels = ~pie5data$group, 
-                           values = ~count,
-                           type = 'pie',
-                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
-    fig <- fig %>% layout(title = "Brooklyn, Manhatten, Bronx, State Island, Queens", showlegend = T,
+                             labels = ~pie5data$group, 
+                             values = ~count,
+                             type = 'pie',
+                             name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
@@ -923,28 +969,28 @@ server <- function(input, output) {
     
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
-                           labels = ~pie1data$group, values = ~count,
-                           type = 'pie',
-                           name =  pie1data$boro, domain = list(row = 0, column = 0))
+                             labels = ~pie1data$group, values = ~count,
+                             type = 'pie',
+                             name =  pie1data$boro, domain = list(row = 0, column = 0))
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
-                           labels = ~pie2data$group, values = ~count,
-                           type = 'pie',
-                           name =  pie2data$boro, domain = list(row = 0, column = 1)) 
+                             labels = ~pie2data$group, values = ~count,
+                             type = 'pie',
+                             name =  pie2data$boro, domain = list(row = 0, column = 1)) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
-                           labels = ~pie3data$group, values = ~count,
-                           type = 'pie',
-                           name = pie3data$boro, domain = list(row = 0, column = 2)) 
+                             labels = ~pie3data$group, values = ~count,
+                             type = 'pie',
+                             name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
-                           labels = ~pie4data$group, 
-                           values = ~count,
-                           type = 'pie',
-                           name = pie4data$boro, domain = list(row = 0, column = 3)) 
+                             labels = ~pie4data$group, 
+                             values = ~count,
+                             type = 'pie',
+                             name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
-                           labels = ~pie5data$group, 
-                           values = ~count,
-                           type = "pie",
-                           name = pie5data$boro, domain = list(row = 0, column = 4)) 
-    fig <- fig %>% layout(title = "Gender Group Pie Charts", showlegend = T,
+                             labels = ~pie5data$group, 
+                             values = ~count,
+                             type = "pie",
+                             name = pie5data$boro, domain = list(row = 0, column = 4)) 
+    fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
@@ -976,34 +1022,34 @@ server <- function(input, output) {
     
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
-                           labels = ~pie1data$group, values = ~count,
-                           type = 'pie',
-                           name =  pie1data$boro, domain = list(row = 0, column = 0)
-                           )
+                             labels = ~pie1data$group, values = ~count,
+                             type = 'pie',
+                             name =  pie1data$boro, domain = list(row = 0, column = 0)
+    )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
-                           labels = ~pie2data$group, values = ~count,
-                           type = 'pie',
-                           name =  pie2data$boro, domain = list(row = 0, column = 1)
-                           )
+                             labels = ~pie2data$group, values = ~count,
+                             type = 'pie',
+                             name =  pie2data$boro, domain = list(row = 0, column = 1)
+    )
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
-                           labels = ~pie3data$group, values = ~count,
-                           type = 'pie',
-                           name = pie3data$boro, domain = list(row = 0, column = 2)
-                           ) 
+                             labels = ~pie3data$group, values = ~count,
+                             type = 'pie',
+                             name = pie3data$boro, domain = list(row = 0, column = 2)
+    ) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
-                           labels = ~pie4data$group, 
-                           values = ~count,
-                           type = 'pie',
-                           
-                           name = pie4data$boro, domain = list(row = 0, column = 3)
-                           ) 
+                             labels = ~pie4data$group, 
+                             values = ~count,
+                             type = 'pie',
+                             
+                             name = pie4data$boro, domain = list(row = 0, column = 3)
+    ) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
-                           labels = ~pie5data$group, 
-                           values = ~count,
-                           type = 'pie',
-                           name = pie5data$boro, domain = list(row = 0, column = 4)
-                           )
-    fig <- fig %>% layout(title = "Race", 
+                             labels = ~pie5data$group, 
+                             values = ~count,
+                             type = 'pie',
+                             name = pie5data$boro, domain = list(row = 0, column = 4)
+    )
+    fig <- fig %>% layout(title = "", 
                           showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
@@ -1375,7 +1421,7 @@ server <- function(input, output) {
     Week <- unique(as.Date(cut(byage$day, "week")) + 6)
     weeklyage <- byage %>% 
       filter(day %in% Week)
-
+    
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
@@ -1387,7 +1433,10 @@ server <- function(input, output) {
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") + 
+      ylab("")
     
     ggplotly(a)
     
@@ -1400,8 +1449,8 @@ server <- function(input, output) {
     weeklysex <- bysex %>% 
       filter(day %in% Week)
     
-    x_min_us = min(weeklyage$day)
-    x_max_us = max(weeklyage$day)
+    x_min_us = min(weeklysex$day)
+    x_max_us = max(weeklysex$day)
     
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
@@ -1411,18 +1460,21 @@ server <- function(input, output) {
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
-      theme(axis.text.x = element_text(angle = 45)) 
+      theme(axis.text.x = element_text(angle = 45)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") + 
+      ylab("")
     
     ggplotly(a)
-   
+    
   })
   output$timetrend_race = renderPlotly({
     Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
     weeklyrace <- byrace %>% 
       filter(day %in% Week)
     
-    x_min_us = min(weeklyage$day)
-    x_max_us = max(weeklyage$day)
+    x_min_us = min(weeklyrace$day)
+    x_max_us = max(weeklyrace$day)
     
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
@@ -1432,13 +1484,16 @@ server <- function(input, output) {
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      xlab("") + 
+      ylab("")
     
     ggplotly(a)
     
     
   })
-
+  
   output$pocase <- renderPlotly({
     
     weeklydf %>% 
