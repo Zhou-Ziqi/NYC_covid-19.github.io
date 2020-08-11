@@ -1,0 +1,60 @@
+---
+title: "MapGif"
+author: "Ziqi Zhou"
+date: "8/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(gganimate)
+library(tidyverse)
+
+library(leaflet)
+library(maps)
+library(tigris)
+library(sf)
+```
+
+```{r}
+#read the data
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv")
+spdf2 = read_sf("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+```
+
+```{r}
+Aprildata_with_nebhod_break = Aprildata_with_nebhod
+Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive, 
+                                     breaks = c(0,50,100,200,500,1000,
+                                                2000,3000,4000,10000),
+                                     labels = c('0-50','50-100','100-200','200-500',
+                                                '500-1000','1000-2000',
+                                                '2000-3000','3000-4000','4000+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+```{r}
+#for April map
+
+for (i in 1:30) {
+ p =  Aprildata_with_nebhod_break %>% 
+    filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
+ p = subset(p, !is.na(positive))
+    
+plot =   ggplot(p) + 
+    geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("Positive Cases in NYC at zipcode level on April: ",i))
+
+  
+  ggsave(filename = paste0(i,"Apr.png"),
+ plot = plot, path = "/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics",
+width = 20, height = 20, units = "cm")
+}
+
+```
