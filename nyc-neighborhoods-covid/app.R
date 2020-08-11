@@ -146,10 +146,6 @@ bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>%
 outcome_age = byage %>% distinct(outcome) %>% pull()
 outcome_race = byrace %>% distinct(outcome) %>% pull()
 outcome_sex = bysex %>% distinct(outcome) %>% pull()
-#for time trend
-outcome_age_tt = byage %>% distinct(outcome) %>% pull()
-outcome_race_tt = byrace %>% distinct(outcome) %>% pull()
-outcome_sex_tt = bysex %>% distinct(outcome) %>% pull()
 
 
 data_by_modzcta = read_csv("./data/data-by-modzcta.csv") %>% 
@@ -390,11 +386,11 @@ ui <- navbarPage(
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(align = "center", img(src = "newlogo3.png", height = "50%", width = "50%")),
-           fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 18px;line-height:150%"))),
+           fluidRow(align = "center", img(src = "newlogo3.png", height = "40%", width = "40%")),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50", width="30%"),
+                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -427,16 +423,17 @@ ui <- navbarPage(
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #FFFFFF;")
                     
-           )
+           ),
+           hr()
   ),
   
   
   tabPanel(
     # Application title
-    title= "COVID Tracker",
+    title= "COVID-19 Tracker",
     # Sidebar with a slider input for number of bins 
     fluidRow(
-      column(width = 10, offset = 1, h2("COVID Tracking")),
+      column(width = 10, offset = 1, h2("COVID-19 Tracking")),
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
@@ -466,19 +463,25 @@ ui <- navbarPage(
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
                           style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
-    )
+    ),
+    hr()
   ),
   
   tabPanel(
-    title = "COVID Distribution",
-    column(width = 10, offset = 1, h2("COVID Data by neighborhoods and demographics")),
+    title = "COVID-19 Distribution",
+    column(width = 10, offset = 1, h2("COVID-19 Data by neighborhoods and demographics")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
-                                        style="font-size: 18px;  line-height:150%")),
+                                        style="font-size: 15px;  line-height:150%")),
     column(width = 10,offset = 1,
            sidebarLayout(
              
@@ -491,11 +494,13 @@ ui <- navbarPage(
                               "Death Rate (per 100,000 people)" = "death_rate",
                               "New Cases" = "newcase")),
                
-               helpText("data update by 2020-07-23"))
-             
+               helpText("data update by 2020-07-23"),
+               span(htmlOutput("Distributionmap_help_text"), 
+                    style="font-size: 14px;line-height:150% ; color:grey")
+             )
              ,
              
-             mainPanel(column(10,leafletOutput(outputId = "map",width="120%",height="585px"))),
+             mainPanel(column(10,leafletOutput(outputId = "map",width="120%",height="465px"))),
              position = c("left","right")
            )),
     
@@ -508,7 +513,7 @@ ui <- navbarPage(
       br(),
       column(4, offset = 1,
              selectInput("outcome_age", 
-                         label = "Choose an Outcome", 
+                         label = "Data Display", 
                          choices = outcome_age
              )),
       column(10,offset = 1,
@@ -524,7 +529,7 @@ ui <- navbarPage(
       br(),
       column(4, offset = 1,
              selectInput("outcome_sex", 
-                         label = "Choose an Outcome", 
+                         label = "Data Display", 
                          choices = outcome_sex
              )),
       column(10,offset = 1,
@@ -540,7 +545,7 @@ ui <- navbarPage(
       br(),
       column(4, offset = 1,
              selectInput("outcome_race", 
-                         label = "Choose an Outcome", 
+                         label = "Data Display", 
                          choices = outcome_race
              )),
       column(10,offset = 1,
@@ -573,25 +578,30 @@ ui <- navbarPage(
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
                           style = "border-color: #FFFFFF;"),
+             actionButton("whats_index",
+                          label = "",
+                          icon = icon("whatsapp"),
+                          onclick = sprintf("window.open('%s')", url6),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #FFFFFF;")
-    )
+    ),
+    hr()
   ),
-  tabPanel(title = "COVID Trends",
+  tabPanel(title = "COVID-19 Trends",
            
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Choose a characteristics",
-                                                       c("Cases Count" = "pocase", 
+                                                       c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
-                                                         "Cases Rate" = "porate", 
+                                                         "Case Rate" = "porate", 
                                                          "Death Rate" = "derate",
-                                                         "New cases" = "newcase",
-                                                         "Demographics" = "demo"
+                                                         "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
              column(width = 5, "this part will have some instructions")
@@ -611,6 +621,9 @@ ui <- navbarPage(
                                                selected = zipcode[1:5],
                                                options = list(`actions-box` = TRUE))),
                       mainPanel(plotlyOutput("pocase", width="100%",height="500px"))),
+               column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_race_cac", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
@@ -627,6 +640,9 @@ ui <- navbarPage(
                                                selected = zipcode[1:5],
                                                options = list(`actions-box` = TRUE))),
                       mainPanel(plotlyOutput("death", width="100%",height="500px"))),
+               column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_race_dec", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
@@ -643,6 +659,9 @@ ui <- navbarPage(
                                                selected = zipcode[1:5],
                                                options = list(`actions-box` = TRUE))),
                       mainPanel(plotlyOutput("porate", width="100%",height="500px"))),
+               column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_race_carate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
@@ -659,6 +678,9 @@ ui <- navbarPage(
                                                selected = zipcode[1:5],
                                                options = list(`actions-box` = TRUE))),
                       mainPanel(plotlyOutput("derate", width="100%",height="500px"))),
+               column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_race_derate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
@@ -678,56 +700,6 @@ ui <- navbarPage(
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           
-           #### Demo
-           
-           conditionalPanel(
-             condition = "input.character_timetrend == 'demo'",
-             column(10, offset = 1, h2("By Demographics")),
-             fluidRow(
-               column(width = 10, offset = 1,
-                      selectInput("character_by_demo",
-                                  label = "Choose a Characteristics",
-                                  c("Age" = "age",
-                                    "Gender" = "sex",
-                                    "Race" = "race")))),
-             hr(),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'age'",
-               fluidRow(column(width = 10, offset = 1,
-                               selectInput("outcome_age_tt",
-                                           label = "Choose an outcome",
-                                           choices = outcome_age_tt)),
-                        column(width = 10, offset = 1,
-                               plotlyOutput("timetrend_age", width="100%",height="100%")),
-                        column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               )),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'sex'",
-               fluidRow(
-                 column(width = 10, offset = 1,
-                        selectInput("outcome_sex_tt",
-                                    label = "Choose an outcome",
-                                    choices = outcome_sex_tt)),
-                 column(width = 10, offset = 1,
-                        plotlyOutput("timetrend_sex", width="100%",height="100%")),
-                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               )),
-             
-             conditionalPanel(
-               condition = "input.character_by_demo == 'race'",
-               fluidRow(
-                 column(width = 10, offset = 1,
-                        selectInput("outcome_race_tt",
-                                    label = "Choose an outcome",
-                                    choices = outcome_race_tt)),
-                 column(width = 10, offset = 1,
-                        plotlyOutput("timetrend_race", width="100%",height="100%")),
-                 column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
-               ))
-           ),
            hr(),
            fluidRow(align="center",
                     img(src='cu_logo_biostat.png', height="50%", width="30%"),
@@ -752,12 +724,18 @@ ui <- navbarPage(
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
                                  style = "border-color: #FFFFFF;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #FFFFFF;")
-           )
+           ),
+           hr()
   ),
   
   
@@ -912,12 +890,18 @@ ui <- navbarPage(
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
                                  style = "border-color: #FFFFFF;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #FFFFFF;")
-           )
+           ),
+           hr()
   ),
   
   tabPanel("About",
@@ -945,12 +929,18 @@ ui <- navbarPage(
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
                                  style = "border-color: #FFFFFF;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #FFFFFF;")
-           ))
+           ),
+           hr())
   
 )
 
@@ -964,20 +954,12 @@ server <- function(input, output) {
   
   output$Hometext = renderText({
     return(
-      "The NYC-Neighborhoods-COVID Dashboard is a data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
+      "The NYC-Neighborhoods-COVID-19 Dashboard is a tracker and data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
     The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span> 1. <b> The COVID tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
-    <br>
-    <br>
-    <span>&#8226;</span> 2. <b> The COVID distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span> 3. <b> The COVID trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
-    <br>
-    <br>
-    <span>&#8226;</span> 4. <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+    <b> The COVID-19 tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <b> The COVID-19 distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <b> The COVID-19 trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
       
     )
   })
@@ -985,10 +967,10 @@ server <- function(input, output) {
   
   output$Trackertext = renderText({
     return(
-      "Tracking daily COVID cases and deaths by <b> NYC ZIP Code Tabulation Areas (ZCTAs) </b>. 
+      "Tracking daily COVID-19 cases and deaths by <b> NYC ZIP Code Tabulation Areas (ZCTAs) </b>. 
       Data are presented as case count, new cases, incidence rate, death count, and new deaths. 
-      <b> Case count and death count </b> are <b> total cumulative numbers </b> of COVID cases and deaths by the updated date. 
-      <b> New cases and new deaths </b> are incremental numbers of COVID positive cases and deaths on the updated date. 
+      <b> Case count and death count </b> are <b> total cumulative numbers </b> of COVID-19 cases and deaths by the updated date. 
+      <b> New cases and new deaths </b> are incremental numbers of COVID-19 positive cases and deaths on the updated date. 
       <b> Incidence rate </b> is calculated as new cases divided by ZCTA population size and multiplied by 100,000 and are interpreted as daily new cases per 100,000 people in the ZCTA. 
       The population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning updated in 2019. 
       
@@ -998,14 +980,21 @@ server <- function(input, output) {
       <br> <br>"
     )
   })
+  output$Distributionmap_help_text = renderText({
+    return(
+      "<span>&#8226;</span> Case count and death count are total cumulative numbers of COVID-19 cases and deaths by the updated date. 
+     <br>
+     <span>&#8226;</span>  Case rate and death rate are calculated using case count and death count divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID-19 cases and deaths per 100,000 people in the ZCTA. 
+     <br>
+     <span>&#8226;</span>  New cases are incremental number of COVID-19 cases on the updated date. 
+    "
+    )
+  })
   
   output$Distributionmaptext = renderText({
     return(
-      "Use this map to see how COVID cases and deaths vary by NYC ZIP Code Tabulation Areas (ZCTAs). 
-      Select the date and available display options to visualize the data. 
-      Case count and death count are total cumulative numbers of COVID positive cases and deaths by the selected date. 
-      Case rate and death rate are calculated using case count and death count divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID positive cases and deaths per 100,000 people in the ZCTA. 
-      New cases are incremental number of COVID positive cases on the selected date.  
+      "Use this map to see how COVID-19 cases and deaths vary by NYC ZIP Code Tabulation Areas (ZCTAs). 
+      Select available display options to visualize the data. 
       <br> <br>"
     )
   })
@@ -1649,7 +1638,8 @@ server <- function(input, output) {
   })
   
   #### Time Trend
-  output$timetrend_age = renderPlotly({
+  ### Case Count
+  output$tt_age_cac = renderPlotly({
     Week <- unique(as.Date(cut(byage$day, "week")) + 6)
     weeklyage <- byage %>% 
       filter(day %in% Week)
@@ -1660,22 +1650,23 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyage %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_age_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
       xlab("") + 
       ylab("")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
     
     
     
   })
-  output$timetrend_sex = renderPlotly({
+  output$tt_sex_cac = renderPlotly({
     
     Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
     weeklysex <- bysex %>% 
@@ -1687,20 +1678,21 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklysex %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_sex_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
       theme(axis.text.x = element_text(angle = 45)) + 
       theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
       xlab("") + 
       ylab("")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
     
   })
-  output$timetrend_race = renderPlotly({
+  output$tt_race_cac = renderPlotly({
     Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
     weeklyrace <- byrace %>% 
       filter(day %in% Week)
@@ -1711,20 +1703,274 @@ server <- function(input, output) {
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyrace %>% 
-      filter(group != "Boroughwide" & outcome == input$outcome_race_tt) %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
       scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
       theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
       xlab("") + 
       ylab("")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
     
     
   })
+  
+  
+  ####
+  ## Case Rate
+  output$tt_age_carate = renderPlotly({
+    Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
+      filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+    
+  })
+  output$tt_sex_carate = renderPlotly({
+    
+    Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
+    weeklysex <- bysex %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklysex$day)
+    x_max_us = max(weeklysex$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklysex %>% 
+      filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+  })
+  output$tt_race_carate = renderPlotly({
+    Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
+    weeklyrace <- byrace %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyrace$day)
+    x_max_us = max(weeklyrace$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyrace %>% 
+      filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+  })
+  
+  ### Death Count
+  
+  output$tt_age_dec = renderPlotly({
+    Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
+      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+    
+  })
+  output$tt_sex_dec = renderPlotly({
+    
+    Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
+    weeklysex <- bysex %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklysex$day)
+    x_max_us = max(weeklysex$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklysex %>% 
+      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+  })
+  output$tt_race_dec = renderPlotly({
+    Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
+    weeklyrace <- byrace %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyrace$day)
+    x_max_us = max(weeklyrace$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyrace %>% 
+      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+  })
+  
+  ###Death Rate
+  
+  
+  output$tt_age_derate = renderPlotly({
+    Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
+      filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+    
+  })
+  output$tt_sex_derate = renderPlotly({
+    
+    Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
+    weeklysex <- bysex %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklysex$day)
+    x_max_us = max(weeklysex$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklysex %>% 
+      filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+  })
+  output$tt_race_derate = renderPlotly({
+    Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
+    weeklyrace <- byrace %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyrace$day)
+    x_max_us = max(weeklyrace$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyrace %>% 
+      filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) + 
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    
+    
+  })
+  
+  
+  
+  
+  #######
   
   output$pocase <- renderPlotly({
     

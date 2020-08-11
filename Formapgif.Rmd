@@ -58,3 +58,21 @@ width = 20, height = 20, units = "cm")
 }
 
 ```
+
+```{r}
+library(magick)
+list.files(path='./data/pics', pattern = '*.png', full.names = TRUE) %>% 
+        image_read() %>% # reads each path file
+        image_join() %>% # joins image
+        image_animate(fps=4) %>% # animates, can opt for number of loops
+        image_write("Aprmap.gif")
+```
+
+```{r}
+animate_p = image_animate(image=image_read(path=paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics","/",i,"Apr.png")))
+
+anim_save(filename = "aprmap.gif",animation = animate_p,path="/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics")
+
+print(animate_p)
+```
+
