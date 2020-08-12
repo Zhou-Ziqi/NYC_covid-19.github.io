@@ -1058,7 +1058,7 @@ output$Distributionmap_help_text = renderText({
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
   })
   
@@ -1078,7 +1078,7 @@ output$Distributionmap_help_text = renderText({
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(b)
+    ggplotly(b) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1102,7 +1102,7 @@ output$Distributionmap_help_text = renderText({
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(c)
+    ggplotly(c) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1138,33 +1138,49 @@ output$Distributionmap_help_text = renderText({
     
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  ~pie1data$boro, domain = list(row = 0, column = 0)
                              
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     ) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1194,30 +1210,46 @@ output$Distributionmap_help_text = renderText({
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0))
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = "pie",
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1257,28 +1289,43 @@ output$Distributionmap_help_text = renderText({
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0)
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     )
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)
     ) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)
     ) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)
     )
@@ -1286,7 +1333,8 @@ output$Distributionmap_help_text = renderText({
                           showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
