@@ -1086,6 +1086,8 @@ output$Distributionmap_help_text = renderText({
   output$barchart_race = renderPlotly({
     
     c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group) %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
       theme_bw() + 
@@ -1231,15 +1233,25 @@ output$Distributionmap_help_text = renderText({
   output$piechart_race = renderPlotly({
     
     pie1data = byrace %>% 
-      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race) %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie3data = byrace %>% 
-      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie2data = byrace %>% 
-      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie4data = byrace %>% 
-      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie5data = byrace %>% 
-      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
@@ -1261,7 +1273,6 @@ output$Distributionmap_help_text = renderText({
                              labels = ~pie4data$group, 
                              values = ~count,
                              type = 'pie',
-                             
                              name = pie4data$boro, domain = list(row = 0, column = 3)
     ) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
