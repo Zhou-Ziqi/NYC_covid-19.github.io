@@ -66,7 +66,7 @@ data_to_table = data %>%
          incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )%>% 
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
-                covid_death_count,new_death) %>% 
+                covid_death_count,new_death, total_covid_tests) %>% 
   rename("New Cases" = new_case,
          "New Deaths" = new_death,
          Zipcode = modified_zcta,
@@ -74,7 +74,8 @@ data_to_table = data %>%
          "Borough"= borough_group,
          "Case Count" = covid_case_count,
          "Death Count" = covid_death_count,
-         "Incidence Rate (Per 100,000 people)" = incidence_rate)
+         "Incidence Rate (Per 100,000 people)" = incidence_rate,
+         "Total COVID-19 Tests" = total_covid_tests )
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
