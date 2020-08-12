@@ -15,12 +15,16 @@ library(leaflet)
 library(maps)
 library(tigris)
 library(sf)
+
+library(plotly)
+library(rnaturalearth)
 ```
 
 ```{r}
 #read the data
 Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv")
-spdf2 = read_sf("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+### original d not available
+spdf2 = read_sf("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 ```
 
 ```{r}
@@ -33,6 +37,52 @@ Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive,
                                                 '2000-3000','3000-4000','4000+'),
                                    order = TRUE,include.lowest = TRUE, right = TRUE)
 ```
+
+```{r}
+i = 3
+ p =  Aprildata_with_nebhod_break %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
+ p = subset(p, !is.na(positive))
+    
+ggplot(p) + 
+    geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("Positive Cases in NYC at zipcode level on April: ",i))
+```
+
+## plotly animation
+
+```{r}
+df.p = Aprildata_with_nebhod_break %>% 
+    mutate(MODZCTA = as.character(MODZCTA)) %>% 
+    dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
+df.p = subset(df.p, !is.na(positive))
+  
+# not work
+#ggplotly(ggplot(df.p) + 
+#    geom_sf(aes(fill = positive, frame = date, split = MODZCTA, showlegend = FALSE)) + 
+#    coord_sf()+
+#    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+#    labs(title = paste0("Positive Cases in NYC at zipcode level on April"))) %>%  animation_opts(
+#    10, easing = "elastic", redraw = FALSE
+#  ) %>% animation_slider(
+#    currentvalue = list(prefix = "Date ")
+#  )
+
+```
+
+```{r}
+plot_ly(df.p, color = ~positive, frame = ~date, split = ~MODZCTA, showlegend = FALSE) %>%
+  animation_opts(
+    10, easing = "elastic", redraw = FALSE
+  )
+```
+
 
 ```{r}
 #for April map
