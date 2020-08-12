@@ -1423,6 +1423,8 @@ output$Distributionmap_help_text = renderText({
       layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
     
   })
+  
+  
   output$race_map <- renderLeaflet({
     pt = race %>% 
       select(zipcode:total, str_replace_all(input$raceid," ","_"))

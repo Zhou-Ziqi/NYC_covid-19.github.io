@@ -66,7 +66,7 @@ data_to_table = data %>%
          incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )%>% 
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
-                covid_death_count,new_death) %>% 
+                covid_death_count,new_death, total_covid_tests) %>% 
   rename("New Cases" = new_case,
          "New Deaths" = new_death,
          Zipcode = modified_zcta,
@@ -74,7 +74,8 @@ data_to_table = data %>%
          "Borough"= borough_group,
          "Case Count" = covid_case_count,
          "Death Count" = covid_death_count,
-         "Incidence Rate (Per 100,000 people)" = incidence_rate)
+         "Incidence Rate (Per 100,000 people)" = incidence_rate,
+         "Total COVID-19 Tests" = total_covid_tests )
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
@@ -390,7 +391,7 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -441,7 +442,7 @@ ui <- navbarPage(
     ),
     hr(),
     fluidRow(align="center",
-             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             img(src='bottomlogo.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -556,7 +557,7 @@ ui <- navbarPage(
     ),
     hr(),
     fluidRow(align="center",
-             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             img(src='bottomlogo.png', height="50%", width="30%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -702,7 +703,7 @@ ui <- navbarPage(
            
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -868,7 +869,7 @@ ui <- navbarPage(
            ),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -907,7 +908,7 @@ ui <- navbarPage(
   tabPanel("About",
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -1057,7 +1058,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
   })
   
@@ -1077,7 +1078,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(b)
+    ggplotly(b) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1086,6 +1087,8 @@ server <- function(input, output) {
   output$barchart_race = renderPlotly({
     
     c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group) %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
       theme_bw() + 
@@ -1099,7 +1102,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(c)
+    ggplotly(c) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1135,33 +1138,49 @@ server <- function(input, output) {
     
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  ~pie1data$boro, domain = list(row = 0, column = 0)
                              
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     ) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1191,30 +1210,46 @@ server <- function(input, output) {
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0))
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = "pie",
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1231,42 +1266,66 @@ server <- function(input, output) {
   output$piechart_race = renderPlotly({
     
     pie1data = byrace %>% 
-      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race) %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie3data = byrace %>% 
-      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie2data = byrace %>% 
-      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie4data = byrace %>% 
-      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie5data = byrace %>% 
-      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0)
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     )
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)
     ) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
-                             
                              name = pie4data$boro, domain = list(row = 0, column = 3)
     ) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)
     )
@@ -1274,7 +1333,8 @@ server <- function(input, output) {
                           showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
