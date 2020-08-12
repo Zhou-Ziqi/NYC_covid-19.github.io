@@ -222,6 +222,67 @@ weeklynew <- dplyr::rename(weeklynew, new_cases = x)
 
 zipcode = data %>% distinct(zipcode) %>% pull()
 
+# boro time trend written on Aug 12
+borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
+borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
+week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
+
+weeklydf_new <- borocase_new %>% 
+  mutate(week = week) %>% 
+  group_by(boro,week) %>% 
+  summarise(case_count = sum(case_count),
+            hospitalized_count = sum(hospitalized_count),
+            death_count = sum(death_count)) %>% 
+  pivot_longer(case_count:death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = week,
+         Count = count)
+
+
+weeklydf_cum <- borocase_cum %>% 
+  mutate(boro = factor(boro)) %>% 
+  filter(date_of_interest %in% week) %>%
+  pivot_longer(cum_case_count:cum_death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_replace_all(type, "cum_", ""),
+         type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = date_of_interest,
+         Count = count)
+
+
+cum_case <- function(){
+  temp <- weeklydf_cum %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(.~type, scales = "free") +
+    theme_minimal() +
+    xlab("") + 
+    ylab("")
+  
+  
+  ggplotly(temp) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+}
+new_case <- function(){
+  temp <- weeklydf_new %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(.~type, scales = "free") +
+    theme_minimal() +
+    xlab("") + 
+    ylab("")
+  
+  
+  ggplotly(temp) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+}
 
 
 
@@ -594,34 +655,36 @@ ui <- navbarPage(
   ),
   tabPanel(title = "COVID-19 Trends",
            
-           hr(),
-           fluidRow(
-             column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                       "Choose a characteristics",
-                                                       c("Case Count" = "pocase", 
-                                                         "Death Count" = "death", 
-                                                         "Case Rate" = "porate", 
-                                                         "Death Rate" = "derate",
-                                                         "New cases" = "newcase"
-                                                       ),
-                                                       selected = NULL)),
-             column(width = 5, "this part will have some instructions")
-           ),
+           fluidRow(column(width = 4,offset = 1,
+                           radioButtons(inputId = "selection",
+                                         label =  "Data Display:",   
+                                         c("Cumulative Cases" = "cum_case",
+                                           "New Cases" = "new_case"))),
+                    column(width = 6, "some description")),
+           fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
+           
            hr(),
            
+           #####
+            fluidRow(
+              column(width = 4, offset = 1, selectInput("character_timetrend",
+                                                        "Choose a characteristics",
+                                                        c("Case Count" = "pocase", 
+                                                          "Death Count" = "death", 
+                                                          "Case Rate" = "porate", 
+                                                          "Death Rate" = "derate",
+                                                          "New cases" = "newcase"
+                                                        ),
+                                                        selected = NULL)),
+              column(width = 5, "this part will have some instructions")
+            ),
+
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
              column(10, offset = 1,h2("Cases Count")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip1", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("pocase", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_cac", width="100%",height="80%")),
@@ -633,14 +696,6 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'death'",
              column(10, offset = 1, h2("Death Count")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip2", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode, 
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("death", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_dec", width="100%",height="80%")),
@@ -652,14 +707,6 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'porate'",
              column(10, offset = 1, h2("Cases Rate")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip3", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode, 
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("porate", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_carate", width="100%",height="80%")),
@@ -671,33 +718,9 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'derate'",
              column(10, offset = 1, h2("Death Rate")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip4", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("derate", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_derate", width="100%",height="80%")),
-               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
-           ),
-           
-           #### New cases
-           conditionalPanel(
-             condition = "input.character_timetrend == 'newcase'",
-             column(10, offset = 1, h2("New cases")),
-             fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip5", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("newcases", width="100%",height="500px"))),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
@@ -2029,7 +2052,17 @@ output$Distributionmap_help_text = renderText({
     
   })
   
+  ####### boro cases
   
+  output$boro_cases = renderLeaflet({
+    
+    plot = switch (input$selection,
+                   cum_case = cum_case,
+                   new_case = new_case
+    )
+    
+    plot()
+  })
   
   
   #######
