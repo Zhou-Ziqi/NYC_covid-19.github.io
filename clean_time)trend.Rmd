@@ -1,0 +1,135 @@
+---
+title: "clean time trend"
+author: "Mengyu Zhang / mz2777"
+date: "8/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+data <- rbind(finalMaydata,final_Junedata)
+Week <- unique(as.Date(cut(data$day, "week")) + 6)
+
+weeklydf <- data %>% 
+  mutate(zipcode = factor(zipcode)) %>% 
+  filter(day %in% Week)
+```
+
+
+```{r}
+boroughs_case_hosp_death <- read_csv("data/boroughs-case-hosp-death.csv") %>% janitor::clean_names()
+  
+bk <- boroughs_case_hosp_death %>% 
+  select(date_of_interest, starts_with("bk")) %>% 
+  mutate(boro = "Brooklyn")
+names(bk) <- str_replace(colnames(bk),"bk_","")
+bk <- bk %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+bx <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("bx")) %>% mutate(boro = "Bronx")
+names(bx) <- str_replace(colnames(bx),"bx_","")
+bx <- bx %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+mn <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("mn")) %>% mutate(boro = "Manhattan")
+names(mn) <- str_replace(colnames(mn),"mn_","")
+mn <- mn %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+qn <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("qn")) %>% mutate(boro = "Queens")
+names(qn) <- str_replace(colnames(qn),"qn_","")
+qn <- qn %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+si <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("si")) %>% mutate(boro = "Staten Island")
+names(si) <- str_replace(colnames(si),"si_","")
+si <- si %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+borocase <- rbind(bk,bx,mn,qn,si) %>% 
+  separate(date_of_interest, into = c("mon", "day", "year"),sep = '/') %>% 
+  mutate(date_of_interest = as.Date(with(., paste(year, mon, day,sep="-")), "%Y-%m-%d")) %>%
+  select(date_of_interest, boro,everything(), -c(mon,day,year))
+  
+
+borocase_new <- borocase %>% select(-starts_with("cum"))
+borocase_cum <- borocase %>% select(date_of_interest, boro, starts_with("cum"))
+
+write.csv(borocase_new, "data/boro_newcase_trend.csv")
+write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
+
+borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
+borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
+
+
+week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
+
+weeklydf_new <- borocase_new %>% 
+  mutate(week = week) %>% 
+  group_by(boro,week) %>% 
+  summarise(case_count = sum(case_count),
+            hospitalization_count = sum(hospitalized_count),
+            death_count = sum(death_count)) %>% 
+  pivot_longer(case_count:death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = week,
+         Count = count)
+  
+
+weeklydf_cum <- borocase_cum %>% 
+  mutate(boro = factor(boro)) %>% 
+  filter(date_of_interest %in% week) %>%
+  rename(cum_hospitalization_count = hospitalized_count)
+  pivot_longer(cum_case_count:cum_death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_replace_all(type, "cum_", ""),
+         type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = date_of_interest,
+         Count = count)
+  
+
+cum_case <- function(){
+ temp <- weeklydf_cum %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_grid(type~., scales = "free") +
+    theme_minimal() +
+    theme(legend.position="bottom") + 
+    xlab("") + 
+    ylab("")
+
+    
+  ggplotly(temp)
+}
+new_case <- function(){
+ temp <- weeklydf_new %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_grid(type~., scales = "free") +
+    theme_minimal() +
+    theme(legend.position="bottom") + 
+    xlab("") + 
+    ylab("")
+
+    
+  ggplotly(temp)
+}
+
+```
+

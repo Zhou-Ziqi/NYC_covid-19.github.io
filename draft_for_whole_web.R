@@ -20,6 +20,9 @@ library(scales)
 library(flexdashboard)
 library(RColorBrewer)
 
+
+library(Dict)
+
 ##
 url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url2 = "https://www.facebook.com/sharer.php?u=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
@@ -281,7 +284,11 @@ cum_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           hovermode = "x unified",
+           xaxis = list(spikemode = "across",
+                        spikedash = "dash"),
+           hoverlabel = list(font = list(size = 10)))
 }
 new_case <- function(){
   temp <- weeklydf_new %>% 
@@ -295,7 +302,11 @@ new_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           hovermode = "x unified",
+           xaxis = list(spikemode = "across",
+                        spikedash = "dash"),
+           hoverlabel = list(font = list(size = 10)))
 }
 
 
@@ -456,7 +467,7 @@ newcase = function(date){
 
 ## ui
 ui <- navbarPage(
-  
+  theme = "shiny.css",
   title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
@@ -466,20 +477,24 @@ ui <- navbarPage(
                     column(width = 6, DT::dataTableOutput("Hometable",height = "60%"),
                            helpText("Last Updated: 2020-08-13"))),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
-           hr(),
+           br(),
            fluidRow(align="center",
-                    img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on"),
+                    span(htmlOutput("bannertext", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -489,20 +504,21 @@ ui <- navbarPage(
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #FFFFFF;")
-                    
-           ),
-           hr()
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                  
+           )
+        
   ),
   
   
@@ -517,20 +533,24 @@ ui <- navbarPage(
       column(width = 10, offset = 1, helpText("Last updated : 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
-    hr(),
+    br(),
     fluidRow(align="center",
-             img(src='bottomlogo.png', height="20%", width="20%"),
-             h5("Share on"),
+             span(htmlOutput("bannertext1", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+             #span(htmlOutput("sharetext", style="color:white")),
+             #br(),
+             #img(src='bottomlogo.png', height="20%", width="20%"),
+             h5("Share on", style="color:white;font-size:12px"),
              actionButton("twitter_index",
                           label = "",
                           icon = icon("twitter"),
                           onclick = sprintf("window.open('%s')", url1),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("fb_index",
                           label = "",
                           icon = icon("facebook"),
                           onclick = sprintf("window.open('%s')", url2),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              #actionButton("ins_index",
              #             label = "",
              #             icon = icon("instagram"),
@@ -540,19 +560,20 @@ ui <- navbarPage(
                           label = "",
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("whats_index",
                           label = "",
                           icon = icon("whatsapp"),
                           onclick = sprintf("window.open('%s')", url6),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
-                          style = "border-color: #FFFFFF;")
-    ),
-    hr()
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+             style = "background-color:#225091;padding-top:40px;padding:40px;"
+             
+    )
   ),
   
   tabPanel(
@@ -632,20 +653,24 @@ ui <- navbarPage(
              helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
       column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
-    hr(),
+    br(),
     fluidRow(align="center",
-             img(src='bottomlogo.png', height="20%", width="20%"),
-             h5("Share on"),
+             span(htmlOutput("bannertext2", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+             #span(htmlOutput("sharetext", style="color:white")),
+             #br(),
+             #img(src='bottomlogo.png', height="20%", width="20%"),
+             h5("Share on", style="color:white;font-size:12px"),
              actionButton("twitter_index",
                           label = "",
                           icon = icon("twitter"),
                           onclick = sprintf("window.open('%s')", url1),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("fb_index",
                           label = "",
                           icon = icon("facebook"),
                           onclick = sprintf("window.open('%s')", url2),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              #actionButton("ins_index",
              #             label = "",
              #             icon = icon("instagram"),
@@ -655,19 +680,20 @@ ui <- navbarPage(
                           label = "",
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("whats_index",
                           label = "",
                           icon = icon("whatsapp"),
                           onclick = sprintf("window.open('%s')", url6),
-                          style = "border-color: #FFFFFF;"),
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
-                          style = "border-color: #FFFFFF;")
-    ),
-    hr()
+                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+             style = "background-color:#225091;padding-top:40px;padding:40px;"
+             
+    )
   ),
   tabPanel(title = "COVID-19 Trends",
            column(10, offset = 1, h2("COVID-19 Trends")),
@@ -740,20 +766,24 @@ ui <- navbarPage(
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           hr(),
+           br(),
            fluidRow(align="center",
-                    img(src='bottomlogo.png', height="20%",width = "20%"),
-                    h5("Share on"),
+                    span(htmlOutput("bannertext3", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -763,19 +793,20 @@ ui <- navbarPage(
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #FFFFFF;")
-           ),
-           hr()
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    
+           )
   ),
   
   
@@ -894,20 +925,24 @@ Keep one decimal for all numbers."
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
            ),
-           hr(),
+           br(),
            fluidRow(align="center",
-                    img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on"),
+                    span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -917,38 +952,42 @@ Keep one decimal for all numbers."
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #FFFFFF;")
-           ),
-           hr()
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    
+           )
   ),
   
   tabPanel("About",
-           column(10, offset = 1, h2("About Us")),
-           hr(),
-           column(10, offset = 1, span(htmlOutput("abouttext"), style="font-size: 15px; line-height:150%")),
+           fluidRow(column(10, offset = 1, h2("About Us"))),
+           br(),
            fluidRow(align="center",
-                    img(src='bottomlogo.png', height="20%"),
-                    h5("Share on"),
+                    span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -958,19 +997,20 @@ Keep one decimal for all numbers."
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #FFFFFF;"),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #FFFFFF;")
-           ),
-           hr())
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    
+           ))
   
 )
 
@@ -980,7 +1020,53 @@ server <- function(input, output) {
   
   shinyjs::addClass(id = "menus", class = "navbar-right")
   
+  output$bannertext = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
   
+  output$bannertext1 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$bannertext2 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$bannertext3 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$bannertext4 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$bannertext5 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$bannertext6 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  
+  output$sharetext = renderText({
+    return(
+      "<b> Share on </b> "
+    )
+  })
   
   output$Hometext = renderText({
     return(
