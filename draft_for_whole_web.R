@@ -46,11 +46,9 @@ data_home = read_csv("./data/by-boro0813.csv") %>%
 
 ### trakcer data
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
-  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-22"))
 data_today = read_csv("./data/data-by-modzcta0723.csv") %>% 
-  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-23"))
 
