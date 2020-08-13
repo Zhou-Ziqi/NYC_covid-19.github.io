@@ -20,9 +20,6 @@ library(scales)
 library(flexdashboard)
 library(RColorBrewer)
 
-
-library(Dict)
-
 ##
 url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url2 = "https://www.facebook.com/sharer.php?u=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
@@ -33,24 +30,11 @@ url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
 
 ##read data
-### Home tab data
-data_home = read_csv("./data/by-boro0813.csv") %>% 
-  select(BOROUGH_GROUP,CASE_COUNT,DEATH_COUNT) %>% 
-  rename(Borough = BOROUGH_GROUP,
-         "Confirmed Cases" = CASE_COUNT,
-         "Deaths" = DEATH_COUNT) %>% 
-  mutate(Borough = str_replace_all(Borough,"Citywide","New York City"),
-         Borough = str_replace_all(Borough,"StatenIsland", "Staten Island"),
-         Borough = factor(Borough, levels = c("New York City","Bronx","Brooklyn",
-                                              "Manhattan","Queens","Staten Island")))
 
-### trakcer data
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
-  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-22"))
 data_today = read_csv("./data/data-by-modzcta0723.csv") %>% 
-  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-23"))
 
@@ -247,7 +231,7 @@ weeklydf_new <- borocase_new %>%
   mutate(week = week) %>% 
   group_by(boro,week) %>% 
   summarise(case_count = sum(case_count),
-            hospitalization_count = sum(hospitalized_count),
+            hospitalized_count = sum(hospitalized_count),
             death_count = sum(death_count)) %>% 
   pivot_longer(case_count:death_count,
                names_to = "type",
@@ -261,7 +245,6 @@ weeklydf_new <- borocase_new %>%
 weeklydf_cum <- borocase_cum %>% 
   mutate(boro = factor(boro)) %>% 
   filter(date_of_interest %in% week) %>%
-  rename(cum_hospitalization_count = cum_hospitalized_count) %>% 
   pivot_longer(cum_case_count:cum_death_count,
                names_to = "type",
                values_to = "count") %>% 
@@ -284,11 +267,7 @@ cum_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           hovermode = "x unified",
-           xaxis = list(spikemode = "across",
-                        spikedash = "dash"),
-           hoverlabel = list(font = list(size = 10)))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
 }
 new_case <- function(){
   temp <- weeklydf_new %>% 
@@ -302,11 +281,7 @@ new_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           hovermode = "x unified",
-           xaxis = list(spikemode = "across",
-                        spikedash = "dash"),
-           hoverlabel = list(font = list(size = 10)))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
 }
 
 
@@ -467,34 +442,28 @@ newcase = function(date){
 
 ## ui
 ui <- navbarPage(
-  theme = "shiny.css",
+  
   title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(column(width = 4, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "85%"),style="text-align: center;")),
-                    column(width = 6, DT::dataTableOutput("Hometable",height = "60%"),
-                           helpText("Last Updated: 2020-08-13"))),
+           fluidRow(align = "center", img(src = "newlogo3.png", height = "40%", width = "40%")),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
-           br(),
+           hr(),
            fluidRow(align="center",
-                    span(htmlOutput("bannertext", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-                    #span(htmlOutput("sharetext", style="color:white")),
-                    #br(),
-                    #img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on", style="color:white;font-size:12px"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
+                    h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -504,21 +473,20 @@ ui <- navbarPage(
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
-                  
-           )
-        
+                                 style = "border-color: #FFFFFF;")
+                    
+           ),
+           hr()
   ),
   
   
@@ -530,27 +498,23 @@ ui <- navbarPage(
       column(width = 10, offset = 1, h2("COVID-19 Tracking")),
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
-      column(width = 10, offset = 1, helpText("Last updated : 2020-07-23")),
+      column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
-    br(),
+    hr(),
     fluidRow(align="center",
-             span(htmlOutput("bannertext1", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-             #span(htmlOutput("sharetext", style="color:white")),
-             #br(),
-             #img(src='bottomlogo.png', height="20%", width="20%"),
-             h5("Share on", style="color:white;font-size:12px"),
+             img(src='bottomlogo.png', height="50%", width="30%"),
+             h5("Share on"),
              actionButton("twitter_index",
                           label = "",
                           icon = icon("twitter"),
                           onclick = sprintf("window.open('%s')", url1),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("fb_index",
                           label = "",
                           icon = icon("facebook"),
                           onclick = sprintf("window.open('%s')", url2),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              #actionButton("ins_index",
              #             label = "",
              #             icon = icon("instagram"),
@@ -560,25 +524,24 @@ ui <- navbarPage(
                           label = "",
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("whats_index",
                           label = "",
                           icon = icon("whatsapp"),
                           onclick = sprintf("window.open('%s')", url6),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
-             style = "background-color:#225091;padding-top:40px;padding:40px;"
-             
-    )
+                          style = "border-color: #FFFFFF;")
+    ),
+    hr()
   ),
   
   tabPanel(
     title = "COVID-19 Distribution",
-    column(width = 10, offset = 1, h2("COVID-19 Data by Neighborhoods and Demographics")),
+    column(width = 10, offset = 1, h2("COVID-19 Data by neighborhoods and demographics")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
                                         style="font-size: 15px;  line-height:150%")),
     column(width = 10,offset = 1,
@@ -653,24 +616,20 @@ ui <- navbarPage(
              helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
       column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
-    br(),
+    hr(),
     fluidRow(align="center",
-             span(htmlOutput("bannertext2", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-             #span(htmlOutput("sharetext", style="color:white")),
-             #br(),
-             #img(src='bottomlogo.png', height="20%", width="20%"),
-             h5("Share on", style="color:white;font-size:12px"),
+             img(src='bottomlogo.png', height="50%", width="30%"),
+             h5("Share on"),
              actionButton("twitter_index",
                           label = "",
                           icon = icon("twitter"),
                           onclick = sprintf("window.open('%s')", url1),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("fb_index",
                           label = "",
                           icon = icon("facebook"),
                           onclick = sprintf("window.open('%s')", url2),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              #actionButton("ins_index",
              #             label = "",
              #             icon = icon("instagram"),
@@ -680,38 +639,37 @@ ui <- navbarPage(
                           label = "",
                           icon = icon("linkedin"),
                           onclick = sprintf("window.open('%s')", url4),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("whats_index",
                           label = "",
                           icon = icon("whatsapp"),
                           onclick = sprintf("window.open('%s')", url6),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                          style = "border-color: #FFFFFF;"),
              actionButton("email_index",
                           label = "",
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
-                          style = "border-color: #225091;color: #fff; background-color: #225091;"),
-             style = "background-color:#225091;padding-top:40px;padding:40px;"
-             
-    )
+                          style = "border-color: #FFFFFF;")
+    ),
+    hr()
   ),
   tabPanel(title = "COVID-19 Trends",
-           column(10, offset = 1, h2("COVID-19 Trends")),
+           
            fluidRow(column(width = 4,offset = 1,
                            radioButtons(inputId = "selection",
                                         label =  "Data Display:",   
-                                        c("Total Count" = "cum_case",
-                                          "Incidence Count" = "new_case"))),
+                                        c("Cumulative Cases" = "cum_case",
+                                          "New Cases" = "new_case"))),
                     column(width = 6, "some description")),
            fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
+           
            hr(),
            
            #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                       "Data Display",
+                                                       "Choose a characteristics",
                                                        c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
                                                          "Case Rate" = "porate", 
@@ -766,24 +724,20 @@ ui <- navbarPage(
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           br(),
+           hr(),
            fluidRow(align="center",
-                    span(htmlOutput("bannertext3", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-                    #span(htmlOutput("sharetext", style="color:white")),
-                    #br(),
-                    #img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on", style="color:white;font-size:12px"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
+                    h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -793,58 +747,63 @@ ui <- navbarPage(
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
-                    
-           )
+                                 style = "border-color: #FFFFFF;")
+           ),
+           hr()
   ),
   
   
   tabPanel(title = "Neighborhoods",
-           column(10, offset = 1, h2("Neighborhoods Characteristics")),
+           
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
-                                                       "Data Display (more coming soon)",
+                                                       "Choose a characteristics",
                                                        c("Race" = "race",
                                                          "Income" = "income",
                                                          "Household Size" = "house"))),
-             column(width = 5, "Select available display options to see and compare neighborhood characteristics using NYC ZIP Code Tabulation Areas (ZCTAs)")
+             column(width = 5, "this part will have some instructions")
            ),
            hr(),
            
            #### Race
            conditionalPanel(
              condition = "input.character == 'race'",
-             
+             h2("Comparison"),
              fluidRow(
-               column(width = 3,offset = 1,
+               column(width = 3,
                       sidebarPanel(width = 12,
                                    selectInput("nbhid1", 
                                                label = "Choose a Neighbourhood", 
                                                choices =nbh_name, 
                                                selected = NULL))),
-               column(width = 9, "Choose a NYC ZCTAs neighborhood. 
-               See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
-               Keep one decimal for all numbers."
-                      )),
+               column(width = 9, h4("some words to describe the pie chart"))),
              br(),
-             column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%")),
-             
-             hr(),
-             
              fluidRow(
-               column(width = 3, offset = 1,
+               
+               column(width = 4,align="center",
+                      textOutput("nbh1"),
+                      plotlyOutput("race_nbh", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("boro1"),
+                      plotlyOutput("race_boro", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("nyc1"),
+                      plotlyOutput("race_nyc", width="100%",height="500px"))),
+             hr(),
+             h1("Map"),
+             fluidRow(
+               column(width = 3,
                       verticalLayout(
                         sidebarPanel(width = 12,
                                      pickerInput(inputId = "raceid",
@@ -864,23 +823,29 @@ ui <- navbarPage(
            #### Household
            conditionalPanel(
              condition = "input.character == 'house'",
-             
+             h2("Comparison"),
              fluidRow(
-               column(width = 3, offset = 1,
+               column(width = 3,
                       sidebarPanel(width = 12,
                                    selectInput("nbhid2", 
                                                label = "Choose a Neighborhood", 
                                                choices =nbh_name, 
                                                selected = NULL))),
-               column(width = 9, "Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
-Keep one decimal for all numbers."
-                      )),
+               column(width = 9, h4("some words to describe the pie chart"))),
              br(),
-             
-             column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
-             
+             fluidRow(
+               
+               column(width = 4,align="center",
+                      textOutput("nbh2"),
+                      plotlyOutput("household_nbh", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("boro2"),
+                      plotlyOutput("household_boro", width="100%",height="500px")),
+               column(width = 4,align="center",
+                      textOutput("nyc2"),
+                      plotlyOutput("household_nyc", width="100%",height="500px"))),
              hr(),
-             
+             h1("Map"),
              fluidRow(
                column(width = 3,
                       verticalLayout(
@@ -900,9 +865,9 @@ Keep one decimal for all numbers."
            #### income
            conditionalPanel(
              condition = "input.character == 'income'",
-             
+             h2("Comparison"),
              fluidRow(
-               column(width = 3,offset = 1,
+               column(width = 3,
                       verticalLayout(
                         sidebarPanel(width = 12,
                                      selectInput("nbhid3", 
@@ -918,31 +883,27 @@ Keep one decimal for all numbers."
              hr(),
              h1("Map"),
              fluidRow(
-               column(width = 3,offset = 1,
+               column(width = 3,
                       verticalLayout(
                         h4("some words to describe the map"))),
-               column(width = 7,leafletOutput("income_map", width="100%",height="700px"))),
+               column(width = 9,leafletOutput("income_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
            ),
-           br(),
+           hr(),
            fluidRow(align="center",
-                    span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-                    #span(htmlOutput("sharetext", style="color:white")),
-                    #br(),
-                    #img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on", style="color:white;font-size:12px"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
+                    h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -952,42 +913,36 @@ Keep one decimal for all numbers."
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
-                    
-           )
+                                 style = "border-color: #FFFFFF;")
+           ),
+           hr()
   ),
   
   tabPanel("About",
-           fluidRow(column(10, offset = 1, h2("About Us"))),
-           br(),
+           hr(),
            fluidRow(align="center",
-                    span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
-  letter-spacing: 0.3px;font-size:18px")),
-                    #span(htmlOutput("sharetext", style="color:white")),
-                    #br(),
-                    #img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on", style="color:white;font-size:12px"),
+                    img(src='bottomlogo.png', height="50%", width="30%"),
+                    h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
                                  icon = icon("twitter"),
                                  onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("fb_index",
                                  label = "",
                                  icon = icon("facebook"),
                                  onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     #actionButton("ins_index",
                     #             label = "",
                     #             icon = icon("instagram"),
@@ -997,20 +952,19 @@ Keep one decimal for all numbers."
                                  label = "",
                                  icon = icon("linkedin"),
                                  onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("whats_index",
                                  label = "",
                                  icon = icon("whatsapp"),
                                  onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                                 style = "border-color: #FFFFFF;"),
                     actionButton("email_index",
                                  label = "",
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
-                    
-           ))
+                                 style = "border-color: #FFFFFF;")
+           ),
+           hr())
   
 )
 
@@ -1020,61 +974,16 @@ server <- function(input, output) {
   
   shinyjs::addClass(id = "menus", class = "navbar-right")
   
-  output$bannertext = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
   
-  output$bannertext1 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$bannertext2 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$bannertext3 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$bannertext4 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$bannertext5 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$bannertext6 = renderText({
-    return(
-      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
-    )
-  })
-  
-  output$sharetext = renderText({
-    return(
-      "<b> Share on </b> "
-    )
-  })
   
   output$Hometext = renderText({
     return(
-      "The NYC Neighborhoods COVID-19 Dashboard is a tracker and data visualization tool to provide continuously updated sources of COVID-19 data for lay public, policymakers and researchers. 
-      <b> The COVID-19 Tracker </b> provides daily tracking of the local development for COVID-19 cases, deaths and tests in 177 NYC ZIP Code Tabulation Areas (ZCTAs).
-      <b> The COVID-19 Distribution </b> provides a data visualization of COVID-19 case count, case rate, death count, death rate and new cases in NYC ZCTAs and by age, sex and race/ethnicity.
-      <b> The COVID-19 Trends </b> shows the time trends for COVID-19 data by neighborhoods and demographics.
-      <b> The Neighborhoods </b> shows and compares the neighborhood characteristics of NYC ZCTAs."
+      "The NYC-Neighborhoods-COVID-19 Dashboard is a tracker and data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
+    The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
+    <b> The COVID-19 tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
+    <b> The COVID-19 distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
+    <b> The COVID-19 trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
+    <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
       
     )
   })
@@ -1135,27 +1044,9 @@ server <- function(input, output) {
 ")
   })
   
-  output$NeighborhoodsText = renderText({
-    return("Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
-Keep one decimal for all numbers.")
-  })
   
-  
-  output$abouttext = renderText({
-    return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
-  <br><br>
-  We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
-  <br><br>
-	Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
-")
-  })  
   
   ###########
-  
-  output$Hometable = DT::renderDataTable(DT::datatable({
-    data_home
-  },rownames = FALSE))
-    
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
   },rownames = FALSE))
@@ -1484,11 +1375,20 @@ Keep one decimal for all numbers.")
   ### Demographics
   
   # Race
-  output$race_nbh <- renderPlotly({
+  output$nbh1 <- renderText({
+    
+    input$nbhid1
+    
+  })
+  output$nyc1 <- renderText({"New York City"})
+  output$boro1 <- renderText({
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid1) %>% select(borough_group) %>% unique()
+    which_boro$borough_group
     
-    
+  })
+  
+  output$race_nbh <- renderPlotly({
     race_nbh = race %>% 
       filter(neighborhood_name == input$nbhid1) %>%
       pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
@@ -1497,19 +1397,19 @@ Keep one decimal for all numbers.")
       mutate(race = factor(race)) %>% 
       drop_na()
     
-    race_nbh = race_nbh %>% 
-      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
-             race = str_replace_all(race, "asian_alone","Asian Alone"),
-             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
-             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
-             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
-             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
-             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
-      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
-                                            "Asian Alone","American Indian and Alaska Native Alone",
-                                            "Native Hawaiian and Other Pacific Islander Alone",
-                                            "Some Other Race Alone","Two or More Races"))) %>% 
-      arrange(race)
+    
+    plot_ly(labels = str_replace_all(race_nbh$race,"_"," "),
+            values = race_nbh$pop,
+            type = "pie",
+            opacity=0.8,
+            sort = FALSE,
+            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
+      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+    
+  })
+  output$race_boro <- renderPlotly({
+    
+    which_boro = race %>% filter(neighborhood_name == input$nbhid1) %>% select(borough_group) %>% unique()
     
     race_gp = race %>% 
       filter(borough_group == which_boro$borough_group) %>% 
@@ -1519,98 +1419,31 @@ Keep one decimal for all numbers.")
       mutate(race = factor(race)) %>% 
       drop_na()
     
-    race_gp = race_gp %>% 
-      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
-             race = str_replace_all(race, "asian_alone","Asian Alone"),
-             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
-             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
-             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
-             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
-             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
-      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
-                                            "Asian Alone","American Indian and Alaska Native Alone",
-                                            "Native Hawaiian and Other Pacific Islander Alone",
-                                            "Some Other Race Alone","Two or More Races"))) %>% 
-      arrange(race)
+    plot_ly(labels = str_replace_all(race_gp$race,"_"," "),
+            values = race_gp$pop,
+            type = "pie",
+            opacity=0.8,
+            sort = FALSE,
+            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
+      layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
     
     
+  })
+  output$race_nyc <- renderPlotly({
     race_nyc = race %>% 
       pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
       group_by(race) %>% 
       summarise(pop = sum(population)) %>% 
       mutate(race = factor(race)) %>% 
-      drop_na() 
+      drop_na()
     
-    race_nyc = race_nyc %>% 
-      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
-             race = str_replace_all(race, "asian_alone","Asian Alone"),
-             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
-             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
-             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
-             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
-             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
-      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
-                                            "Asian Alone","American Indian and Alaska Native Alone",
-                                            "Native Hawaiian and Other Pacific Islander Alone",
-                                            "Some Other Race Alone","Two or More Races"))) %>% 
-      arrange(race)
-    
-    plot = plot_ly(sort = FALSE)
-    
-    plot = plot %>% 
-      add_trace(data = race_nbh,
-                labels = str_replace_all(race_nbh$race,"_"," "),
-                values = race_nbh$pop,
-                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                opacity=0.8,
-                domain = list(row = 0, column = 0),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    
-    
-    plot = plot %>% 
-      add_trace(data = race_gp,
-                labels = str_replace_all(race_gp$race,"_"," "),
-                values = race_gp$pop,
-                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                opacity=0.8,
-                domain = list(row = 0, column = 1),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    
-    
-    plot = plot %>% 
-      add_trace(data = race_nyc,
-                labels = str_replace_all(race_nbh$race,"_"," "),
-                values = race_nbh$pop,
-                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                opacity=0.8,
-                domain = list(row = 0, column = 2),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    plot = plot %>%
-      layout(title = "", showlegend = T,
-             grid=list(rows=1, columns=3),
-             xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-             yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-             legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
-      add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
-                      y=-0.3,
-                      text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
-                      xref = "paper",
-                      yref = "paper",
-                      xanchor = "center",
-                      showarrow = FALSE
-      )
-    
-    
-    plot
+    plot_ly(labels = str_replace_all(race_nyc$race,"_"," "),
+            values = race_nyc$pop,
+            type = "pie",
+            opacity=0.8,
+            sort = FALSE,
+            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
+      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
     
   })
   
@@ -1773,6 +1606,18 @@ Keep one decimal for all numbers.")
   })
   
   #Household
+  output$nbh2 <- renderText({
+    
+    input$nbhid2
+    
+  })
+  output$nyc2 <- renderText({"New York City"})
+  output$boro2 <- renderText({
+    
+    which_boro = race %>% filter(neighborhood_name == input$nbhid2) %>% select(borough_group) %>% unique()
+    which_boro$borough_group
+    
+  })
   
   output$household_map <- renderLeaflet({
     pt = household %>% 
@@ -1819,24 +1664,7 @@ Keep one decimal for all numbers.")
                 title = "Proportions on NTA Level")
     
   })
-  
-  
-  output$household_nbh <- renderPlotly({
-    
-    house_nbh = household %>% 
-      filter(neighborhood_name == input$nbhid2) %>%
-      pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
-      group_by(neighborhood_name, size) %>% 
-      summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
-      mutate(size = factor(size)) %>% 
-      drop_na()
+  output$household_boro <- renderPlotly({
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid2) %>% select(borough_group) %>% unique()
     
@@ -1845,92 +1673,54 @@ Keep one decimal for all numbers.")
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>% 
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
       mutate(size = factor(size)) %>% 
-      drop_na() 
+      drop_na()
+    
+    plot_ly(labels = str_replace_all(house_gp$size,"_"," "),
+            values = house_gp$num,
+            type = "pie",
+            marker = list(colors = brewer.pal(7,"Blues")),
+            sort = FALSE,
+            opacity=0.8) %>% 
+      layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
     
     
+  })
+  output$household_nbh <- renderPlotly({
+    household_nbh = household %>% 
+      filter(neighborhood_name == input$nbhid2) %>%
+      pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
+      group_by(neighborhood_name, size) %>% 
+      summarise(num = sum(number)) %>% 
+      mutate(size = factor(size)) %>% 
+      drop_na()
+    
+    plot_ly(labels = factor(household_nbh$size, levels = c("size_1", "size_2", "size_3", "size_4", "size_5", "size_6", "size_7_or_more")),
+            values = household_nbh$num,
+            type = "pie",
+            marker = list(colors = brewer.pal(7,"Blues")),
+            sort = FALSE,
+            opacity=0.8) %>% 
+      layout(legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+    
+  })
+  output$household_nyc <- renderPlotly({
     house_nyc = household %>% 
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
       mutate(size = factor(size)) %>% 
       drop_na()
     
-    plot = plot_ly(sort = FALSE)
-    
-    plot = plot %>% 
-      add_trace(data = house_nbh,
-                labels = ~house_nbh$size,
-                values = ~house_nbh$num,
-                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                name = ~house_nbh$neighborhood_name,
-                domain = list(row = 0, column = 0),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    
-    
-    plot = plot %>% 
-      add_trace(data = house_gp,
-                labels = ~house_gp$size,
-                values = ~house_gp$num,
-                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                name = ~which_boro,
-                domain = list(row = 0, column = 1),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    
-    
-    plot = plot %>% 
-      add_trace(data = house_nyc,
-                labels = ~house_nyc$size,
-                values = ~house_nyc$num,
-                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
-                textinfo='text',
-                textposition="auto",
-                type = 'pie',
-                name = ~paste("New York City"),
-                domain = list(row = 0, column = 2),
-                marker = list(colors = brewer.pal(7,"Blues")))
-    
-    plot = plot %>%
-      layout(title = "", showlegend = T,
-             grid=list(rows=1, columns=3),
-             xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-             yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-             legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
-      add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
-                      y=-0.3,
-                      text = c(paste(input$nbhid2), paste(which_boro), "New York City"),
-                      xref = "paper",
-                      yref = "paper",
-                      xanchor = "center",
-                      showarrow = FALSE
-      )
-    
-    plot
-    
-    
+    plot_ly(labels = str_replace_all(house_nyc$size,"_"," "),
+            values = house_nyc$num,
+            type = "pie",
+            marker = list(colors = brewer.pal(7,"Blues")),
+            sort = FALSE,
+            opacity=0.8) %>% 
+      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
     
   })
-  
   
   #### Time Trend
   ### Case Count

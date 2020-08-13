@@ -66,7 +66,7 @@ data_to_table = data %>%
          incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )%>% 
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
-                covid_death_count,new_death) %>% 
+                covid_death_count,new_death, total_covid_tests) %>% 
   rename("New Cases" = new_case,
          "New Deaths" = new_death,
          Zipcode = modified_zcta,
@@ -74,7 +74,8 @@ data_to_table = data %>%
          "Borough"= borough_group,
          "Case Count" = covid_case_count,
          "Death Count" = covid_death_count,
-         "Incidence Rate (Per 100,000 people)" = incidence_rate)
+         "Incidence Rate (Per 100,000 people)" = incidence_rate,
+         "Total COVID-19 Tests" = total_covid_tests )
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
@@ -221,6 +222,68 @@ weeklynew <- dplyr::rename(weeklynew, new_cases = x)
 
 zipcode = data %>% distinct(zipcode) %>% pull()
 
+# boro time trend written on Aug 12
+borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
+borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
+week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
+
+weeklydf_new <- borocase_new %>% 
+  mutate(week = week) %>% 
+  group_by(boro,week) %>% 
+  summarise(case_count = sum(case_count),
+            hospitalization_count = sum(hospitalized_count),
+            death_count = sum(death_count)) %>% 
+  pivot_longer(case_count:death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = week,
+         Count = count)
+
+
+weeklydf_cum <- borocase_cum %>% 
+  mutate(boro = factor(boro)) %>% 
+  filter(date_of_interest %in% week) %>%
+  rename(cum_hospitalization_count = cum_hospitalized_count) %>% 
+  pivot_longer(cum_case_count:cum_death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_replace_all(type, "cum_", ""),
+         type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  rename(Borough = boro,
+         Date = date_of_interest,
+         Count = count)
+
+
+cum_case <- function(){
+  temp <- weeklydf_cum %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(.~type, scales = "free") +
+    theme_minimal() +
+    xlab("") + 
+    ylab("")
+  
+  
+  ggplotly(temp) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+}
+new_case <- function(){
+  temp <- weeklydf_new %>% 
+    ggplot(aes(x = Date, y = Count)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(.~type, scales = "free") +
+    theme_minimal() +
+    xlab("") + 
+    ylab("")
+  
+  
+  ggplotly(temp) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+}
 
 
 
@@ -390,7 +453,7 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="20%", width="20%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -441,7 +504,7 @@ ui <- navbarPage(
     ),
     hr(),
     fluidRow(align="center",
-             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             img(src='bottomlogo.png', height="20%", width="20%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -479,7 +542,7 @@ ui <- navbarPage(
   
   tabPanel(
     title = "COVID-19 Distribution",
-    column(width = 10, offset = 1, h2("COVID-19 Data by neighborhoods and demographics")),
+    column(width = 10, offset = 1, h2("COVID-19 Data by Neighborhoods and Demographics")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
                                         style="font-size: 15px;  line-height:150%")),
     column(width = 10,offset = 1,
@@ -556,7 +619,7 @@ ui <- navbarPage(
     ),
     hr(),
     fluidRow(align="center",
-             img(src='cu_logo_biostat.png', height="50%", width="30%"),
+             img(src='bottomlogo.png', height="20%", width="20%"),
              h5("Share on"),
              actionButton("twitter_index",
                           label = "",
@@ -592,11 +655,22 @@ ui <- navbarPage(
     hr()
   ),
   tabPanel(title = "COVID-19 Trends",
-           
+           column(10, offset = 1, h2("COVID-19 Trends")),
+           fluidRow(column(width = 4,offset = 1,
+                           radioButtons(inputId = "selection",
+                                        label =  "Data Display:",   
+                                        c("Total Count" = "cum_case",
+                                          "Incidence Count" = "new_case"))),
+                    column(width = 6, "some description")),
+           fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated at: 2020-08-12"))),
            hr(),
+           
+           #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                       "Choose a characteristics",
+                                                       "Data Display",
                                                        c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
                                                          "Case Rate" = "porate", 
@@ -606,21 +680,12 @@ ui <- navbarPage(
                                                        selected = NULL)),
              column(width = 5, "this part will have some instructions")
            ),
-           hr(),
            
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
              column(10, offset = 1,h2("Cases Count")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip1", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("pocase", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_cac", width="100%",height="80%")),
@@ -632,14 +697,6 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'death'",
              column(10, offset = 1, h2("Death Count")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip2", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode, 
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("death", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_dec", width="100%",height="80%")),
@@ -651,14 +708,6 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'porate'",
              column(10, offset = 1, h2("Cases Rate")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip3", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode, 
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("porate", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_carate", width="100%",height="80%")),
@@ -670,39 +719,15 @@ ui <- navbarPage(
              condition = "input.character_timetrend == 'derate'",
              column(10, offset = 1, h2("Death Rate")),
              fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip4", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("derate", width="100%",height="500px"))),
                column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_derate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           #### New cases
-           conditionalPanel(
-             condition = "input.character_timetrend == 'newcase'",
-             column(10, offset = 1, h2("New cases")),
-             fluidRow(
-               column(width = 10, offset = 1,
-                      sidebarPanel(pickerInput("zip5", 
-                                               label = "Choose zipcodes", 
-                                               choices =zipcode,
-                                               multiple = TRUE,
-                                               selected = zipcode[1:5],
-                                               options = list(`actions-box` = TRUE))),
-                      mainPanel(plotlyOutput("newcases", width="100%",height="500px"))),
-               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
-           ),
-           
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="20%",width = "20%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -740,22 +765,22 @@ ui <- navbarPage(
   
   
   tabPanel(title = "Neighborhoods",
-           
+           column(10, offset = 1, h2("Neighborhoods Characteristics")),
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
-                                                       "Choose a characteristics",
+                                                       "Data Display (more coming soon)",
                                                        c("Race" = "race",
                                                          "Income" = "income",
                                                          "Household Size" = "house"))),
-             column(width = 5, "this part will have some instructions")
+             column(width = 5, "Select available display options to see and compare neighborhood characteristics using NYC ZIP Code Tabulation Areas (ZCTAs)")
            ),
            hr(),
            
            #### Race
            conditionalPanel(
              condition = "input.character == 'race'",
-             h2("Comparison"),
+             
              fluidRow(
                column(width = 3,
                       sidebarPanel(width = 12,
@@ -765,19 +790,10 @@ ui <- navbarPage(
                                                selected = NULL))),
                column(width = 9, h4("some words to describe the pie chart"))),
              br(),
-             fluidRow(
-               
-               column(width = 4,align="center",
-                      textOutput("nbh1"),
-                      plotlyOutput("race_nbh", width="100%",height="500px")),
-               column(width = 4,align="center",
-                      textOutput("boro1"),
-                      plotlyOutput("race_boro", width="100%",height="500px")),
-               column(width = 4,align="center",
-                      textOutput("nyc1"),
-                      plotlyOutput("race_nyc", width="100%",height="500px"))),
+             column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%")),
+             
              hr(),
-             h1("Map"),
+             column(10, offset = 1, ),
              fluidRow(
                column(width = 3,
                       verticalLayout(
@@ -799,7 +815,7 @@ ui <- navbarPage(
            #### Household
            conditionalPanel(
              condition = "input.character == 'house'",
-             h2("Comparison"),
+             
              fluidRow(
                column(width = 3,
                       sidebarPanel(width = 12,
@@ -809,17 +825,9 @@ ui <- navbarPage(
                                                selected = NULL))),
                column(width = 9, h4("some words to describe the pie chart"))),
              br(),
-             fluidRow(
-               
-               column(width = 4,align="center",
-                      textOutput("nbh2"),
-                      plotlyOutput("household_nbh", width="100%",height="500px")),
-               column(width = 4,align="center",
-                      textOutput("boro2"),
-                      plotlyOutput("household_boro", width="100%",height="500px")),
-               column(width = 4,align="center",
-                      textOutput("nyc2"),
-                      plotlyOutput("household_nyc", width="100%",height="500px"))),
+             
+             column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
+             
              hr(),
              h1("Map"),
              fluidRow(
@@ -841,7 +849,7 @@ ui <- navbarPage(
            #### income
            conditionalPanel(
              condition = "input.character == 'income'",
-             h2("Comparison"),
+             
              fluidRow(
                column(width = 3,
                       verticalLayout(
@@ -868,7 +876,7 @@ ui <- navbarPage(
            ),
            hr(),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="20%", width="20%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -905,9 +913,11 @@ ui <- navbarPage(
   ),
   
   tabPanel("About",
+           column(10, offset = 1, h2("About Us")),
            hr(),
+           column(10, offset = 1, span(htmlOutput("abouttext"), style="font-size: 15px; line-height:150%")),
            fluidRow(align="center",
-                    img(src='cu_logo_biostat.png', height="50%", width="30%"),
+                    img(src='bottomlogo.png', height="20%"),
                     h5("Share on"),
                     actionButton("twitter_index",
                                  label = "",
@@ -954,12 +964,11 @@ server <- function(input, output) {
   
   output$Hometext = renderText({
     return(
-      "The NYC-Neighborhoods-COVID-19 Dashboard is a tracker and data visualization tool developed by Columbia University Mailman School of Public Health scientists. 
-    The dashboard can be used to track neighborhood level new cases and new deaths and visualize distributions and time trends for COVID-19 cases and deaths in NYC by neighborhoods and demographics. 
-    <b> The COVID-19 tracker tab </b> allows the lay public to track the local development for COVID-19 cases and deaths. 
-    <b> The COVID-19 distribution tab </b> provides a visualization of COVID-19 case count, case rate, death count, and death rate across NYC neighborhoods and by demographics. 
-    <b> The COVID-19 trends tab </b> shows the time trends for COVID-19 by neighborhoods and demographics. 
-    <b> The Neighborhoods tab </b> shows the demographics of NYC neighborhoods."
+      "The NYC Neighborhoods COVID-19 Dashboard is a tracker and data visualization tool to provide continuously updated sources of COVID-19 data for lay public, policymakers and researchers. 
+      <b> The COVID-19 Tracker </b> provides daily tracking of the local development for COVID-19 cases, deaths and tests in 177 NYC ZIP Code Tabulation Areas (ZCTAs).
+      <b> The COVID-19 Distribution </b> provides a data visualization of COVID-19 case count, case rate, death count, death rate and new cases in NYC ZCTAs and by age, sex and race/ethnicity.
+      <b> The COVID-19 Trends </b> shows the time trends for COVID-19 data by neighborhoods and demographics.
+      <b> The Neighborhoods </b> shows and compares the neighborhood characteristics of NYC ZCTAs."
       
     )
   })
@@ -1020,7 +1029,14 @@ server <- function(input, output) {
 ")
   })
   
-  
+  output$abouttext = renderText({
+    return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
+  <br><br>
+  We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+  <br><br>
+	Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+")
+  })  
   
   ###########
   output$table <- DT::renderDataTable(DT::datatable({
@@ -1057,7 +1073,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(a)
+    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
   })
   
@@ -1077,7 +1093,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(b)
+    ggplotly(b) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1086,6 +1102,8 @@ server <- function(input, output) {
   output$barchart_race = renderPlotly({
     
     c =  byrace %>%  filter(day == max(byrace$day) & group != "Boroughwide") %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group) %>% 
       ggplot(aes(fill = group, y = count, x = boro)) + 
       geom_bar(position="stack", stat="identity") + 
       theme_bw() + 
@@ -1099,7 +1117,7 @@ server <- function(input, output) {
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(c)
+    ggplotly(c) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
     
     
   })
@@ -1135,33 +1153,49 @@ server <- function(input, output) {
     
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  ~pie1data$boro, domain = list(row = 0, column = 0)
                              
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     ) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1191,30 +1225,46 @@ server <- function(input, output) {
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0))
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)) 
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie4data$boro, domain = list(row = 0, column = 3)) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = "pie",
                              name = pie5data$boro, domain = list(row = 0, column = 4)) 
     fig <- fig %>% layout(title = "", showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1231,42 +1281,66 @@ server <- function(input, output) {
   output$piechart_race = renderPlotly({
     
     pie1data = byrace %>% 
-      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Bronx"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race) %>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie3data = byrace %>% 
-      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Manhattan"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie2data = byrace %>% 
-      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Brooklyn"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie4data = byrace %>% 
-      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Queens"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     pie5data = byrace %>% 
-      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)
+      filter(boro == "Staten Island"& day == max(byrace$day) &group != "Boroughwide" & outcome ==input$outcome_race)%>% 
+      mutate(group = factor(group, levels = c("White", "Black/African-American","Asian/Pacific-Islander","Hispanic/Latino"))) %>% 
+      arrange(group)
     
     fig <- plot_ly(sort = FALSE)
     fig <- fig %>% add_trace(data = pie1data %>% select(group,count), 
                              labels = ~pie1data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie1data$boro, domain = list(row = 0, column = 0)
     )
     fig <- fig %>% add_trace(data = pie2data %>% select(group,count), 
                              labels = ~pie2data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name =  pie2data$boro, domain = list(row = 0, column = 1)
     )
     fig <- fig %>% add_trace(data = pie3data %>% select(group,count), 
                              labels = ~pie3data$group, values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie3data$boro, domain = list(row = 0, column = 2)
     ) 
     fig <- fig %>% add_trace(data = pie4data %>% select(group,count), 
                              labels = ~pie4data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
-                             
                              name = pie4data$boro, domain = list(row = 0, column = 3)
     ) 
     fig <- fig %>% add_trace(data = pie5data %>% select(group,count), 
                              labels = ~pie5data$group, 
                              values = ~count,
+                             text = ~paste(round((count/sum(count))*100, digits = 1),"%"),
+                             textinfo='text',
+                             textposition="auto",
                              type = 'pie',
                              name = pie5data$boro, domain = list(row = 0, column = 4)
     )
@@ -1274,7 +1348,8 @@ server <- function(input, output) {
                           showlegend = T,
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F)) %>% 
+                          yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -1292,20 +1367,11 @@ server <- function(input, output) {
   ### Demographics
   
   # Race
-  output$nbh1 <- renderText({
-    
-    input$nbhid1
-    
-  })
-  output$nyc1 <- renderText({"New York City"})
-  output$boro1 <- renderText({
+  output$race_nbh <- renderPlotly({
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid1) %>% select(borough_group) %>% unique()
-    which_boro$borough_group
     
-  })
-  
-  output$race_nbh <- renderPlotly({
+    
     race_nbh = race %>% 
       filter(neighborhood_name == input$nbhid1) %>%
       pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
@@ -1314,19 +1380,19 @@ server <- function(input, output) {
       mutate(race = factor(race)) %>% 
       drop_na()
     
-    
-    plot_ly(labels = str_replace_all(race_nbh$race,"_"," "),
-            values = race_nbh$pop,
-            type = "pie",
-            opacity=0.8,
-            sort = FALSE,
-            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
-      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
-    
-  })
-  output$race_boro <- renderPlotly({
-    
-    which_boro = race %>% filter(neighborhood_name == input$nbhid1) %>% select(borough_group) %>% unique()
+    race_nbh = race_nbh %>% 
+      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
+             race = str_replace_all(race, "asian_alone","Asian Alone"),
+             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
+             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
+             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
+             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
+             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
+      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
+                                            "Asian Alone","American Indian and Alaska Native Alone",
+                                            "Native Hawaiian and Other Pacific Islander Alone",
+                                            "Some Other Race Alone","Two or More Races"))) %>% 
+      arrange(race)
     
     race_gp = race %>% 
       filter(borough_group == which_boro$borough_group) %>% 
@@ -1336,33 +1402,102 @@ server <- function(input, output) {
       mutate(race = factor(race)) %>% 
       drop_na()
     
-    plot_ly(labels = str_replace_all(race_gp$race,"_"," "),
-            values = race_gp$pop,
-            type = "pie",
-            opacity=0.8,
-            sort = FALSE,
-            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
-      layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+    race_gp = race_gp %>% 
+      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
+             race = str_replace_all(race, "asian_alone","Asian Alone"),
+             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
+             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
+             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
+             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
+             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
+      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
+                                            "Asian Alone","American Indian and Alaska Native Alone",
+                                            "Native Hawaiian and Other Pacific Islander Alone",
+                                            "Some Other Race Alone","Two or More Races"))) %>% 
+      arrange(race)
     
     
-  })
-  output$race_nyc <- renderPlotly({
     race_nyc = race %>% 
       pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
       group_by(race) %>% 
       summarise(pop = sum(population)) %>% 
       mutate(race = factor(race)) %>% 
-      drop_na()
+      drop_na() 
     
-    plot_ly(labels = str_replace_all(race_nyc$race,"_"," "),
-            values = race_nyc$pop,
-            type = "pie",
-            opacity=0.8,
-            sort = FALSE,
-            marker = list(colors = brewer.pal(7,"Blues"))) %>% 
-      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+    race_nyc = race_nyc %>% 
+      mutate(race = str_replace_all(race, "american_indian_and_alaska_native_alone","American Indian and Alaska Native Alone"),
+             race = str_replace_all(race, "asian_alone","Asian Alone"),
+             race = str_replace_all(race, "black_or_african_american_alone","Black or African American Alone"),
+             race = str_replace_all(race, "native_hawaiian_and_other_pacific_islander_alone", "Native Hawaiian and Other Pacific Islander Alone"),
+             race = str_replace_all(race, "some_other_race_alone","Some Other Race Alone"),
+             race = str_replace_all(race, "two_or_more_races","Two or More Races"),
+             race = str_replace_all(race, "white_alone", "White Alone")) %>% 
+      mutate(race = factor(race, levels = c("White Alone","Black or African American Alone",
+                                            "Asian Alone","American Indian and Alaska Native Alone",
+                                            "Native Hawaiian and Other Pacific Islander Alone",
+                                            "Some Other Race Alone","Two or More Races"))) %>% 
+      arrange(race)
+    
+    plot = plot_ly(sort = FALSE)
+    
+    plot = plot %>% 
+      add_trace(data = race_nbh,
+                labels = str_replace_all(race_nbh$race,"_"," "),
+                values = race_nbh$pop,
+                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                opacity=0.8,
+                domain = list(row = 0, column = 0),
+                marker = list(colors = brewer.pal(7,"Blues")))
+    
+    
+    plot = plot %>% 
+      add_trace(data = race_gp,
+                labels = str_replace_all(race_gp$race,"_"," "),
+                values = race_gp$pop,
+                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                opacity=0.8,
+                domain = list(row = 0, column = 1),
+                marker = list(colors = brewer.pal(7,"Blues")))
+    
+    
+    plot = plot %>% 
+      add_trace(data = race_nyc,
+                labels = str_replace_all(race_nbh$race,"_"," "),
+                values = race_nbh$pop,
+                text = ~paste(round((pop/sum(pop))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                opacity=0.8,
+                domain = list(row = 0, column = 2),
+                marker = list(colors = brewer.pal(7,"Blues")))
+    plot = plot %>%
+      layout(title = "", showlegend = T,
+             grid=list(rows=1, columns=3),
+             xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
+      add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
+                      y=-0.3,
+                      text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
+    
+    
+    plot
     
   })
+  
+  
   output$race_map <- renderLeaflet({
     pt = race %>% 
       select(zipcode:total, str_replace_all(input$raceid," ","_"))
@@ -1521,18 +1656,6 @@ server <- function(input, output) {
   })
   
   #Household
-  output$nbh2 <- renderText({
-    
-    input$nbhid2
-    
-  })
-  output$nyc2 <- renderText({"New York City"})
-  output$boro2 <- renderText({
-    
-    which_boro = race %>% filter(neighborhood_name == input$nbhid2) %>% select(borough_group) %>% unique()
-    which_boro$borough_group
-    
-  })
   
   output$household_map <- renderLeaflet({
     pt = household %>% 
@@ -1579,7 +1702,24 @@ server <- function(input, output) {
                 title = "Proportions on NTA Level")
     
   })
-  output$household_boro <- renderPlotly({
+  
+  
+  output$household_nbh <- renderPlotly({
+    
+    house_nbh = household %>% 
+      filter(neighborhood_name == input$nbhid2) %>%
+      pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
+      group_by(neighborhood_name, size) %>% 
+      summarise(num = sum(number)) %>% 
+      mutate(size = str_replace_all(size,"size_1","Size 1"),
+             size = str_replace_all(size,"size_2","Size 2"),
+             size = str_replace_all(size,"size_3","Size 3"),
+             size = str_replace_all(size,"size_4","Size 4"),
+             size = str_replace_all(size,"size_5","Size 5"),
+             size = str_replace_all(size,"size_6","Size 6"),
+             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
+      mutate(size = factor(size)) %>% 
+      drop_na()
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid2) %>% select(borough_group) %>% unique()
     
@@ -1588,54 +1728,89 @@ server <- function(input, output) {
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>% 
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
+      mutate(size = str_replace_all(size,"size_1","Size 1"),
+             size = str_replace_all(size,"size_2","Size 2"),
+             size = str_replace_all(size,"size_3","Size 3"),
+             size = str_replace_all(size,"size_4","Size 4"),
+             size = str_replace_all(size,"size_5","Size 5"),
+             size = str_replace_all(size,"size_6","Size 6"),
+             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
       mutate(size = factor(size)) %>% 
-      drop_na()
-    
-    plot_ly(labels = str_replace_all(house_gp$size,"_"," "),
-            values = house_gp$num,
-            type = "pie",
-            marker = list(colors = brewer.pal(7,"Blues")),
-            sort = FALSE,
-            opacity=0.8) %>% 
-      layout(legend=list(title=list(text='<b> Race </b>'),orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+      drop_na() 
     
     
-  })
-  output$household_nbh <- renderPlotly({
-    household_nbh = household %>% 
-      filter(neighborhood_name == input$nbhid2) %>%
-      pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
-      group_by(neighborhood_name, size) %>% 
-      summarise(num = sum(number)) %>% 
-      mutate(size = factor(size)) %>% 
-      drop_na()
-    
-    plot_ly(labels = factor(household_nbh$size, levels = c("size_1", "size_2", "size_3", "size_4", "size_5", "size_6", "size_7_or_more")),
-            values = household_nbh$num,
-            type = "pie",
-            marker = list(colors = brewer.pal(7,"Blues")),
-            sort = FALSE,
-            opacity=0.8) %>% 
-      layout(legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
-    
-  })
-  output$household_nyc <- renderPlotly({
     house_nyc = household %>% 
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
+      mutate(size = str_replace_all(size,"size_1","Size 1"),
+             size = str_replace_all(size,"size_2","Size 2"),
+             size = str_replace_all(size,"size_3","Size 3"),
+             size = str_replace_all(size,"size_4","Size 4"),
+             size = str_replace_all(size,"size_5","Size 5"),
+             size = str_replace_all(size,"size_6","Size 6"),
+             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
       mutate(size = factor(size)) %>% 
       drop_na()
     
-    plot_ly(labels = str_replace_all(house_nyc$size,"_"," "),
-            values = house_nyc$num,
-            type = "pie",
-            marker = list(colors = brewer.pal(7,"Blues")),
-            sort = FALSE,
-            opacity=0.8) %>% 
-      layout(legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5))
+    plot = plot_ly(sort = FALSE)
+    
+    plot = plot %>% 
+      add_trace(data = house_nbh,
+                labels = ~house_nbh$size,
+                values = ~house_nbh$num,
+                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                name = ~house_nbh$neighborhood_name,
+                domain = list(row = 0, column = 0))
+    
+    
+    plot = plot %>% 
+      add_trace(data = house_gp,
+                labels = ~house_gp$size,
+                values = ~house_gp$num,
+                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                name = ~house_gp$neighborhood_name,
+                domain = list(row = 0, column = 1))
+    
+    
+    plot = plot %>% 
+      add_trace(data = house_nyc,
+                labels = ~house_nyc$size,
+                values = ~house_nyc$num,
+                text = ~paste(round((num/sum(num))*100, digits = 1),"%"),
+                textinfo='text',
+                textposition="auto",
+                type = 'pie',
+                name = ~house_nyc$neighborhood_name,
+                domain = list(row = 0, column = 2))
+    
+    plot = plot %>%
+      layout(title = "", showlegend = T,
+             grid=list(rows=1, columns=3),
+             xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
+      add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
+                      y=-0.3,
+                      text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
+    
+    plot
+    
+    
     
   })
+  
   
   #### Time Trend
   ### Case Count
@@ -1967,7 +2142,17 @@ server <- function(input, output) {
     
   })
   
+  ####### boro cases
   
+  output$boro_cases = renderLeaflet({
+    
+    plot = switch (input$selection,
+                   cum_case = cum_case,
+                   new_case = new_case
+    )
+    
+    plot()
+  })
   
   
   #######
