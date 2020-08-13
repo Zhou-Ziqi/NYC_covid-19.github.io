@@ -1,0 +1,74 @@
+---
+title: "average7"
+author: "Qi Yuchen, yq2279"
+date: "2020/8/13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+df = read_csv("data/data-yqfdF.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(date = date_of_interest) %>% 
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+N = nrow(df)
+cases = pull(df,cases)
+deaths = pull(df,deaths)
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+
+for (i in 7:N) {
+  ave.cases[i] = mean(cases[(i-6):(i)])
+  ave.deaths[i] = mean(deaths[(i-6):(i)])
+}
+
+df.ave = df %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
+
+ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  )
+
+ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  )
+```
+
+
+
+
+
+```{r, eval=FALSE}
+N = nrow(df)
+cases = pull(df,cases)
+deaths = pull(df,deaths)
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+ave.cases[1] = mean(cases[1:7])
+ave.cases[2] = mean(cases[1:7])
+ave.cases[3] = mean(cases[1:7])
+ave.cases[N] = mean(cases[(N-6):N])
+ave.cases[N-1] = mean(cases[(N-6):N])
+ave.cases[N-2] = mean(cases[(N-6):N])
+
+df.ave = df %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
+
+ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "Red")
+```
+
