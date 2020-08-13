@@ -19,6 +19,7 @@ library(scales)
 
 library(flexdashboard)
 library(RColorBrewer)
+library(grid)
 
 
 library(Dict)
@@ -225,16 +226,30 @@ Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
 data <- rbind(finalMaydata,final_Junedata)
 Week <- unique(as.Date(cut(data$day, "week")) + 6)
 
-weeklydf <- data %>% 
+weeklydf_ <- data %>% 
   mutate(zipcode = factor(zipcode)) %>% 
   filter(day %in% Week)
+  
 
+weeklydf_max <- weeklydf_ %>%
+  filter(day == max(day)) %>% select(zipcode,neighborhood_name)
+
+weeklydf_ <- weeklydf_ %>% rename(nbh = neighborhood_name) %>% select(-zipcode)
+
+weeklydf <-cbind(weeklydf_max, weeklydf_) 
+  
+weeklydf$zipcode_new <- paste(weeklydf$zipcode, weeklydf$neighborhood_name)
+
+zip_nbh <- weeklydf %>% pull(zipcode_new) %>% unique()
 
 data$week <- as.Date(cut(data$day, "week")) + 6
 weeklynew <- aggregate(data$newcases, by=list(week=data$week, zipcode = data$zipcode), FUN=sum)
-weeklynew <- dplyr::rename(weeklynew, new_cases = x)
+weeklynew <- weeklynew %>% rename(new_cases = x) %>% mutate(zipcode = factor(zipcode))
 
-zipcode = data %>% distinct(zipcode) %>% pull()
+weeklynew <- left_join(weeklynew, weeklydf_max)
+weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
+
+
 
 # boro time trend written on Aug 12
 borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
@@ -256,6 +271,8 @@ weeklydf_new <- borocase_new %>%
          Count = count)
 
 
+
+
 weeklydf_cum <- borocase_cum %>% 
   mutate(boro = factor(boro)) %>% 
   filter(date_of_interest %in% week) %>%
@@ -270,37 +287,67 @@ weeklydf_cum <- borocase_cum %>%
          Count = count)
 
 
+
 cum_case <- function(){
-  temp <- weeklydf_cum %>% 
+  temp1 <- weeklydf_cum %>% 
     ggplot(aes(x = Date, y = Count)) + 
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
-    facet_wrap(.~type, scales = "free") +
+    facet_grid(type~., scales = "free") +
     theme_minimal() +
+    theme(panel.spacing.y=unit(3, "lines")) + 
     xlab("") + 
     ylab("")
   
-  
-  ggplotly(temp) %>% 
+  ggplotly(temp1, height = 800) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
            hovermode = "x unified",
            xaxis = list(spikemode = "across",
                         spikedash = "dash"),
            hoverlabel = list(font = list(size = 10)))
 }
+
+# weeklydf_new_positive <- weeklydf_new %>% filter(type == "Case Count")
+# weeklydf_new_hos <- weeklydf_new %>% filter(type == "Hospitalization Count")
+# weeklydf_new_death <- weeklydf_new %>% filter(type == "Death Count")
+
 new_case <- function(){
-  temp <- weeklydf_new %>% 
-    ggplot(aes(x = Date, y = Count)) + 
-    geom_line(aes(color = Borough)) +
-    geom_point(aes(color = Borough)) +
-    facet_wrap(.~type, scales = "free") +
-    theme_minimal() +
-    xlab("") + 
-    ylab("")
+  
+  # fig <- plot_ly()
+  # fig <- fig %>% add_trace(weeklydf_new_positive, 
+  #                x = ~Date, y = ~Count, 
+  #                linetype = ~Borough, 
+  #                mode = 'lines', 
+  #                name = weeklydf_new_positive$type, 
+  #                domain = list(row = 0, column = 0))
+  # 
+  # fig <- fig %>% add_trace(weeklydf_new_hos, 
+  #                          x = ~Date, y = ~Count, 
+  #                          linetype = ~Borough, 
+  #                          mode = 'lines', 
+  #                          name = weeklydf_new_hos$type, 
+  #                          domain = list(row = 0, column = 1))
+  # fig <- fig %>% add_trace(weeklydf_new_death, 
+  #                          x = ~Date, y = ~Count, 
+  #                          linetype = ~Borough, 
+  #                          mode = 'lines', 
+  #                          name =  weeklydf_new_death$type, 
+  #                          domain = list(row = 0, column = 2))
+  
+  temp2 <- weeklydf_new %>%
+   ggplot(aes(x = Date, y = Count)) +
+   geom_line(aes(color = Borough)) +
+   geom_point(aes(color = Borough)) +
+   facet_grid(type~., scales = "free") +
+   theme(panel.spacing.y=unit(3, "lines")) + 
+   theme_minimal() +
+   xlab("") +
+   ylab("")
   
   
-  ggplotly(temp) %>% 
+  ggplotly(temp2, height = 800) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           grid=list(rows=1, columns=3),
            hovermode = "x unified",
            xaxis = list(spikemode = "across",
                         spikedash = "dash"),
@@ -694,14 +741,15 @@ ui <- navbarPage(
     )
   ),
   tabPanel(title = "COVID-19 Trends",
-           column(10, offset = 1, h2("COVID-19 Trends")),
+           fluidRow(column(10, offset = 1, h2("COVID-19 Trends"))),
+           br(),
            fluidRow(column(width = 4,offset = 1,
                            radioButtons(inputId = "selection",
                                         label =  "Data Display:",   
                                         c("Total Count" = "cum_case",
                                           "Incidence Count" = "new_case"))),
-                    column(width = 6, "some description")),
-           fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
+                    column(width = 6, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
+           fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"), div(style = "height:400px;"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
            fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            hr(),
@@ -723,7 +771,14 @@ ui <- navbarPage(
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
-             column(10, offset = 1,h2("Cases Count")),
+             fluidRow(column(10, offset = 1,h2("Cases Count"))),
+             fluidRow(
+               column(3, offset = 1, pickerInput("zip1", 
+                                               label = "Choose zipcodes", 
+                                               choices =zip_nbh,
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+                column(7, plotlyOutput("pocase", width="100%",height="500px"))),
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
@@ -734,7 +789,14 @@ ui <- navbarPage(
            #### Death Count
            conditionalPanel(
              condition = "input.character_timetrend == 'death'",
-             column(10, offset = 1, h2("Death Count")),
+             fluidRow(column(10, offset = 1, h2("Death Count"))),
+             fluidRow(
+               column(width = 3, offset = 1, pickerInput("zip2", 
+                                               label = "Choose zipcodes", 
+                                               choices =zip_nbh, 
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+               column(7, plotlyOutput("death", width="100%",height="500px"))),
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
@@ -745,7 +807,14 @@ ui <- navbarPage(
            #### Positive Cases Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'porate'",
-             column(10, offset = 1, h2("Cases Rate")),
+             fluidRow(column(10, offset = 1, h2("Cases Rate"))),
+             fluidRow(
+               column(width = 3, offset = 1,pickerInput("zip3", 
+                                               label = "Choose zipcodes", 
+                                               choices =zip_nbh, 
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+               column(7, plotlyOutput("porate", width="100%",height="500px"))),
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
@@ -756,14 +825,30 @@ ui <- navbarPage(
            #### Death Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'derate'",
-             column(10, offset = 1, h2("Death Rate")),
+             fluidRow(column(10, offset = 1, h2("Death Rate"))),
+             fluidRow(
+               column(width = 3, offset = 1, pickerInput("zip4", 
+                                               label = "Choose zipcodes", 
+                                               choices =zip_nbh,
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+               column(7, plotlyOutput("derate", width="100%",height="500px"))),
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_race_derate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
-           
+           conditionalPanel(
+             condition = "input.character_timetrend == 'newcase'",
+             fluidRow(column(10, offset = 1, h2("New cases"))),
+             fluidRow(
+               column(width = 3, offset = 1, pickerInput("zip5", 
+                                               label = "Choose zipcodes", 
+                                               choices =zip_nbh,
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+               column(7, plotlyOutput("newcases", width="100%",height="500px")))),
            br(),
            fluidRow(align="center",
                     span(htmlOutput("bannertext3", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
@@ -809,7 +894,7 @@ ui <- navbarPage(
   
   
   tabPanel(title = "Neighborhoods",
-           column(10, offset = 1, h2("Neighborhoods Characteristics")),
+           fluidRow(column(10, offset = 1, h2("Neighborhoods Characteristics"))),
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
@@ -1101,6 +1186,12 @@ server <- function(input, output) {
      <br>
      <span>&#8226;</span>  New cases are incremental number of COVID-19 cases on the updated date. 
     "
+    )
+  })
+  
+  output$borotrendtext = renderText({
+    return(
+      "A look at how COVID-19 case, hospitalization and death counts change over time in each of NYC borough. Use the display options to select cumulative count or incidence count. Update weekly from March 1, 2020."
     )
   })
   
@@ -2278,17 +2369,15 @@ Keep one decimal for all numbers.")
   output$pocase <- renderPlotly({
     
     weeklydf %>% 
-      filter(zipcode %in% input$zip1) %>%
+      filter(zipcode_new %in% input$zip1) %>%
       plot_ly(x = ~day,
               y = ~positive,
               type="scatter",
               mode = 'lines+markers',
-              color= ~zipcode,
-              linetype = ~zipcode) %>% 
+              colors= "Blues") %>% 
       layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(
-               type = "date",
-               range=c('2020-05-18', '2020-07-05')))
+             xaxis = list(title = "",type = "date"),
+             yaxis = list(title = ""))
     
     
     
@@ -2296,64 +2385,56 @@ Keep one decimal for all numbers.")
   
   output$death <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode %in% input$zip2) %>%
+      filter(zipcode_new %in% input$zip2) %>%
       plot_ly(x = ~day,
               y = ~covid_death_count,
               type="scatter",
               mode = 'lines+markers',
-              color= ~zipcode,
-              linetype = ~zipcode) %>% 
+              colors= "Blues") %>% 
       layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(
-               type = "date",
-               range=c('2020-05-18', '2020-07-05')))
+             xaxis = list(title = "",type = "date"),
+             yaxis = list(title = ""))
     
   }) 
   
   output$porate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode %in% input$zip3) %>%
+      filter(zipcode_new %in% input$zip3) %>%
       plot_ly(x = ~day,
               y = ~covid_case_rate,
               type="scatter",
               mode = 'lines+markers',
-              color= ~zipcode,
-              linetype = ~zipcode) %>% 
+              colors= "Blues") %>% 
       layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(
-               type = "date",
-               range=c('2020-05-18', '2020-07-05')))
+             xaxis = list(title = "",type = "date"),
+             yaxis = list(title = ""))
   }) 
   
   output$derate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode %in% input$zip4) %>%
+      filter(zipcode_new %in% input$zip4) %>%
       plot_ly(x = ~day,
               y = ~covid_death_rate,
               type="scatter",
               mode = 'lines+markers',
-              color= ~zipcode,
-              linetype = ~zipcode) %>% 
+              colors= "Blues") %>% 
       layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(
-               type = "date",
-               range=c('2020-05-18', '2020-07-05')))
+             xaxis = list(title = "",type = "date"),
+             yaxis = list(title = ""))
   })
   
   output$newcases <- renderPlotly({
     weeklynew %>% 
-      mutate(zipcode = factor(zipcode)) %>% 
-      filter(zipcode %in% input$zip5) %>%
+      mutate(zipcode_new = factor(zipcode_new)) %>% 
+      filter(zipcode_new %in% input$zip5) %>%
       plot_ly(x = ~week,
               y = ~new_cases,
               type="scatter",
               mode = 'lines+markers',
-              color= ~zipcode,
-              linetype = ~zipcode) %>% 
+              colors= "Blues") %>% 
       layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(
-               type = "date",
-               range=c('2020-05-18', '2020-07-10')))
+             xaxis = list(title = "",type = "date"),
+             yaxis = list(title = ""))
   })
   
   
