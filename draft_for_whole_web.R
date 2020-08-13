@@ -19,7 +19,9 @@ library(scales)
 
 library(flexdashboard)
 library(RColorBrewer)
-library(shinythemes)
+
+
+library(Dict)
 
 ##
 url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
@@ -269,7 +271,11 @@ cum_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           hovermode = "x unified",
+           xaxis = list(spikemode = "across",
+                        spikedash = "dash"),
+           hoverlabel = list(font = list(size = 10)))
 }
 new_case <- function(){
   temp <- weeklydf_new %>% 
@@ -283,7 +289,11 @@ new_case <- function(){
   
   
   ggplotly(temp) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           hovermode = "x unified",
+           xaxis = list(spikemode = "across",
+                        spikedash = "dash"),
+           hoverlabel = list(font = list(size = 10)))
 }
 
 
