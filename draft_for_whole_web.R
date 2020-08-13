@@ -1840,7 +1840,8 @@ server <- function(input, output) {
                 textposition="auto",
                 type = 'pie',
                 name = ~house_nbh$neighborhood_name,
-                domain = list(row = 0, column = 0))
+                domain = list(row = 0, column = 0),
+                marker = list(colors = brewer.pal(7,"Blues")))
     
     
     plot = plot %>% 
@@ -1851,8 +1852,9 @@ server <- function(input, output) {
                 textinfo='text',
                 textposition="auto",
                 type = 'pie',
-                name = ~house_gp$neighborhood_name,
-                domain = list(row = 0, column = 1))
+                name = ~which_boro,
+                domain = list(row = 0, column = 1),
+                marker = list(colors = brewer.pal(7,"Blues")))
     
     
     plot = plot %>% 
@@ -1863,8 +1865,9 @@ server <- function(input, output) {
                 textinfo='text',
                 textposition="auto",
                 type = 'pie',
-                name = ~house_nyc$neighborhood_name,
-                domain = list(row = 0, column = 2))
+                name = ~paste("New York City"),
+                domain = list(row = 0, column = 2),
+                marker = list(colors = brewer.pal(7,"Blues")))
     
     plot = plot %>%
       layout(title = "", showlegend = T,
@@ -1874,7 +1877,7 @@ server <- function(input, output) {
              legend=list(title=list(text='<b> Family Size </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
       add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
                       y=-0.3,
-                      text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
+                      text = c(paste(input$nbhid2), paste(which_boro), "New York City"),
                       xref = "paper",
                       yref = "paper",
                       xanchor = "center",
