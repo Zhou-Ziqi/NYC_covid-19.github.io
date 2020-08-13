@@ -30,11 +30,24 @@ url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
 
 ##read data
+### Home tab data
+data_home = read_csv("./data/by-boro0813.csv") %>% 
+  select(BOROUGH_GROUP,CASE_COUNT,DEATH_COUNT) %>% 
+  rename(Borough = BOROUGH_GROUP,
+         "Confirmed Cases" = CASE_COUNT,
+         "Deaths" = DEATH_COUNT) %>% 
+  mutate(Borough = str_replace_all(Borough,"Citywide","New York City"),
+         Borough = str_replace_all(Borough,"StatenIsland", "Staten Island"),
+         Borough = factor(Borough, levels = c("New York City","Bronx","Brooklyn",
+                                              "Manhattan","Queens","Staten Island")))
 
+### trakcer data
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
+  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-22"))
 data_today = read_csv("./data/data-by-modzcta0723.csv") %>% 
+  drop_na(neighborhood_name) %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-07-23"))
 
@@ -449,7 +462,9 @@ ui <- navbarPage(
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(align = "center", img(src = "newlogo3.png", height = "40%", width = "40%")),
+           fluidRow(column(width = 4, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "85%"),style="text-align: center;")),
+                    column(width = 6, DT::dataTableOutput("Hometable",height = "60%"),
+                           helpText("Last Updated: 2020-08-13"))),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            hr(),
            fluidRow(align="center",
@@ -499,7 +514,7 @@ ui <- navbarPage(
       column(width = 10, offset = 1, h2("COVID-19 Tracking")),
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
-      column(width = 10, offset = 1, helpText("Last updated at: 2020-07-23")),
+      column(width = 10, offset = 1, helpText("Last updated : 2020-07-23")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
     hr(),
@@ -664,7 +679,7 @@ ui <- navbarPage(
                     column(width = 6, "some description")),
            fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Last updated at: 2020-08-12"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            hr(),
            
            #####
@@ -782,20 +797,23 @@ ui <- navbarPage(
              condition = "input.character == 'race'",
              
              fluidRow(
-               column(width = 3,
+               column(width = 3,offset = 1,
                       sidebarPanel(width = 12,
                                    selectInput("nbhid1", 
                                                label = "Choose a Neighbourhood", 
                                                choices =nbh_name, 
                                                selected = NULL))),
-               column(width = 9, h4("some words to describe the pie chart"))),
+               column(width = 9, "Choose a NYC ZCTAs neighborhood. 
+               See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
+               Keep one decimal for all numbers."
+                      )),
              br(),
              column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%")),
              
              hr(),
-             column(10, offset = 1, ),
+             
              fluidRow(
-               column(width = 3,
+               column(width = 3, offset = 1,
                       verticalLayout(
                         sidebarPanel(width = 12,
                                      pickerInput(inputId = "raceid",
@@ -817,19 +835,21 @@ ui <- navbarPage(
              condition = "input.character == 'house'",
              
              fluidRow(
-               column(width = 3,
+               column(width = 3, offset = 1,
                       sidebarPanel(width = 12,
                                    selectInput("nbhid2", 
                                                label = "Choose a Neighborhood", 
                                                choices =nbh_name, 
                                                selected = NULL))),
-               column(width = 9, h4("some words to describe the pie chart"))),
+               column(width = 9, "Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
+Keep one decimal for all numbers."
+                      )),
              br(),
              
              column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
              
              hr(),
-             h1("Map"),
+             
              fluidRow(
                column(width = 3,
                       verticalLayout(
@@ -851,7 +871,7 @@ ui <- navbarPage(
              condition = "input.character == 'income'",
              
              fluidRow(
-               column(width = 3,
+               column(width = 3,offset = 1,
                       verticalLayout(
                         sidebarPanel(width = 12,
                                      selectInput("nbhid3", 
@@ -867,10 +887,10 @@ ui <- navbarPage(
              hr(),
              h1("Map"),
              fluidRow(
-               column(width = 3,
+               column(width = 3,offset = 1,
                       verticalLayout(
                         h4("some words to describe the map"))),
-               column(width = 9,leafletOutput("income_map", width="100%",height="700px"))),
+               column(width = 7,leafletOutput("income_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
            ),
@@ -1029,6 +1049,12 @@ server <- function(input, output) {
 ")
   })
   
+  output$NeighborhoodsText = renderText({
+    return("Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
+Keep one decimal for all numbers.")
+  })
+  
+  
   output$abouttext = renderText({
     return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
   <br><br>
@@ -1039,6 +1065,11 @@ server <- function(input, output) {
   })  
   
   ###########
+  
+  output$Hometable = DT::renderDataTable(DT::datatable({
+    data_home
+  },rownames = FALSE))
+    
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
   },rownames = FALSE))
