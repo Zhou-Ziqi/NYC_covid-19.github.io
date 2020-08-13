@@ -231,7 +231,7 @@ weeklydf_new <- borocase_new %>%
   mutate(week = week) %>% 
   group_by(boro,week) %>% 
   summarise(case_count = sum(case_count),
-            hospitalized_count = sum(hospitalized_count),
+            hospitalization_count = sum(hospitalized_count),
             death_count = sum(death_count)) %>% 
   pivot_longer(case_count:death_count,
                names_to = "type",
@@ -245,6 +245,7 @@ weeklydf_new <- borocase_new %>%
 weeklydf_cum <- borocase_cum %>% 
   mutate(boro = factor(boro)) %>% 
   filter(date_of_interest %in% week) %>%
+  rename(cum_hospitalization_count = cum_hospitalized_count) %>% 
   pivot_longer(cum_case_count:cum_death_count,
                names_to = "type",
                values_to = "count") %>% 
@@ -658,18 +659,18 @@ ui <- navbarPage(
            fluidRow(column(width = 4,offset = 1,
                            radioButtons(inputId = "selection",
                                         label =  "Data Display:",   
-                                        c("Cumulative Cases" = "cum_case",
-                                          "New Cases" = "new_case"))),
+                                        c("Total Count" = "cum_case",
+                                          "Incidence Count" = "new_case"))),
                     column(width = 6, "some description")),
            fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated at: 2020-08-12"))),
            hr(),
            
            #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                       "Choose a characteristics",
+                                                       "Data Display",
                                                        c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
                                                          "Case Rate" = "porate", 

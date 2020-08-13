@@ -231,7 +231,7 @@ weeklydf_new <- borocase_new %>%
   mutate(week = week) %>% 
   group_by(boro,week) %>% 
   summarise(case_count = sum(case_count),
-            hospitalized_count = sum(hospitalized_count),
+            hospitalization_count = sum(hospitalized_count),
             death_count = sum(death_count)) %>% 
   pivot_longer(case_count:death_count,
                names_to = "type",
@@ -245,6 +245,7 @@ weeklydf_new <- borocase_new %>%
 weeklydf_cum <- borocase_cum %>% 
   mutate(boro = factor(boro)) %>% 
   filter(date_of_interest %in% week) %>%
+  rename(cum_hospitalization_count = cum_hospitalized_count) %>% 
   pivot_longer(cum_case_count:cum_death_count,
                names_to = "type",
                values_to = "count") %>% 
@@ -658,18 +659,18 @@ ui <- navbarPage(
            fluidRow(column(width = 4,offset = 1,
                            radioButtons(inputId = "selection",
                                         label =  "Data Display:",   
-                                        c("Cumulative Cases" = "cum_case",
-                                          "New Cases" = "new_case"))),
+                                        c("Total Count" = "cum_case",
+                                          "Incidence Count" = "new_case"))),
                     column(width = 6, "some description")),
            fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated at: 2020-08-12"))),
            hr(),
            
            #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
-                                                       "Choose a characteristics",
+                                                       "Data Display",
                                                        c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
                                                          "Case Rate" = "porate", 
@@ -790,7 +791,7 @@ ui <- navbarPage(
                column(width = 9, h4("some words to describe the pie chart"))),
              br(),
              column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%")),
-               
+             
              hr(),
              column(10, offset = 1, ),
              fluidRow(
@@ -825,8 +826,8 @@ ui <- navbarPage(
                column(width = 9, h4("some words to describe the pie chart"))),
              br(),
              
-            column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
-               
+             column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
+             
              hr(),
              h1("Map"),
              fluidRow(
@@ -848,7 +849,7 @@ ui <- navbarPage(
            #### income
            conditionalPanel(
              condition = "input.character == 'income'",
-            
+             
              fluidRow(
                column(width = 3,
                       verticalLayout(
@@ -1028,14 +1029,14 @@ server <- function(input, output) {
 ")
   })
   
-output$abouttext = renderText({
-  return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
+  output$abouttext = renderText({
+    return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
   <br><br>
   We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
   <br><br>
 	Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
-})  
+  })  
   
   ###########
   output$table <- DT::renderDataTable(DT::datatable({
@@ -1370,7 +1371,7 @@ output$abouttext = renderText({
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid1) %>% select(borough_group) %>% unique()
     
-  
+    
     race_nbh = race %>% 
       filter(neighborhood_name == input$nbhid1) %>%
       pivot_longer(white_alone:two_or_more_races, names_to = "race", values_to = "population") %>%
@@ -1476,24 +1477,24 @@ output$abouttext = renderText({
                 opacity=0.8,
                 domain = list(row = 0, column = 2),
                 marker = list(colors = brewer.pal(7,"Blues")))
-     plot = plot %>%
-       layout(title = "", showlegend = T,
-              grid=list(rows=1, columns=3),
-              xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-              yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-              legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
-       add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
-                       y=-0.3,
-                       text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
-                       xref = "paper",
-                       yref = "paper",
-                       xanchor = "center",
-                       showarrow = FALSE
-       )
+    plot = plot %>%
+      layout(title = "", showlegend = T,
+             grid=list(rows=1, columns=3),
+             xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
+             legend=list(title=list(text='<b> Race </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5)) %>% 
+      add_annotations(x=seq(0.15,0.15+2*0.35,0.35),
+                      y=-0.3,
+                      text = c(paste(input$nbhid1), paste(which_boro), "New York City"),
+                      xref = "paper",
+                      yref = "paper",
+                      xanchor = "center",
+                      showarrow = FALSE
+      )
     
     
-  plot
-  
+    plot
+    
   })
   
   
@@ -1806,7 +1807,7 @@ output$abouttext = renderText({
     
     plot
     
-
+    
     
   })
   
