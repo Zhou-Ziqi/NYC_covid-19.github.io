@@ -315,17 +315,59 @@ weeklydf_cum <- borocase_cum %>%
 
 
 
-cum_case <- function(){
+cum_case_count <- function(){
   temp1 <- weeklydf_cum %>% 
     ggplot(aes(x = Date, y = Count)) + 
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
     facet_wrap(.~type, scales = "free") +
     theme_minimal() +
-    theme(legend.position = "none")+
+    #theme(legend.position = "none")+
     #theme(panel.spacing.y=unit(2, "lines")) + 
     xlab("") + 
     ylab("")
+  
+
+  
+  vline <- function(x = 0, color = "red") {
+    list(
+      type = "line", 
+      y0 = 0, 
+      y1 = 100000, 
+      yref = "paper",
+      x0 = x, 
+      x1 = x, 
+      line = list(color = color)
+    )
+  }
+  
+  
+  ggplotly(temp1) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           shapes = list(vline(as.Date("2020-03-01")), vline(as.Date("2020-03-20")),vline(as.Date("2020-06-22")),vline(as.Date("2020-07-06")),vline(as.Date("2020-07-20"))),
+           #xaxis = list(title = "",type = "date"),
+           yaxis = list(title = ""),
+           margin = list(b=100))
+  
+  # ggplotly(temp1) %>%
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
+  #          #hovermode = "x unified",
+  #          #xaxis = list(spikemode = "across",
+  #          #             spikedash = "dash"),
+  #          #hoverlabel = list(font = list(size = 10))
+  #          )
+  # 
+  # ggplotly(temp3) %>%
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
+  #          #hovermode = "x unified",
+  #          #xaxis = list(spikemode = "across",
+  #          #             spikedash = "dash"),
+  #          #hoverlabel = list(font = list(size = 10))
+  #          )
+}
+
+cum_case_rate <- function(){
+
   
   temp3 <- weeklydf_cum %>% 
     ggplot(aes(x = Date, y = Rate)) + 
@@ -350,35 +392,21 @@ cum_case <- function(){
   }
   
   
-  subplot(ggplotly(temp1, height = 800), ggplotly(temp3, height = 800), nrows = 2) %>% 
+  ggplotly(temp3) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
            shapes = list(vline(as.Date("2020-03-01")), vline(as.Date("2020-03-20")),vline(as.Date("2020-06-22")),vline(as.Date("2020-07-06")),vline(as.Date("2020-07-20"))),
            #xaxis = list(title = "",type = "date"),
            yaxis = list(title = ""),
            margin = list(b=100))
   
-  # ggplotly(temp1) %>%
-  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
-  #          #hovermode = "x unified",
-  #          #xaxis = list(spikemode = "across",
-  #          #             spikedash = "dash"),
-  #          #hoverlabel = list(font = list(size = 10))
-  #          )
-  # 
-  # ggplotly(temp3) %>%
-  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
-  #          #hovermode = "x unified",
-  #          #xaxis = list(spikemode = "across",
-  #          #             spikedash = "dash"),
-  #          #hoverlabel = list(font = list(size = 10))
-  #          )
+
 }
 
 # weeklydf_new_positive <- weeklydf_new %>% filter(type == "Case Count")
 # weeklydf_new_hos <- weeklydf_new %>% filter(type == "Hospitalization Count")
 # weeklydf_new_death <- weeklydf_new %>% filter(type == "Death Count")
 
-new_case <- function(){
+new_case_count <- function(){
   
   # fig <- plot_ly()
   # fig <- fig %>% add_trace(weeklydf_new_positive, 
@@ -410,6 +438,23 @@ new_case <- function(){
     theme_minimal() +
     xlab("") +
     ylab("")
+
+  
+  ggplotly(temp2) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+  
+  
+  # ggplotly(temp2, height = 800) %>% 
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+  #          grid=list(rows=1, columns=3),
+  #          hovermode = "x unified",
+  #          xaxis = list(spikemode = "across",
+  #                       spikedash = "dash"),
+  #          hoverlabel = list(font = list(size = 10)))
+}
+
+new_case_rate <- function(){
+
   
   temp4 <- weeklydf_new %>%
     ggplot(aes(x = Date, y = Rate)) +
@@ -421,17 +466,10 @@ new_case <- function(){
     xlab("") +
     ylab("")
   
-  subplot(ggplotly(temp2, height = 800),ggplotly(temp4, height = 800), nrows = 2) %>% 
+  ggplotly(temp4) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
   
   
-  # ggplotly(temp2, height = 800) %>% 
-  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-  #          grid=list(rows=1, columns=3),
-  #          hovermode = "x unified",
-  #          xaxis = list(spikemode = "across",
-  #                       spikedash = "dash"),
-  #          hoverlabel = list(font = list(size = 10)))
 }
 
 
@@ -860,13 +898,32 @@ ui <- navbarPage(
   tabPanel(title = "COVID-19 Trends",
            fluidRow(column(10, offset = 1, h2("COVID-19 Trends"))),
            br(),
-           fluidRow(column(width = 4,offset = 1,
-                           radioButtons(inputId = "selection",
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
+           br(),
+           fluidRow(column(width = 2,offset = 1,
+                           # radioButtons(inputId = "selection",
+                           #              label =  "Data Display:",   
+                           #              c("Total Count" = "cum_case_count",
+                           #                "Incidence Count" = "new_case_count",
+                           #                "Total Rate" = "cum_case_rate",
+                           #                "Incidence Rate" = "new_case_rate")),
+                           radioButtons(inputId = "selection1",
                                         label =  "Data Display:",   
-                                        c("Total Count" = "cum_case",
-                                          "Incidence Count" = "new_case"))),
-                    column(width = 6, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1, plotlyOutput(outputId = "boro_cases"), div(style = "height:400px;"))),
+                                        c("Total Count" = "cum_case_count",
+                                          "Incidence Count" = "new_case_count"))),
+                    column(width = 8, plotlyOutput(outputId = "boro_cases1"))),
+           fluidRow(column(width = 2,offset = 1,
+                           # radioButtons(inputId = "selection",
+                           #              label =  "Data Display:",   
+                           #              c("Total Count" = "cum_case_count",
+                           #                "Incidence Count" = "new_case_count",
+                           #                "Total Rate" = "cum_case_rate",
+                           #                "Incidence Rate" = "new_case_rate")),
+                           radioButtons(inputId = "selection2",
+                                        label =  "Data Display:",   
+                                        c("Total Rate" = "cum_case_rate",
+                                          "Incidence Rate" = "new_case_rate"))),
+                    column(width = 8, plotlyOutput(outputId = "boro_cases2"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
            fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            hr(),
@@ -2499,16 +2556,27 @@ Keep one decimal for all numbers.")
   
   ####### boro cases
   
-  output$boro_cases = renderLeaflet({
+  output$boro_cases1 = renderLeaflet({
     
-    plot = switch (input$selection,
-                   cum_case = cum_case,
-                   new_case = new_case
+    plot = switch (input$selection1,
+                   cum_case_count = cum_case_count,
+                   new_case_count = new_case_count
+                   
     )
     
     plot()
   })
   
+  output$boro_cases2 = renderLeaflet({
+    
+    plot = switch (input$selection2,
+                   cum_case_rate = cum_case_rate,
+                   new_case_rate = new_case_rate
+                   
+    )
+    
+    plot()
+  })
   
   #######
   
