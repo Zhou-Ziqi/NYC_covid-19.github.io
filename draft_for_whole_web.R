@@ -936,10 +936,13 @@ ui <- navbarPage(
                                                choices =zip_nbh,
                                                selected = zip_nbh[1],
                                                options = list(`actions-box` = TRUE))),
+             
              column(7, plotlyOutput("pocase", width="100%",height="500px"))),
            hr(),
            
-           #####
+           
+           
+           #####the last part of the trends tab
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Data Display",
@@ -947,7 +950,8 @@ ui <- navbarPage(
                                                          "Death Count" = "death", 
                                                          "Case Rate (per 100,000 people)" = "porate", 
                                                          "Death Rate (per 100,000 people)" = "derate",
-                                                         "New cases" = "newcase"
+                                                         "New cases" = "newcase",
+                                                         "Incidence Rate(per 100,000 people)" = "incrate"
                                                        ),
                                                        selected = NULL)),
              column(width = 5, "this part is for instructions")
@@ -969,13 +973,7 @@ ui <- navbarPage(
            conditionalPanel(
              condition = "input.character_timetrend == 'death'",
              fluidRow(column(10, offset = 1, h4("Death Count"))),
-             fluidRow(
-               column(width = 3, offset = 1, pickerInput("zip2", 
-                                                         label = "Choose zipcodes", 
-                                                         choices =zip_nbh, 
-                                                         selected = zip_nbh[1],
-                                                         options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("death", width="100%",height="500px"))),
+             
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
@@ -987,13 +985,7 @@ ui <- navbarPage(
            conditionalPanel(
              condition = "input.character_timetrend == 'porate'",
              fluidRow(column(10, offset = 1, h4("Cases Rate (per 100,000 people)"))),
-             fluidRow(
-               column(width = 3, offset = 1,pickerInput("zip3", 
-                                                        label = "Choose zipcodes", 
-                                                        choices =zip_nbh, 
-                                                        selected = zip_nbh[1],
-                                                        options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("porate", width="100%",height="500px"))),
+           
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
@@ -1005,13 +997,7 @@ ui <- navbarPage(
            conditionalPanel(
              condition = "input.character_timetrend == 'derate'",
              fluidRow(column(10, offset = 1, h4("Death Rate (per 100,000 people)"))),
-             fluidRow(
-               column(width = 3, offset = 1, pickerInput("zip4", 
-                                                         label = "Choose zipcodes", 
-                                                         choices =zip_nbh,
-                                                         selected = zip_nbh[1],
-                                                         options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("derate", width="100%",height="500px"))),
+             
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
@@ -1028,6 +1014,18 @@ ui <- navbarPage(
                                                          selected = zip_nbh[1],
                                                          options = list(`actions-box` = TRUE))),
                column(7, plotlyOutput("newcases", width="100%",height="500px")))),
+           
+           conditionalPanel(
+             condition = "input.character_timetrend == 'incrate'",
+             fluidRow(column(10, offset = 1,h4("Incidence Rate (per 100,000 people)"))),
+             
+             fluidRow(
+               column(10, offset = 1, plotlyOutput("tt_age_inc", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_sex_inc", width="100%",height="80%")),
+               column(10, offset = 1, plotlyOutput("tt_race_inc", width="100%",height="80%")),
+               column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
+           ),
+           
            br(),
            fluidRow(align="center",
                     span(htmlOutput("bannertext3", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
@@ -2560,6 +2558,88 @@ Keep one decimal for all numbers.")
     
   })
   
+  ###incidence rate
+  output$tt_age_inc = renderPlotly({
+    Week <- unique(as.Date(cut(byage$day, "week")) + 6)
+    weeklyage <- byage %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyage$day)
+    x_max_us = max(weeklyage$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyage %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Age  "),orientation = "h", x = 0.4, y = -0.2))
+    
+    
+    
+  })
+  output$tt_sex_inc = renderPlotly({
+    
+    Week <- unique(as.Date(cut(bysex$day, "week")) + 6)
+    weeklysex <- bysex %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklysex$day)
+    x_max_us = max(weeklysex$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklysex %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Gender  "),orientation = "h", x = 0.4, y = -0.2))
+    
+  })
+  output$tt_race_inc = renderPlotly({
+    Week <- unique(as.Date(cut(byrace$day, "week")) + 6)
+    weeklyrace <- byrace %>% 
+      filter(day %in% Week)
+    
+    x_min_us = min(weeklyrace$day)
+    x_max_us = max(weeklyrace$day)
+    
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    
+    a = weeklyrace %>% 
+      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      ggplot(aes(x = day, y = count ,color = group, group = group)) + 
+      geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
+      theme_minimal() +  
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") + 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(legend.position="bottom") + 
+      xlab("") + 
+      ylab("")
+    
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Race  "),orientation = "h", x = 0.4, y = -0.2))
+    
+    
+  })
+  
+  
   ####### boro cases
   
   output$boro_cases1 = renderLeaflet({
@@ -2583,6 +2663,7 @@ Keep one decimal for all numbers.")
     
     plot()
   })
+  
   
   #######
   
