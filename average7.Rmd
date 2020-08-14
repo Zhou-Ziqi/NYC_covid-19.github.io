@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(patchwork)
 ```
 
 ```{r}
@@ -29,19 +30,29 @@ for (i in 7:N) {
 df.ave = df %>% 
   mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
-ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+p1 = ggplot(df.ave, aes(x = date, y = cases)) + 
+  geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + 
+  geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + 
+  ggtitle("New reported cases by day in New York City") + 
+  theme_minimal() + 
+  labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + 
+  theme(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
     plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
   )
 
-ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+p2 = ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
     plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
   )
+
+p3 = p1/p2
+
+ggsave(filename = paste("HomePagepic",max(df.ave$date),".png"), plot = p3, width = 10, height= 8 )
 ```
 
 
