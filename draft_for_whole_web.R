@@ -583,7 +583,8 @@ newcase = function(date){
 incidencerate = function(date){
   
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
-    mutate(incidence_rate = as.numeric(incidence_rate))
+    mutate(incidence_rate = as.numeric(incidence_rate)) %>% 
+    filter(incidence_rate >= 0) 
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(incidence_rate))
   pal <- colorNumeric("Blues", domain=data_to_plot_geo$incidence_rate)
