@@ -41,10 +41,10 @@ shinyApp(
     h1("Time trend"),
     hr(),
     fluidRow(
-      column(width = 4, offset = 1, selectInput("character",
+      column(width = 4, offset = 1, selectInput("character_time_zip",
                                                 "Choose a characteristics",
-                                                c("please select..." = "plz",
-                                                  "Cumulative Cases Count" = "pocase", 
+                                                c(
+                                                  "Cases Count" = "pocase", 
                                                   "Death Count" = "death", 
                                                   "Positive Cases Rate" = "porate", 
                                                   "Death Rate" = "derate",
@@ -57,77 +57,73 @@ shinyApp(
     
     #### Cumulative Cases Count
     conditionalPanel(
-      condition = "input.character == 'pocase'",
-      h2("Cumulative Cases Count"),
+      condition = "input.character_time_zip == 'pocase'",
+      column(10, offset = 1, h4("Cases Count")),
       fluidRow(
-        column(width = 12,
-               sidebarPanel(pickerInput("zip1", 
+        column(width = 4, offset = 1,
+               pickerInput("zip1", 
                                         label = "Choose zipcodes", 
                                         choices =zipcode,
                                         multiple = TRUE,
                                         selected = zipcode[1:5],
                                         options = list(`actions-box` = TRUE))),
-               mainPanel(plotlyOutput("pocase", width="100%",height="500px"))))
-    ),
+               column(6,plotlyOutput("pocase", width="100%",height="500px"))
+    )),
     
     #### Death Count
     conditionalPanel(
-      condition = "input.character == 'death'",
-      h2("Death Count"),
+      condition = "input.character_time_zip == 'death'",
+      column(10, offset = 1, h4("Death Count")),
       fluidRow(
-        column(width = 12,
-               sidebarPanel(pickerInput("zip2", 
-                                        label = "Choose zipcodes", 
+        column(width = 4,offset = 1,
+               pickerInput("zip2", label = "Choose zipcodes", 
                                         choices =zipcode, 
                                         multiple = TRUE,
                                         selected = zipcode[1:5],
                                         options = list(`actions-box` = TRUE))),
-               mainPanel(plotlyOutput("death", width="100%",height="500px"))))
+               column(6,plotlyOutput("death", width="100%",height="500px")))
     ),
     
     #### Positive Cases Rate
     conditionalPanel(
-      condition = "input.character == 'porate'",
-      h2("Positive Cases Rate"),
+      condition = "input.character_time_zip == 'porate'",
+      column(10, offset = 1, h4("Cases Rate")),
       fluidRow(
-        column(width = 12,
-               sidebarPanel(pickerInput("zip3", 
+        column(width = 4,offset = 1,
+               pickerInput("zip3", 
                                         label = "Choose zipcodes", 
                                         choices =zipcode, 
                                         multiple = TRUE,
                                         selected = zipcode[1:5],
                                         options = list(`actions-box` = TRUE))),
-               mainPanel(plotlyOutput("porate", width="100%",height="500px"))))
+               column(6, plotlyOutput("porate", width="100%",height="500px")))
     ),
     
     #### Death Rate
     conditionalPanel(
-      condition = "input.character == 'derate'",
-      h2("Death Rate"),
+      condition = "input.character_time_zip == 'derate'",
+      column(10, offset= 1, h4("Death Rate")),
       fluidRow(
-        column(width = 12,
-               sidebarPanel(pickerInput("zip4", 
+        column(width = 4,offset = 1,
+               pickerInput("zip4", 
                                         label = "Choose zipcodes", 
                                         choices =zipcode,
                                         multiple = TRUE,
                                         selected = zipcode[1:5],
                                         options = list(`actions-box` = TRUE))),
-               mainPanel(plotlyOutput("derate", width="100%",height="500px"))))
+               column(6, plotlyOutput("derate", width="100%",height="500px")))
     ),
     
     #### New cases
     conditionalPanel(
-      condition = "input.character == 'newcase'",
-      h2("New cases"),
+      condition = "input.character_time_zip == 'newcase'",
+      column(10, offset = 1, h4("New cases")),
       fluidRow(
-        column(width = 12,
-               sidebarPanel(pickerInput("zip5", 
+        column(width = 4,offset = 1,pickerInput("zip5", 
                                         label = "Choose zipcodes", 
                                         choices =zipcode,
-                                        multiple = TRUE,
-                                        selected = zipcode[1:5],
-                                        options = list(`actions-box` = TRUE))),
-               mainPanel(plotlyOutput("newcases", width="100%",height="500px"))))
+                                        multiple = FALSE)),
+               column(6, plotlyOutput("newcases", width="100%",height="500px")))
     )
     
     

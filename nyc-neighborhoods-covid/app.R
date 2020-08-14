@@ -632,7 +632,7 @@ incidencerate = function(date){
   
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
     mutate(incidence_rate = as.numeric(incidence_rate)) %>% 
-    filter(incidence_rate >= 0) 
+    filter(incidence_rate >= 0)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(incidence_rate))
   pal <- colorNumeric("Blues", domain=data_to_plot_geo$incidence_rate)
@@ -673,8 +673,8 @@ ui <- navbarPage(
              column(width = 5, offset = 1, div(img(src = "HomePagepic.png", height = "100%",width = "100%"),
                                                style="text-align: center;")),
              
-             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "100%")
-             ))),
+             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "85%"),
+                                    style="text-align: center;"))),
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
@@ -929,16 +929,6 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            hr(),
            
-           fluidRow(
-             column(10, offset = 1, "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data."),
-             column(3, offset = 1, pickerInput("zip1", 
-                                               label = "Choose a ZCTA", 
-                                               choices =zip_nbh,
-                                               selected = zip_nbh[1],
-                                               options = list(`actions-box` = TRUE))),
-             column(7, plotlyOutput("pocase", width="100%",height="500px"))),
-           hr(),
-           
            #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
@@ -950,14 +940,20 @@ ui <- navbarPage(
                                                          "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
-             column(width = 5, "this part is for instructions")
+             column(width = 5, "this part will have some instructions")
            ),
            
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
              fluidRow(column(10, offset = 1,h4("Cases Count"))),
-             
+             fluidRow(
+               column(3, offset = 1, pickerInput("zip1", 
+                                                 label = "Choose zipcodes", 
+                                                 choices =zip_nbh,
+                                                 selected = zip_nbh[1],
+                                                 options = list(`actions-box` = TRUE))),
+               column(7, plotlyOutput("pocase", width="100%",height="500px"))),
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
@@ -1181,50 +1177,51 @@ ui <- navbarPage(
              
              fluidRow(
                column(4,offset = 1, "Use this map to see how the selected neighborhood characteristics vary by NYC ZCTAs."),
-               column(width = 6, leafletOutput("income_map", width="100%",height="700px")),
-               
-               column(10, offset = 1, helpText("Data Sources: Census 2010"))),
-             br(),
-             fluidRow(align="center",
-                      span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+               column(width = 6, leafletOutput("income_map", width="100%",height="700px"))),
+             
+             column(10, offset = 1, helpText("Data Sources: Census 2010"))),
+           
+           br(),
+           br(),br(),
+           fluidRow(align="center",
+                    span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
   letter-spacing: 0.3px;font-size:18px")),
-                      #span(htmlOutput("sharetext", style="color:white")),
-                      #br(),
-                      #img(src='bottomlogo.png', height="20%", width="20%"),
-                      h5("Share on", style="color:white;font-size:12px"),
-                      actionButton("twitter_index",
-                                   label = "",
-                                   icon = icon("twitter"),
-                                   onclick = sprintf("window.open('%s')", url1),
-                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      actionButton("fb_index",
-                                   label = "",
-                                   icon = icon("facebook"),
-                                   onclick = sprintf("window.open('%s')", url2),
-                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      #actionButton("ins_index",
-                      #             label = "",
-                      #             icon = icon("instagram"),
-                      #             onclick = sprintf("window.open('%s')", url3),
-                      #             style = "border-color: #FFFFFF;"),
-                      actionButton("linkedin_index",
-                                   label = "",
-                                   icon = icon("linkedin"),
-                                   onclick = sprintf("window.open('%s')", url4),
-                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      actionButton("whats_index",
-                                   label = "",
-                                   icon = icon("whatsapp"),
-                                   onclick = sprintf("window.open('%s')", url6),
-                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      actionButton("email_index",
-                                   label = "",
-                                   icon = icon("envelope"),
-                                   onclick = sprintf("window.open('%s')", url5),
-                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
-                      
-             )
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
+                    
            )),
   
   tabPanel("About",
@@ -1370,7 +1367,8 @@ server <- function(input, output) {
   
   output$borotrendtext = renderText({
     return(
-      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data."     
+      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data.
+ Change “Choose zipcodes” to “Choose a ZCTA”"     
     )
   })
   
@@ -1411,23 +1409,21 @@ Keep one decimal for all numbers.")
   
   output$abouttext = renderUI({
     urlzzq = a("Ziqi Zhou",href = "https://www.linkedin.com/in/ziqi-zhou-1b448a145/")
-    urlzmy = a("Mengyu Zhang",href = "https://www.linkedin.com/in/mengyu-zhang-553421197")
+    urlzmy = a("Mengyu Zhang",href = "https://www.google.com/")
     urlyyz = a("Yuanzhi Yu", href = "https://www.linkedin.com/in/yuanzhi（fisher）-yu-a1529918a/")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
     
     tagList("The NYC Neighborhood COVID-19 Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: 
-    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
-    )
+    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,",",
+            
+            ".We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+")
     
   })  
   
   output$abouttext2 = renderText({
-    return("
-    <br>
-    We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
-      <br> <br>     
-    Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+    return("Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
   })
   
