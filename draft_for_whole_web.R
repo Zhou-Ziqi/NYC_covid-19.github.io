@@ -622,11 +622,11 @@ ui <- navbarPage(
   tabPanel('Home',
            shinyjs::useShinyjs(),
            fluidRow(
-             column(width = 5, offset = 1, div(img(src = "HomePagepic 2020-08-12 .png", height = "100%",width = "100%"),
+             column(width = 5, offset = 1, div(img(src = "HomePagepic.png", height = "100%",width = "100%"),
                                                style="text-align: center;")),
              
-             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "90%"),
-                                    style="text-align: center;"))),
+             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "100%")
+                                    ))),
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
@@ -1303,8 +1303,7 @@ server <- function(input, output) {
   
   output$borotrendtext = renderText({
     return(
-      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data.
- Change “Choose zipcodes” to “Choose a ZCTA”"     
+      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data."     
       )
   })
   
