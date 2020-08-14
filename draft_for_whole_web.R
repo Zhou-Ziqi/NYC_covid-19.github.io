@@ -4,6 +4,7 @@
 library(tidyverse)
 library(shiny)
 library(DT)
+library(patchwork)
 
 library(readxl)
 library(sp)
@@ -34,16 +35,25 @@ url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
 
 ##read data
-### Home tab data
-data_home = read_csv("./data/by-boro0813.csv") %>% 
-  select(BOROUGH_GROUP,CASE_COUNT,DEATH_COUNT) %>% 
-  rename(Borough = BOROUGH_GROUP,
-         "Confirmed Cases" = CASE_COUNT,
-         "Deaths" = DEATH_COUNT) %>% 
-  mutate(Borough = str_replace_all(Borough,"Citywide","New York City"),
-         Borough = str_replace_all(Borough,"StatenIsland", "Staten Island"),
-         Borough = factor(Borough, levels = c("New York City","Bronx","Brooklyn",
-                                              "Manhattan","Queens","Staten Island")))
+##Home page data
+
+df = read_csv("data/data-yqfdF.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(date = date_of_interest) %>% 
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+N = nrow(df)
+cases = pull(df,cases)
+deaths = pull(df,deaths)
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+
+for (i in 7:N) {
+  ave.cases[i] = mean(cases[(i-6):(i)])
+  ave.deaths[i] = mean(deaths[(i-6):(i)])
+}
+
+df.ave = df %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
 ### trakcer data
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
@@ -94,18 +104,19 @@ data_to_table = data %>%
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
-         new_death = new_death) %>% 
+         new_death = new_death,
+         ) %>% 
   filter(date == max(date)) %>% 
   mutate(new_case = as.numeric(new_case),
          new_death = as.numeric(new_death),
-         incidence_rate = new_case/pop_denominator)
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )
 
 ###########
 # The map
 
 spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
-choices = c("Cases Count", "Death Count", "Cases Rate", "Death Rate","New cases")
+choices = c("Cases Count", "Death Count", "Cases Rate (per 100,000 people)", "Death Rate(per 100,000 people)","New cases")
 
 
 
@@ -508,19 +519,55 @@ newcase = function(date){
   p1
 }
 
+### incidence rate
+
+incidencerate = function(date){
+  
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
+    mutate(incidence_rate = as.numeric(incidence_rate))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(incidence_rate))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$incidence_rate)
+  
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "Total Number of New Cases: ", as.character(data_to_plot_geo$incidence_rate)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$incidence_rate), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$incidence_rate, 
+              position = "bottomright", 
+              title = "Number")
+  p1
+}
 
 
 ## ui
 ui <- navbarPage(
   theme = "shiny.css",
-  title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
+  title = div(img(src='whitelogo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(column(width = 4, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "85%"),style="text-align: center;")),
-                    column(width = 6, DT::dataTableOutput("Hometable",height = "60%"),
-                           helpText("Last Updated: 2020-08-13"))),
+           fluidRow(
+             column(width = 5, offset = 1, div(img(src = "HomePagepic 2020-08-12 .png", height = "100%",width = "100%"),
+                                               style="text-align: center;")),
+             
+             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "85%"),
+                                               style="text-align: center;"))),
+           br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
            fluidRow(align="center",
@@ -636,7 +683,8 @@ ui <- navbarPage(
                               "Case Rate (per 100,000 people)" = "case_rate", 
                               "Death Count" = "death_count", 
                               "Death Rate (per 100,000 people)" = "death_rate",
-                              "New Cases" = "newcase")),
+                              "New Cases" = "newcase",
+                              "Incidence Rate (per 100,000 people)" = "incidencerate")),
                
                helpText("data update by 2020-07-23"),
                span(htmlOutput("Distributionmap_help_text"), 
@@ -1240,11 +1288,27 @@ Keep one decimal for all numbers.")
   })  
   
   ###########
+  ##Home plot
   
-  output$Hometable = DT::renderDataTable(DT::datatable({
-    data_home
-  },rownames = FALSE))
-    
+  output$HomePlot= renderPlotly({
+    fig1 = ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+    )
+    fig2 = ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+    )
+    fig1/fig2
+  })
+  
+  
+  
+  
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
   },rownames = FALSE))
@@ -1257,7 +1321,8 @@ Keep one decimal for all numbers.")
                    death_count = death_count,
                    case_rate = case_rate,
                    death_rate = death_rate,
-                   newcase = newcase
+                   newcase = newcase,
+                   incidencerate = incidencerate
     )
     
     plot(input$date_choice)
@@ -1279,7 +1344,7 @@ Keep one decimal for all numbers.")
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
+    ggplotly(a) %>% layout(legend = list(title=list(text='Age'),orientation = "h", x = 0.4, y = 1.2))
     
   })
   
@@ -1401,7 +1466,7 @@ Keep one decimal for all numbers.")
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
+                          legend = list(title=list(text='Age'),orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
