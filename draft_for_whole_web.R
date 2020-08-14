@@ -267,10 +267,13 @@ weeklydf_new <- borocase_new %>%
   pivot_longer(case_count:death_count,
                names_to = "type",
                values_to = "count") %>% 
-  mutate(type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+  mutate(type = str_to_title(str_replace_all(type, "_", " ")),
+         newtype = paste(type, "Rate"),
+         rate = count/8394355*1000000) %>% 
   rename(Borough = boro,
          Date = week,
-         Count = count)
+         Count = count,
+         Rate = rate)
 
 
 
@@ -283,10 +286,13 @@ weeklydf_cum <- borocase_cum %>%
                names_to = "type",
                values_to = "count") %>% 
   mutate(type = str_replace_all(type, "cum_", ""),
-         type = str_to_title(str_replace_all(type, "_", " "))) %>% 
+         type = str_to_title(str_replace_all(type, "_", " "))，
+         newtype = paste(type, "Rate"),
+         rate = count/8394355*1000000) %>% 
   rename(Borough = boro,
          Date = date_of_interest,
-         Count = count)
+         Count = count,
+         Rate = rate)
 
 
 
@@ -295,18 +301,36 @@ cum_case <- function(){
     ggplot(aes(x = Date, y = Count)) + 
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
-    facet_grid(type~., scales = "free") +
+    facet_wrap(type~., scales = "free") +
     theme_minimal() +
-    theme(panel.spacing.y=unit(3, "lines")) + 
+    #theme(panel.spacing.y=unit(3, "lines")) + 
     xlab("") + 
     ylab("")
   
-  ggplotly(temp1, height = 800) %>% 
+  temp3 <- weeklydf_cum %>% 
+    ggplot(aes(x = Date, y = Rate)) + 
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(newtype~., scales = "free") +
+    theme_minimal() +
+    #theme(panel.spacing.y=unit(3, "lines")) + 
+    xlab("") + 
+    ylab("")
+  
+  ggplotly(temp1) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           hovermode = "x unified",
-           xaxis = list(spikemode = "across",
-                        spikedash = "dash"),
-           hoverlabel = list(font = list(size = 10)))
+           #hovermode = "x unified",
+           #xaxis = list(spikemode = "across",
+           #             spikedash = "dash"),
+           #hoverlabel = list(font = list(size = 10))
+           )
+  ggplotly(temp3) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+           #hovermode = "x unified",
+           #xaxis = list(spikemode = "across",
+           #             spikedash = "dash"),
+           #hoverlabel = list(font = list(size = 10))
+           )
 }
 
 # weeklydf_new_positive <- weeklydf_new %>% filter(type == "Case Count")
