@@ -277,8 +277,8 @@ weeklydf_new <- borocase_new %>%
                names_to = "type",
                values_to = "count") %>% 
   mutate(type = str_to_title(str_replace_all(type, "_", " ")),
-         newtype = paste(type, "Rate"),
-         rate = count/8394355*1000000) %>% 
+         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
+         rate = round(count/8394355*1000000,1)) %>% 
   rename(Borough = boro,
          Date = week,
          Count = count,
@@ -295,9 +295,9 @@ weeklydf_cum <- borocase_cum %>%
                names_to = "type",
                values_to = "count") %>% 
   mutate(type = str_replace_all(type, "cum_", ""),
-         type = str_to_title(str_replace_all(type, "_", " "))，
-         newtype = paste(type, "Rate"),
-         rate = count/8394355*1000000) %>% 
+         type = str_to_title(str_replace_all(type, "_", " ")),
+         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
+         rate = round(count/8394355*1000000,1)) %>% 
   rename(Borough = boro,
          Date = date_of_interest,
          Count = count,
@@ -310,9 +310,10 @@ cum_case <- function(){
     ggplot(aes(x = Date, y = Count)) + 
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
-    facet_wrap(type~., scales = "free") +
+    facet_wrap(.~type, scales = "free") +
     theme_minimal() +
-    #theme(panel.spacing.y=unit(3, "lines")) + 
+    theme(legend.position = "none")+
+    #theme(panel.spacing.y=unit(2, "lines")) + 
     xlab("") + 
     ylab("")
   
@@ -320,26 +321,47 @@ cum_case <- function(){
     ggplot(aes(x = Date, y = Rate)) + 
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
-    facet_wrap(newtype~., scales = "free") +
+    facet_wrap(.~newtype, scales = "free", strip.position="bottom") +
     theme_minimal() +
-    #theme(panel.spacing.y=unit(3, "lines")) + 
+    #theme(panel.spacing.y=unit(2, "lines")) + 
     xlab("") + 
     ylab("")
   
-  ggplotly(temp1) %>% 
+  vline <- function(x = 0, color = "red") {
+    list(
+      type = "line", 
+      y0 = 0, 
+      y1 = 1, 
+      yref = "paper",
+      x0 = x, 
+      x1 = x, 
+      line = list(color = color)
+    )
+  }
+  
+  
+  subplot(ggplotly(temp1, height = 800), ggplotly(temp3, height = 800), nrows = 2) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           #hovermode = "x unified",
-           #xaxis = list(spikemode = "across",
-           #             spikedash = "dash"),
-           #hoverlabel = list(font = list(size = 10))
-           )
-  ggplotly(temp3) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           #hovermode = "x unified",
-           #xaxis = list(spikemode = "across",
-           #             spikedash = "dash"),
-           #hoverlabel = list(font = list(size = 10))
-           )
+           #shapes = list(vline(as.Date("2020-03-01")), vline(as.Date("2020-03-20")),vline(as.Date("2020-06-22")),vline(as.Date("2020-07-06")),vline(as.Date("2020-07-20"))),
+           #xaxis = list(title = "",type = "date"),
+           yaxis = list(title = ""),
+           margin = list(b=100))
+  
+  # ggplotly(temp1) %>%
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
+  #          #hovermode = "x unified",
+  #          #xaxis = list(spikemode = "across",
+  #          #             spikedash = "dash"),
+  #          #hoverlabel = list(font = list(size = 10))
+  #          )
+  # 
+  # ggplotly(temp3) %>%
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2)
+  #          #hovermode = "x unified",
+  #          #xaxis = list(spikemode = "across",
+  #          #             spikedash = "dash"),
+  #          #hoverlabel = list(font = list(size = 10))
+  #          )
 }
 
 # weeklydf_new_positive <- weeklydf_new %>% filter(type == "Case Count")
@@ -373,20 +395,33 @@ new_case <- function(){
     ggplot(aes(x = Date, y = Count)) +
     geom_line(aes(color = Borough)) +
     geom_point(aes(color = Borough)) +
-    facet_grid(type~., scales = "free") +
+    facet_wrap(.~type, scales = "free") +
     theme(panel.spacing.y=unit(3, "lines")) + 
     theme_minimal() +
     xlab("") +
     ylab("")
   
+  temp4 <- weeklydf_new %>%
+    ggplot(aes(x = Date, y = Rate)) +
+    geom_line(aes(color = Borough)) +
+    geom_point(aes(color = Borough)) +
+    facet_wrap(.~newtype, scales = "free") +
+    theme(panel.spacing.y=unit(3, "lines")) + 
+    theme_minimal() +
+    xlab("") +
+    ylab("")
   
-  ggplotly(temp2, height = 800) %>% 
-    layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           grid=list(rows=1, columns=3),
-           hovermode = "x unified",
-           xaxis = list(spikemode = "across",
-                        spikedash = "dash"),
-           hoverlabel = list(font = list(size = 10)))
+  subplot(ggplotly(temp2, height = 800),ggplotly(temp4, height = 800), nrows = 2) %>% 
+    layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+  
+  
+  # ggplotly(temp2, height = 800) %>% 
+  #   layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
+  #          grid=list(rows=1, columns=3),
+  #          hovermode = "x unified",
+  #          xaxis = list(spikemode = "across",
+  #                       spikedash = "dash"),
+  #          hoverlabel = list(font = list(size = 10)))
 }
 
 
@@ -1263,8 +1298,9 @@ server <- function(input, output) {
   
   output$borotrendtext = renderText({
     return(
-      "A look at how COVID-19 case, hospitalization and death counts change over time in each of NYC borough. Use the display options to select cumulative count or incidence count. Update weekly from March 1, 2020."
-    )
+      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data.
+ Change “Choose zipcodes” to “Choose a ZCTA”"     
+      )
   })
   
   output$Distributionmaptext = renderText({
