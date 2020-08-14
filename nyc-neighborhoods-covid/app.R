@@ -4,6 +4,7 @@
 library(tidyverse)
 library(shiny)
 library(DT)
+library(patchwork)
 
 library(readxl)
 library(sp)
@@ -32,18 +33,26 @@ url4 = "https://www.linkedin.com/shareArticle?mini=true&url=https://msph.shinyap
 url5 = "mailto:info@example.com?&subject=&body=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
-
 ##read data
-### Home tab data
-data_home = read_csv("./data/by-boro0813.csv") %>% 
-  select(BOROUGH_GROUP,CASE_COUNT,DEATH_COUNT) %>% 
-  rename(Borough = BOROUGH_GROUP,
-         "Confirmed Cases" = CASE_COUNT,
-         "Deaths" = DEATH_COUNT) %>% 
-  mutate(Borough = str_replace_all(Borough,"Citywide","New York City"),
-         Borough = str_replace_all(Borough,"StatenIsland", "Staten Island"),
-         Borough = factor(Borough, levels = c("New York City","Bronx","Brooklyn",
-                                              "Manhattan","Queens","Staten Island")))
+##Home page data
+
+df = read_csv("data/data-yqfdF.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(date = date_of_interest) %>% 
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+N = nrow(df)
+cases = pull(df,cases)
+deaths = pull(df,deaths)
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+
+for (i in 7:N) {
+  ave.cases[i] = mean(cases[(i-6):(i)])
+  ave.deaths[i] = mean(deaths[(i-6):(i)])
+}
+
+df.ave = df %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
 ### trakcer data
 data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
@@ -94,18 +103,19 @@ data_to_table = data %>%
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
-         new_death = new_death) %>% 
+         new_death = new_death
+  ) %>% 
   filter(date == max(date)) %>% 
   mutate(new_case = as.numeric(new_case),
          new_death = as.numeric(new_death),
-         incidence_rate = new_case/pop_denominator)
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )
 
 ###########
 # The map
 
 spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
-choices = c("Cases Count", "Death Count", "Cases Rate", "Death Rate","New cases")
+choices = c("Cases Count", "Death Count", "Cases Rate (per 100,000 people)", "Death Rate(per 100,000 people)","New cases")
 
 
 
@@ -138,7 +148,8 @@ byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>%
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
-         count = round(count))
+         count = round(count)) %>% 
+  mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))
 
 
 bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
@@ -508,19 +519,55 @@ newcase = function(date){
   p1
 }
 
+### incidence rate
+
+incidencerate = function(date){
+  
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
+    mutate(incidence_rate = as.numeric(incidence_rate))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(incidence_rate))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$incidence_rate)
+  
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "Total Number of New Cases: ", as.character(data_to_plot_geo$incidence_rate)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$incidence_rate), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$incidence_rate, 
+              position = "bottomright", 
+              title = "Number")
+  p1
+}
 
 
 ## ui
 ui <- navbarPage(
   theme = "shiny.css",
-  title = div(img(src='cu_logo_biostat.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
+  title = div(img(src='whitelogo.png',style="margin-top: -14px; padding-right:10px;padding-bottom:10px", height = 50)),
   windowTitle = "NYC covid-19 dashboard",
   id = 'menus',
   tabPanel('Home',
            shinyjs::useShinyjs(),
-           fluidRow(column(width = 4, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "85%"),style="text-align: center;")),
-                    column(width = 6, DT::dataTableOutput("Hometable",height = "60%"),
-                           helpText("Last Updated: 2020-08-13"))),
+           fluidRow(
+             column(width = 5, offset = 1, div(img(src = "HomePagepic 2020-08-12 .png", height = "100%",width = "100%"),
+                                               style="text-align: center;")),
+             
+             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "85%"),
+                                    style="text-align: center;"))),
+           br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
            fluidRow(align="center",
@@ -636,7 +683,8 @@ ui <- navbarPage(
                               "Case Rate (per 100,000 people)" = "case_rate", 
                               "Death Count" = "death_count", 
                               "Death Rate (per 100,000 people)" = "death_rate",
-                              "New Cases" = "newcase")),
+                              "New Cases" = "newcase",
+                              "Incidence Rate (per 100,000 people)" = "incidencerate")),
                
                helpText("data update by 2020-07-23"),
                span(htmlOutput("Distributionmap_help_text"), 
@@ -648,7 +696,7 @@ ui <- navbarPage(
              position = c("left","right")
            )),
     
-    hr(),
+    br(),
     fluidPage(
       column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; line-height:150%")),
       
@@ -664,7 +712,7 @@ ui <- navbarPage(
              plotlyOutput(outputId = "piechart_age")),
       column(10, offset = 1,
              helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
-      hr(),
+      br(),
       column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; line-height:150%")),
       
       
@@ -681,7 +729,7 @@ ui <- navbarPage(
       
       column(10,offset = 1,
              helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
-      hr(),
+      br(),
       column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; line-height:150%")),
       
       column(10,offset = 1,
@@ -760,8 +808,8 @@ ui <- navbarPage(
                                                        "Data Display",
                                                        c("Case Count" = "pocase", 
                                                          "Death Count" = "death", 
-                                                         "Case Rate" = "porate", 
-                                                         "Death Rate" = "derate",
+                                                         "Case Rate (per 100,000 people)" = "porate", 
+                                                         "Death Rate (per 100,000 people)" = "derate",
                                                          "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
@@ -771,7 +819,7 @@ ui <- navbarPage(
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
-             fluidRow(column(10, offset = 1,h2("Cases Count"))),
+             fluidRow(column(10, offset = 1,h4("Cases Count"))),
              fluidRow(
                column(3, offset = 1, pickerInput("zip1", 
                                                  label = "Choose zipcodes", 
@@ -789,7 +837,7 @@ ui <- navbarPage(
            #### Death Count
            conditionalPanel(
              condition = "input.character_timetrend == 'death'",
-             fluidRow(column(10, offset = 1, h2("Death Count"))),
+             fluidRow(column(10, offset = 1, h4("Death Count"))),
              fluidRow(
                column(width = 3, offset = 1, pickerInput("zip2", 
                                                          label = "Choose zipcodes", 
@@ -807,7 +855,7 @@ ui <- navbarPage(
            #### Positive Cases Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'porate'",
-             fluidRow(column(10, offset = 1, h2("Cases Rate"))),
+             fluidRow(column(10, offset = 1, h4("Cases Rate (per 100,000 people)"))),
              fluidRow(
                column(width = 3, offset = 1,pickerInput("zip3", 
                                                         label = "Choose zipcodes", 
@@ -825,7 +873,7 @@ ui <- navbarPage(
            #### Death Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'derate'",
-             fluidRow(column(10, offset = 1, h2("Death Rate"))),
+             fluidRow(column(10, offset = 1, h4("Death Rate (per 100,000 people)"))),
              fluidRow(
                column(width = 3, offset = 1, pickerInput("zip4", 
                                                          label = "Choose zipcodes", 
@@ -841,7 +889,7 @@ ui <- navbarPage(
            ),
            conditionalPanel(
              condition = "input.character_timetrend == 'newcase'",
-             fluidRow(column(10, offset = 1, h2("New cases"))),
+             fluidRow(column(10, offset = 1, h4("New cases"))),
              fluidRow(
                column(width = 3, offset = 1, pickerInput("zip5", 
                                                          label = "Choose zipcodes", 
@@ -902,7 +950,7 @@ ui <- navbarPage(
                                                        c("Race" = "race",
                                                          "Income" = "income",
                                                          "Household Size" = "house"))),
-             column(width = 5, "Select available display options to see and compare neighborhood characteristics using NYC ZIP Code Tabulation Areas (ZCTAs)")
+             column(width = 6, "Select available display options to see and compare neighborhood characteristics using NYC ZIP Code Tabulation Areas (ZCTAs)")
            ),
            hr(),
            
@@ -911,35 +959,36 @@ ui <- navbarPage(
              condition = "input.character == 'race'",
              
              fluidRow(
-               column(width = 3,offset = 1,
-                      sidebarPanel(width = 12,
-                                   selectInput("nbhid1", 
-                                               label = "Choose a Neighbourhood", 
-                                               choices =nbh_name, 
-                                               selected = NULL))),
-               column(width = 9, "Choose a NYC ZCTAs neighborhood. 
+               column(width = 4,offset = 1,selectInput("nbhid1", 
+                                                       label = "Choose a Neighborhood", 
+                                                       choices =nbh_name, 
+                                                       selected = NULL)),
+               column(width = 6, "Choose a NYC ZCTAs neighborhood. 
                See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
-               Keep one decimal for all numbers."
-               )),
-             br(),
-             column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%")),
-             
+               "),
+               column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%"))
+             ),
              hr(),
-             
              fluidRow(
-               column(width = 3, offset = 1,
+               column(width = 4, offset = 1,
                       verticalLayout(
-                        sidebarPanel(width = 12,
-                                     pickerInput(inputId = "raceid",
-                                                 label = "Choose a Race",
-                                                 choices = str_replace_all(race_name, "_", " "),
-                                                 multiple = TRUE,
-                                                 selected = str_replace_all(race_name, "_", " ")[1],
-                                                 options = list(`actions-box` = TRUE)
-                                     )),
+                        column(12, "Use this map to see how the selected neighborhood characteristics vary by NYC ZCTAs."),
+                        br(),
+                        column(12,"Select the subgroups to display.
+                        Choose one or multiple subgroups. 
+                        Click on a ZCTA neighborhood on the map to display the data."),
                         hr(),
-                        h4("some words to describe the map"))),
-               column(width = 9,leafletOutput("race_map", width="100%",height="700px"))),
+                        column(12,
+                               pickerInput(inputId = "raceid",
+                                           label = "Choose a Race",
+                                           choices = str_replace_all(race_name, "_", " "),
+                                           multiple = TRUE,
+                                           selected = str_replace_all(race_name, "_", " ")[1],
+                                           options = list(`actions-box` = TRUE)
+                               ))
+                        
+                      )),
+               column(width = 6,leafletOutput("race_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
            ),
            
@@ -949,34 +998,38 @@ ui <- navbarPage(
              condition = "input.character == 'house'",
              
              fluidRow(
-               column(width = 3, offset = 1,
-                      sidebarPanel(width = 12,
-                                   selectInput("nbhid2", 
-                                               label = "Choose a Neighborhood", 
-                                               choices =nbh_name, 
-                                               selected = NULL))),
-               column(width = 9, "Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
-Keep one decimal for all numbers."
-               )),
-             br(),
+               column(width = 4, offset = 1,selectInput("nbhid2", 
+                                                        label = "Choose a Neighborhood", 
+                                                        choices =nbh_name, 
+                                                        selected = NULL)),
+               column(width = 6, "Choose a NYC ZCTAs neighborhood. 
+               See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to."),
+               column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%"))),
              
-             column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%")),
              
              hr(),
              
              fluidRow(
-               column(width = 3,
+               
+               
+               column(width = 4, offset = 1,
                       verticalLayout(
-                        sidebarPanel(width = 12,
-                                     pickerInput(inputId = "houseid",
-                                                 label = "Choose a Household size",
-                                                 choices = str_replace_all(house_name, "_", " "),
-                                                 multiple = TRUE,
-                                                 selected = str_replace_all(house_name, "_", " ")[1],
-                                                 options = list(`actions-box` = TRUE))),
+                        column(12, "Use this map to see how the selected neighborhood characteristics vary by NYC ZCTAs."),
+                        br(),
+                        column(12,"Select the subgroups to display.
+                        Choose one or multiple subgroups. 
+                        Click on a ZCTA neighborhood on the map to display the data."),
                         hr(),
-                        h4("some words to describe the map"))),
-               column(width = 9,leafletOutput("household_map", width="100%",height="700px"))),
+                        column(width = 12,
+                               pickerInput(inputId = "houseid",
+                                           label = "Choose a Household size",
+                                           choices = str_replace_all(house_name, "_", " "),
+                                           multiple = TRUE,
+                                           selected = str_replace_all(house_name, "_", " ")[1],
+                                           options = list(`actions-box` = TRUE)))
+                        
+                      )),
+               column(width = 6,leafletOutput("household_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
            ),
            
@@ -984,75 +1037,69 @@ Keep one decimal for all numbers."
            conditionalPanel(
              condition = "input.character == 'income'",
              
-             fluidRow(
-               column(width = 3,offset = 1,
-                      verticalLayout(
-                        sidebarPanel(width = 12,
-                                     selectInput("nbhid3", 
-                                                 label = "Choose a Neighbourhood", 
-                                                 choices =nbh_name, 
-                                                 selected = NULL)),
-                        hr(),
-                        h4("some words to describe the bar chart")
-                      )),
-               column(width = 9, textOutput("nbh3"),textOutput("boro3"),textOutput("nyc3"),
-                      plotlyOutput("income_nbh", width="80%",height="600px"))),
+             fluidRow(column(width = 4,offset = 1,selectInput("nbhid3", 
+                                                              label = "Choose a Neighbourhood", 
+                                                              choices =nbh_name, 
+                                                              selected = NULL)),
+                      column(6, "Choose a NYC ZCTAs neighborhood. 
+                             See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to."),
+                      column(width = 10, offset = 2,
+                             plotlyOutput("income_nbh", width="80%",height="600px"))),
              
              hr(),
-             h1("Map"),
-             fluidRow(
-               column(width = 3,offset = 1,
-                      verticalLayout(
-                        h4("some words to describe the map"))),
-               column(width = 7,leafletOutput("income_map", width="100%",height="700px"))),
-             column(10, offset = 1, helpText("Data Sources: Census 2010"))
              
-           ),
-           br(),
-           fluidRow(align="center",
-                    span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+             fluidRow(
+               column(4,offset = 1, "Use this map to see how the selected neighborhood characteristics vary by NYC ZCTAs."),
+               column(width = 6, leafletOutput("income_map", width="100%",height="700px")),
+               
+               column(10, offset = 1, helpText("Data Sources: Census 2010"))),
+             br(),
+             fluidRow(align="center",
+                      span(htmlOutput("bannertext4", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
   letter-spacing: 0.3px;font-size:18px")),
-                    #span(htmlOutput("sharetext", style="color:white")),
-                    #br(),
-                    #img(src='bottomlogo.png', height="20%", width="20%"),
-                    h5("Share on", style="color:white;font-size:12px"),
-                    actionButton("twitter_index",
-                                 label = "",
-                                 icon = icon("twitter"),
-                                 onclick = sprintf("window.open('%s')", url1),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    actionButton("fb_index",
-                                 label = "",
-                                 icon = icon("facebook"),
-                                 onclick = sprintf("window.open('%s')", url2),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    #actionButton("ins_index",
-                    #             label = "",
-                    #             icon = icon("instagram"),
-                    #             onclick = sprintf("window.open('%s')", url3),
-                    #             style = "border-color: #FFFFFF;"),
-                    actionButton("linkedin_index",
-                                 label = "",
-                                 icon = icon("linkedin"),
-                                 onclick = sprintf("window.open('%s')", url4),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    actionButton("whats_index",
-                                 label = "",
-                                 icon = icon("whatsapp"),
-                                 onclick = sprintf("window.open('%s')", url6),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    actionButton("email_index",
-                                 label = "",
-                                 icon = icon("envelope"),
-                                 onclick = sprintf("window.open('%s')", url5),
-                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
-                    
-           )
-  ),
+                      #span(htmlOutput("sharetext", style="color:white")),
+                      #br(),
+                      #img(src='bottomlogo.png', height="20%", width="20%"),
+                      h5("Share on", style="color:white;font-size:12px"),
+                      actionButton("twitter_index",
+                                   label = "",
+                                   icon = icon("twitter"),
+                                   onclick = sprintf("window.open('%s')", url1),
+                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                      actionButton("fb_index",
+                                   label = "",
+                                   icon = icon("facebook"),
+                                   onclick = sprintf("window.open('%s')", url2),
+                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                      #actionButton("ins_index",
+                      #             label = "",
+                      #             icon = icon("instagram"),
+                      #             onclick = sprintf("window.open('%s')", url3),
+                      #             style = "border-color: #FFFFFF;"),
+                      actionButton("linkedin_index",
+                                   label = "",
+                                   icon = icon("linkedin"),
+                                   onclick = sprintf("window.open('%s')", url4),
+                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                      actionButton("whats_index",
+                                   label = "",
+                                   icon = icon("whatsapp"),
+                                   onclick = sprintf("window.open('%s')", url6),
+                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                      actionButton("email_index",
+                                   label = "",
+                                   icon = icon("envelope"),
+                                   onclick = sprintf("window.open('%s')", url5),
+                                   style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                      style = "background-color:#225091;padding-top:40px;padding:40px;"
+                      
+             )
+           )),
   
   tabPanel("About",
-           fluidRow(column(10, offset = 1, h2("About Us"))),
+           fluidRow(column(10, offset = 1, h2("About Us")),
+                    column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
+                    column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
            br(),
            fluidRow(align="center",
                     span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
@@ -1182,9 +1229,10 @@ server <- function(input, output) {
     return(
       "<span>&#8226;</span> Case count and death count are total cumulative numbers of COVID-19 cases and deaths by the updated date. 
      <br>
-     <span>&#8226;</span>  Case rate and death rate are calculated using case count and death count divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID-19 cases and deaths per 100,000 people in the ZCTA. 
-     <br>
      <span>&#8226;</span>  New cases are incremental number of COVID-19 cases on the updated date. 
+     <br>
+     <span>&#8226;</span>  Case rate, death rate and incidence rate are calculated using case count, death count and new cases divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID-19 cases and deaths per 100,000 people in the ZCTA. 
+    
     "
     )
   })
@@ -1198,27 +1246,27 @@ server <- function(input, output) {
   output$Distributionmaptext = renderText({
     return(
       "Use this map to see how COVID-19 cases and deaths vary by NYC ZIP Code Tabulation Areas (ZCTAs). 
-      Select available display options to visualize the data. 
+      Select available display options to visualize the data. Click a ZCTA on the map to see the data.
       <br> <br>"
     )
   })
   
   
   output$DistribAgetext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by age groups and NYC boroughs. 
+    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by age groups and NYC boroughs. 
            The bar charts present counts and rates per 100,000 people. 
            The pie charts show percentage of age groups in each NYC borough.<br>")
     
   })
   
   output$DistribRacetext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by race/ethnicity and NYC boroughs. 
+    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by race/ethnicity and NYC boroughs. 
            The bar charts present counts and rates per 100,000 people. 
            The pie charts show percentage of race and ethnicity groups in each NYC borough.<br>")
   })
   
   output$DistribSextext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalizations and deaths differ by Sex and NYC boroughs. 
+    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by Sex and NYC boroughs. 
     The bar charts present counts and rates per 100,000 people.
     The pie charts show percentage of sex groups in each NYC borough. <br>
 ")
@@ -1230,20 +1278,47 @@ Keep one decimal for all numbers.")
   })
   
   
-  output$abouttext = renderText({
-    return("The NYC Neighborhood COVID Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: Ziqi Zhou, Mengyu Zhang, Yuanzhi Yu, Yuchen Qi and Qixuan Chen. 
-  <br><br>
-  We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
-  <br><br>
-	Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+  output$abouttext = renderUI({
+    urlzzq = a("Ziqi Zhou",href = "https://www.linkedin.com/in/ziqi-zhou-1b448a145/")
+    urlzmy = a("Mengyu Zhang",href = "https://www.google.com/")
+    urlyyz = a("Yuanzhi Yu", href = "https://www.linkedin.com/in/yuanzhi（fisher）-yu-a1529918a/")
+    urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
+    urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
+    
+    tagList("The NYC Neighborhood COVID-19 Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: 
+    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,",",
+            
+            ".We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
 ")
+    
   })  
   
-  ###########
+  output$abouttext2 = renderText({
+    return("Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+")
+  })
   
-  output$Hometable = DT::renderDataTable(DT::datatable({
-    data_home
-  },rownames = FALSE))
+  ###########
+  ##Home plot
+  
+  output$HomePlot= renderPlotly({
+    fig1 = ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+    )
+    fig2 = ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+    )
+    fig1/fig2
+  })
+  
+  
+  
   
   output$table <- DT::renderDataTable(DT::datatable({
     data_to_table
@@ -1257,7 +1332,8 @@ Keep one decimal for all numbers.")
                    death_count = death_count,
                    case_rate = case_rate,
                    death_rate = death_rate,
-                   newcase = newcase
+                   newcase = newcase,
+                   incidencerate = incidencerate
     )
     
     plot(input$date_choice)
@@ -1279,7 +1355,7 @@ Keep one decimal for all numbers.")
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
+    ggplotly(a) %>% layout(legend = list(title=list(text='Age'),orientation = "h", x = 0.4, y = 1.2))
     
   })
   
@@ -1401,7 +1477,7 @@ Keep one decimal for all numbers.")
                           grid=list(rows=1, columns=5),
                           xaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
                           yaxis = list(showgrid = F, zeroline = FALSE, showticklabels = F),
-                          legend = list(orientation = "h", x = 0.4, y = 1.2)) %>% 
+                          legend = list(title=list(text='Age'),orientation = "h", x = 0.4, y = 1.2)) %>% 
       add_annotations(x=seq(0.1,0.1+4*0.2,0.2),
                       y=0.05,
                       text = c("Bronx", "Brooklyn", "Manhattan","Queens","Staten Island"),
@@ -2045,7 +2121,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Age  "),orientation = "h", x = 0.4, y = -0.2))
     
     
     
@@ -2073,7 +2149,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Gender  "),orientation = "h", x = 0.4, y = -0.2))
     
   })
   output$tt_race_cac = renderPlotly({
@@ -2098,7 +2174,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Race  "),orientation = "h", x = 0.4, y = -0.2))
     
     
   })
@@ -2128,7 +2204,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Age  "),orientation = "h", x = 0.4, y = -0.2))
     
     
     
@@ -2156,7 +2232,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Gender  "),orientation = "h", x = 0.4, y = -0.2))
     
   })
   output$tt_race_carate = renderPlotly({
@@ -2181,7 +2257,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Race  "),orientation = "h", x = 0.4, y = -0.2))
     
     
   })
@@ -2210,7 +2286,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Age  "),orientation = "h", x = 0.4, y = -0.2))
     
     
     
@@ -2238,7 +2314,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Gender  "),orientation = "h", x = 0.4, y = -0.2))
     
   })
   output$tt_race_dec = renderPlotly({
@@ -2263,7 +2339,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Race  "),orientation = "h", x = 0.4, y = -0.2))
     
     
   })
@@ -2293,7 +2369,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Age  "),orientation = "h", x = 0.4, y = -0.2))
     
     
     
@@ -2321,7 +2397,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Gender  "),orientation = "h", x = 0.4, y = -0.2))
     
   })
   output$tt_race_derate = renderPlotly({
@@ -2346,7 +2422,7 @@ Keep one decimal for all numbers.")
       xlab("") + 
       ylab("")
     
-    ggplotly(a) %>% layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
+    ggplotly(a) %>% layout(legend = list(title = list(text = "Race  "),orientation = "h", x = 0.4, y = -0.2))
     
     
   })
