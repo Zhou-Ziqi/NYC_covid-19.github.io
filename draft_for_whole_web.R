@@ -278,7 +278,12 @@ weeklydf_new <- borocase_new %>%
                values_to = "count") %>% 
   mutate(type = str_to_title(str_replace_all(type, "_", " ")),
          newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
-         rate = round(count/8394355*1000000,1)) %>% 
+         pop_num = ifelse(boro == "Bronx", 1434693, 
+                          ifelse(boro == "Brooklyn",2582830, 
+                                 ifelse(boro == "Manhattan",1611943, 
+                                        ifelse(boro == "Staten Island", 476179,
+                                               ifelse(boro == "Queens", 2288710, 2288710))))),
+         rate = round(count/pop_num*1000000,1)) %>% 
   rename(Borough = boro,
          Date = week,
          Count = count,
@@ -297,7 +302,12 @@ weeklydf_cum <- borocase_cum %>%
   mutate(type = str_replace_all(type, "cum_", ""),
          type = str_to_title(str_replace_all(type, "_", " ")),
          newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
-         rate = round(count/8394355*1000000,1)) %>% 
+         pop_num = ifelse(boro == "Bronx", 1434693, 
+                          ifelse(boro == "Brooklyn",2582830, 
+                                 ifelse(boro == "Manhattan",1611943, 
+                                        ifelse(boro == "Staten Island", 476179,
+                                               ifelse(boro == "Queens", 2288710, 2288710))))),
+         rate = round(count/pop_num*1000000,1)) %>% 
   rename(Borough = boro,
          Date = date_of_interest,
          Count = count,
@@ -331,7 +341,7 @@ cum_case <- function(){
     list(
       type = "line", 
       y0 = 0, 
-      y1 = 1, 
+      y1 = 100000, 
       yref = "paper",
       x0 = x, 
       x1 = x, 
@@ -342,7 +352,7 @@ cum_case <- function(){
   
   subplot(ggplotly(temp1, height = 800), ggplotly(temp3, height = 800), nrows = 2) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2),
-           #shapes = list(vline(as.Date("2020-03-01")), vline(as.Date("2020-03-20")),vline(as.Date("2020-06-22")),vline(as.Date("2020-07-06")),vline(as.Date("2020-07-20"))),
+           shapes = list(vline(as.Date("2020-03-01")), vline(as.Date("2020-03-20")),vline(as.Date("2020-06-22")),vline(as.Date("2020-07-06")),vline(as.Date("2020-07-20"))),
            #xaxis = list(title = "",type = "date"),
            yaxis = list(title = ""),
            margin = list(b=100))
@@ -666,7 +676,7 @@ ui <- navbarPage(
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
                     
            )
            
@@ -722,7 +732,7 @@ ui <- navbarPage(
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #225091;color: #fff; background-color: #225091;"),
-             style = "background-color:#225091;padding-top:40px;padding:40px;"
+             style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
              
     )
   ),
@@ -843,7 +853,7 @@ ui <- navbarPage(
                           icon = icon("envelope"),
                           onclick = sprintf("window.open('%s')", url5),
                           style = "border-color: #225091;color: #fff; background-color: #225091;"),
-             style = "background-color:#225091;padding-top:40px;padding:40px;"
+             style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
              
     )
   ),
@@ -994,7 +1004,7 @@ ui <- navbarPage(
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
                     
            )
   ),
@@ -1150,7 +1160,7 @@ ui <- navbarPage(
                                    icon = icon("envelope"),
                                    onclick = sprintf("window.open('%s')", url5),
                                    style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                      style = "background-color:#225091;padding-top:40px;padding:40px;"
+                      style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
                       
              )
            )),
@@ -1197,7 +1207,7 @@ ui <- navbarPage(
                                  icon = icon("envelope"),
                                  onclick = sprintf("window.open('%s')", url5),
                                  style = "border-color: #225091;color: #fff; background-color: #225091;"),
-                    style = "background-color:#225091;padding-top:40px;padding:40px;"
+                    style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
                     
            ))
   
