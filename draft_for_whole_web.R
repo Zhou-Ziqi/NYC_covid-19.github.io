@@ -565,7 +565,7 @@ ui <- navbarPage(
              column(width = 5, offset = 1, div(img(src = "HomePagepic 2020-08-12 .png", height = "100%",width = "100%"),
                                                style="text-align: center;")),
              
-             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "85%"),
+             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "90%"),
                                     style="text-align: center;"))),
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
@@ -802,6 +802,16 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            hr(),
            
+           fluidRow(
+             column(10, offset = 1, "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data."),
+             column(3, offset = 1, pickerInput("zip1", 
+                                               label = "Choose a ZCTA", 
+                                               choices =zip_nbh,
+                                               selected = zip_nbh[1],
+                                               options = list(`actions-box` = TRUE))),
+             column(7, plotlyOutput("pocase", width="100%",height="500px"))),
+           hr(),
+           
            #####
            fluidRow(
              column(width = 4, offset = 1, selectInput("character_timetrend",
@@ -813,20 +823,14 @@ ui <- navbarPage(
                                                          "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
-             column(width = 5, "this part will have some instructions")
+             column(width = 5, "this part is for instructions")
            ),
            
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_timetrend == 'pocase'",
              fluidRow(column(10, offset = 1,h4("Cases Count"))),
-             fluidRow(
-               column(3, offset = 1, pickerInput("zip1", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zip_nbh,
-                                                 selected = zip_nbh[1],
-                                                 options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("pocase", width="100%",height="500px"))),
+             
              fluidRow(
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
@@ -1280,21 +1284,23 @@ Keep one decimal for all numbers.")
   
   output$abouttext = renderUI({
     urlzzq = a("Ziqi Zhou",href = "https://www.linkedin.com/in/ziqi-zhou-1b448a145/")
-    urlzmy = a("Mengyu Zhang",href = "https://www.google.com/")
+    urlzmy = a("Mengyu Zhang",href = "https://www.linkedin.com/in/mengyu-zhang-553421197")
     urlyyz = a("Yuanzhi Yu", href = "https://www.linkedin.com/in/yuanzhi（fisher）-yu-a1529918a/")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
     
     tagList("The NYC Neighborhood COVID-19 Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: 
-    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,",",
-            
-            ".We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
-")
+    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
+            )
     
   })  
   
   output$abouttext2 = renderText({
-    return("Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+    return("
+    <br>
+    We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+      <br> <br>     
+    Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
   })
   
