@@ -250,6 +250,16 @@ weeklydf_ <- weeklydf_ %>% rename(nbh = neighborhood_name) %>% select(-zipcode)
 weeklydf <-cbind(weeklydf_max, weeklydf_) 
 
 weeklydf$zipcode_new <- paste(weeklydf$zipcode, weeklydf$neighborhood_name)
+weeklydf <- weeklydf %>% 
+  pivot_longer(positive:newcases,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Case Count", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Death Count",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases"))
 
 zip_nbh <- weeklydf %>% pull(zipcode_new) %>% unique()
 
@@ -259,6 +269,7 @@ weeklynew <- weeklynew %>% rename(new_cases = x) %>% mutate(zipcode = factor(zip
 
 weeklynew <- left_join(weeklynew, weeklydf_max)
 weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
+
 
 
 
@@ -942,17 +953,17 @@ ui <- navbarPage(
                                                        selected = NULL)),
              column(width = 5, "this part will have some instructions"),
            ),
-           hr(),
+
            
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_time_zip == 'pocase'",
-             column(10, offset = 1, h4("Cases Count")),
+             fluidRow(column(10, offset = 1, h4("Cases Count"))),
              fluidRow(
                column(width = 4, offset = 1,
-                      pickerInput("zip1", 
+                      pickerInput("zip_nbh1", 
                                   label = "Choose a ZCTA", 
-                                  choices =zipcode,
+                                  choices =zip_nbh,
                                   multiple = FALSE)),
                column(6,plotlyOutput("pocase", width="100%",height="500px"))
              )),
@@ -963,8 +974,8 @@ ui <- navbarPage(
              column(10, offset = 1, h4("Death Count")),
              fluidRow(
                column(width = 4,offset = 1,
-                      pickerInput("zip2", label = "Choose a ZCTA", 
-                                  choices =zipcode, 
+                      pickerInput("zip_nbh2", label = "Choose a ZCTA", 
+                                  choices =zip_nbh, 
                                   multiple = FALSE)),
                column(6,plotlyOutput("death", width="100%",height="500px")))
            ),
@@ -975,9 +986,9 @@ ui <- navbarPage(
              column(10, offset = 1, h4("Cases Rate")),
              fluidRow(
                column(width = 4,offset = 1,
-                      pickerInput("zip3", 
+                      pickerInput("zip_nbh3", 
                                   label = "Choose a ZCTA", 
-                                  choices =zipcode, 
+                                  choices =zip_nbh, 
                                   multiple = FALSE)),
                column(6, plotlyOutput("porate", width="100%",height="500px")))
            ),
@@ -988,9 +999,9 @@ ui <- navbarPage(
              column(10, offset= 1, h4("Death Rate")),
              fluidRow(
                column(width = 4,offset = 1,
-                      pickerInput("zip4", 
+                      pickerInput("zip_nbh4", 
                                   label = "Choose a ZCTA", 
-                                  choices =zipcode,
+                                  choices =zip_nbh,
                                   multiple = FALSE)),
                column(6, plotlyOutput("derate", width="100%",height="500px")))
            ),
@@ -1000,9 +1011,9 @@ ui <- navbarPage(
              condition = "input.character_time_zip == 'newcase'",
              column(10, offset = 1, h4("New cases")),
              fluidRow(
-               column(width = 4,offset = 1,pickerInput("zip5", 
+               column(width = 4,offset = 1,pickerInput("zip_nbh5", 
                                                        label = "Choose a ZCTA", 
-                                                       choices =zipcode,
+                                                       choices =zip_nbh,
                                                        multiple = FALSE)),
                column(6, plotlyOutput("newcases", width="100%",height="500px")))
            ),
@@ -2632,9 +2643,10 @@ Keep one decimal for all numbers.")
   output$pocase <- renderPlotly({
     
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip1) %>%
+      filter(zipcode_new %in% input$zip_nbh1,
+             type == "Case Count") %>%
       plot_ly(x = ~day,
-              y = ~positive,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2648,9 +2660,10 @@ Keep one decimal for all numbers.")
   
   output$death <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip2) %>%
+      filter(zipcode_new %in% input$zip_nbh2,
+             type == "Death Count") %>%
       plot_ly(x = ~day,
-              y = ~covid_death_count,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2662,9 +2675,10 @@ Keep one decimal for all numbers.")
   
   output$porate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip3) %>%
+      filter(zipcode_new %in% input$zip_nbh3,
+             type == "Case Rate (per 100,000 people)") %>%
       plot_ly(x = ~day,
-              y = ~covid_case_rate,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2675,9 +2689,10 @@ Keep one decimal for all numbers.")
   
   output$derate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip4) %>%
+      filter(zipcode_new %in% input$zip_nbh4,
+             type == "Death Rate (per 100,000 people)") %>%
       plot_ly(x = ~day,
-              y = ~covid_death_rate,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2687,11 +2702,11 @@ Keep one decimal for all numbers.")
   })
   
   output$newcases <- renderPlotly({
-    weeklynew %>% 
-      mutate(zipcode_new = factor(zipcode_new)) %>% 
-      filter(zipcode_new %in% input$zip5) %>%
-      plot_ly(x = ~week,
-              y = ~new_cases,
+    weeklydf %>% 
+      filter(zipcode_new %in% input$zip_nbh5,
+             type == "New Cases") %>%
+      plot_ly(x = ~day,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
