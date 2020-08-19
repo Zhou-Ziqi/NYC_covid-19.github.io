@@ -36,31 +36,31 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 ##read data
 ##Home page data
 
-df = read_csv("data/data-yqfdF.csv") %>% 
-  janitor::clean_names() %>% 
-  rename(date = date_of_interest) %>% 
-  mutate(date = as.Date(date, format = "%m/%d/%Y"))
-N = nrow(df)
-cases = pull(df,cases)
-deaths = pull(df,deaths)
-ave.cases = rep(0, N-6)
-ave.deaths = rep(0, N-6)
+#df = read_csv("data/data-yqfdF.csv") %>% 
+#  janitor::clean_names() %>% 
+#  rename(date = date_of_interest) %>% 
+#  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+#N = nrow(df)
+#cases = pull(df,cases)
+#deaths = pull(df,deaths)
+#ave.cases = rep(0, N-6)
+#ave.deaths = rep(0, N-6)
 
-for (i in 7:N) {
-  ave.cases[i] = mean(cases[(i-6):(i)])
-  ave.deaths[i] = mean(deaths[(i-6):(i)])
-}
+#for (i in 7:N) {
+#  ave.cases[i] = mean(cases[(i-6):(i)])
+#  ave.deaths[i] = mean(deaths[(i-6):(i)])
+#}
 
-df.ave = df %>% 
-  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
+#df.ave = df %>% 
+#  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
 ### trakcer data
-data_yester = read_csv("./data/data-by-modzcta0722.csv") %>% 
+data_yester = read_csv("./data/data_for_table/data-by-modzcta0817.csv") %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-07-22"))
-data_today = read_csv("./data/data-by-modzcta0723.csv") %>% 
+  mutate(date = as.Date("2020-08-17"))
+data_today = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-07-23"))
+  mutate(date = as.Date("2020-08-18"))
 
 data = rbind(data_today,data_yester)
 new_case = 0
@@ -93,13 +93,13 @@ data_to_table = data %>%
                 covid_death_count,new_death, total_covid_tests) %>% 
   rename("New Cases" = new_case,
          "New Deaths" = new_death,
-         Zipcode = modified_zcta,
-         "Neighborhood" = neighborhood_name,
+         "Zip Code" = modified_zcta,
+         "Neighborhoods" = neighborhood_name,
          "Borough"= borough_group,
-         "Case Count" = covid_case_count,
-         "Death Count" = covid_death_count,
-         "Incidence Rate (Per 100,000 people)" = incidence_rate,
-         "Total COVID-19 Tests" = total_covid_tests )
+         "Total Cases" = covid_case_count,
+         "Total Deaths" = covid_death_count,
+         "Incidence Rate*" = incidence_rate,
+         "Total Tests" = total_covid_tests )
 
 data_to_plot = data %>% 
   mutate(new_case = new_case,
@@ -115,18 +115,18 @@ data_to_plot = data %>%
 
 spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 
-choices = c("Cases Count", "Death Count", "Cases Rate (per 100,000 people)", "Death Rate(per 100,000 people)","New cases")
+choices = c("Total Cases", "Total Deaths", "Case Rate (per 100,000 people)", "Death Rate(per 100,000 people)","New cases")
 
 
 
 ######
 #demographics
 byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>% 
-  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
-         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -137,11 +137,11 @@ byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>%
 
 
 byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
-  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
-         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalizations Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -153,11 +153,11 @@ byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>%
 
 
 bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
-  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Case Count"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalization Count"),
-         outcome = str_replace_all(outcome, "DEATH_COUNT","Death Count"),
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -250,6 +250,16 @@ weeklydf_ <- weeklydf_ %>% rename(nbh = neighborhood_name) %>% select(-zipcode)
 weeklydf <-cbind(weeklydf_max, weeklydf_) 
 
 weeklydf$zipcode_new <- paste(weeklydf$zipcode, weeklydf$neighborhood_name)
+weeklydf <- weeklydf %>% 
+  pivot_longer(positive:newcases,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Total Cases", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Total Deaths",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases"))
 
 zip_nbh <- weeklydf %>% pull(zipcode_new) %>% unique()
 
@@ -259,6 +269,7 @@ weeklynew <- weeklynew %>% rename(new_cases = x) %>% mutate(zipcode = factor(zip
 
 weeklynew <- left_join(weeklynew, weeklydf_max)
 weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
+
 
 
 
@@ -287,7 +298,14 @@ weeklydf_new <- borocase_new %>%
   rename(Borough = boro,
          Date = week,
          Count = count,
-         Rate = rate)
+         Rate = rate) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
+         type = str_replace_all(type,"Death Count", "Total Deaths"),
+         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
+
+
 
 
 
@@ -311,7 +329,12 @@ weeklydf_cum <- borocase_cum %>%
   rename(Borough = boro,
          Date = date_of_interest,
          Count = count,
-         Rate = rate)
+         Rate = rate) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
+         type = str_replace_all(type,"Death Count", "Total Deaths"),
+         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
 
 
 
@@ -487,7 +510,7 @@ positive = function(date){
                      "<br>", 
                      "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "<b>Total Number of Case Count: </b>", as.character(data_to_plot_geo$covid_case_count)
+                     "<b>Total Number of COVID-19 Case: </b>", as.character(data_to_plot_geo$covid_case_count)
   )
   
   p1 = leaflet() %>%
@@ -576,7 +599,7 @@ death_rate = function(date){
                      "<br>", 
                      "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Death Rate: ", as.character(data_to_plot_geo$covid_death_rate)
+                     "Death Rate of COVID-19: ", as.character(data_to_plot_geo$covid_death_rate)
   )
   
   p1 = leaflet() %>%
@@ -601,7 +624,7 @@ newcase = function(date){
     mutate(new_case = as.numeric(new_case))
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_case))
-  pal <- colorNumeric("Blues", domain=data_to_plot_geo$new_case)
+  pal <- colorNumeric("Greens", domain=data_to_plot_geo$new_case)
   
   popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
@@ -635,13 +658,13 @@ incidencerate = function(date){
     filter(incidence_rate >= 0)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(incidence_rate))
-  pal <- colorNumeric("Blues", domain=data_to_plot_geo$incidence_rate)
+  pal <- colorNumeric("Greens", domain=data_to_plot_geo$incidence_rate)
   
   popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
                      "<br>", 
                      "MODZCTA: ", as.character(data_to_plot_geo$modified_zcta),
                      "<br>", 
-                     "Total Number of New Cases: ", as.character(data_to_plot_geo$incidence_rate)
+                     "Incidence Rate: ", as.character(data_to_plot_geo$incidence_rate)
   )
   
   p1 = leaflet() %>%
@@ -727,10 +750,13 @@ ui <- navbarPage(
     title= "COVID-19 Tracker",
     # Sidebar with a slider input for number of bins 
     fluidRow(
-      column(width = 10, offset = 1, h2("COVID-19 Tracking")),
+      column(width = 10, offset = 1, h2("NYC COVID-19 Tracker")),
+      column(width = 10, offset = 1, h4("Tracking yesterday’s COVID-19 cases, deaths, and tests by NYC ZIP Code Tabulation Areas (ZCTAs).")),
+      
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
+      column(width = 10, offset = 1, helpText("Last updated : 2020-08-18")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
-      column(width = 10, offset = 1, helpText("Last updated : 2020-07-23")),
+      column(width = 10, offset = 1, helpText("* per 100,000 people")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
     br(),
@@ -778,23 +804,25 @@ ui <- navbarPage(
   
   tabPanel(
     title = "COVID-19 Distribution",
-    column(width = 10, offset = 1, h2("COVID-19 Data by Neighborhoods and Demographics")),
+    column(width = 10, offset = 1, h2("NYC COVID-19 Data by Neighborhoods and Demographics")),
+    column(width = 10, offset = 1, h4("COVID-19 cases and deaths by NYC ZIP Code Tabulation Areas (ZCTAs)")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
                                         style="font-size: 15px;  line-height:150%")),
+    column(10, offset = 1, helpText("Last updated: 2020-08-18")),
     column(width = 10,offset = 1,
            sidebarLayout(
              
              sidebarPanel(
                radioButtons(inputId = "outcome_selection",
                             label =  "Data Display:",   
-                            c("Case Count" = "positive",
+                            c("Total Cases" = "positive",
                               "Case Rate (per 100,000 people)" = "case_rate", 
-                              "Death Count" = "death_count", 
+                              "Total Deaths" = "death_count", 
                               "Death Rate (per 100,000 people)" = "death_rate",
                               "New Cases" = "newcase",
                               "Incidence Rate (per 100,000 people)" = "incidencerate")),
                
-               helpText("data update by 2020-07-23"),
+               
                span(htmlOutput("Distributionmap_help_text"), 
                     style="font-size: 14px;line-height:150% ; color:grey")
              )
@@ -806,7 +834,11 @@ ui <- navbarPage(
     
     br(),
     fluidPage(
+      
+      column(10,offset = 1, h4("COVID-19 cases, hospitalizations, and deaths by age groups and NYC boroughs.")),
       column(10, offset = 1, span(htmlOutput("DistribAgetext"), style="font-size: 15px; line-height:150%")),
+      column(10, offset = 1,
+             helpText(paste0("Age data last updated: ",as.character(max(byage$day))))),
       
       column(10, offset = 1,
              plotlyOutput(outputId = "barchart_age", width = "100%",height = "100%")),
@@ -818,11 +850,13 @@ ui <- navbarPage(
              )),
       column(10,offset = 1,
              plotlyOutput(outputId = "piechart_age")),
-      column(10, offset = 1,
-             helpText(paste0("Age data updated by ",as.character(max(byage$day))))),
-      br(),
-      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; line-height:150%")),
       
+      br(),
+      column(10,offset = 1, h4("COVID-19 cases, hospitalizations, and deaths by gender groups and NYC boroughs.")),
+      
+      column(10, offset = 1, span(htmlOutput("DistribSextext"), style="font-size: 15px; line-height:150%")),
+      column(10,offset = 1,
+             helpText(paste0("Sex data last updated: ",as.character(max(bysex$day))))),
       
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_sex", width = "100%",height = "100%")),
@@ -835,10 +869,13 @@ ui <- navbarPage(
       column(10,offset = 1,
              plotlyOutput(outputId = "piechart_sex")),
       
-      column(10,offset = 1,
-             helpText(paste0("Sex data updated by ",as.character(max(bysex$day))))),
+      
       br(),
+      column(10,offset = 1, h4("COVID-19 cases, hospitalizations, and deaths by race groups and NYC boroughs.")),
+      
       column(10, offset = 1, span(htmlOutput("DistribRacetext"), style="font-size: 15px; line-height:150%")),
+      column(10,offset = 1,
+             helpText(paste0("Race data last updated: ",as.character(max(byrace$day))))),
       
       column(10,offset = 1,
              plotlyOutput(outputId = "barchart_race", width = "100%",height = "100%")),
@@ -850,8 +887,7 @@ ui <- navbarPage(
              )),
       column(10,offset = 1,
              plotlyOutput(outputId = "piechart_race")),
-      column(10,offset = 1,
-             helpText(paste0("Race data updated by ",as.character(max(byrace$day))))),
+      
       column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
     ),
     br(),
@@ -897,9 +933,11 @@ ui <- navbarPage(
     )
   ),
   tabPanel(title = "COVID-19 Trends",
-           fluidRow(column(10, offset = 1, h2("COVID-19 Trends"))),
+           fluidRow(column(10, offset = 1, h2("NYC COVID-19 Trends"))),
+           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths trends by borough"))),
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
            br(),
            fluidRow(column(width = 2,offset = 1,
                            # radioButtons(inputId = "selection",
@@ -913,6 +951,7 @@ ui <- navbarPage(
                                         c("Total Count" = "cum_case_count",
                                           "Incidence Count" = "new_case_count"))),
                     column(width = 8, plotlyOutput(outputId = "boro_cases1"))),
+           
            fluidRow(column(width = 2,offset = 1,
                            # radioButtons(inputId = "selection",
                            #              label =  "Data Display:",   
@@ -926,37 +965,121 @@ ui <- navbarPage(
                                           "Incidence Rate" = "new_case_rate"))),
                     column(width = 8, plotlyOutput(outputId = "boro_cases2"))),
            fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
-           hr(),
            
-           #####
+           hr(),
+           ####zipcode trends
            fluidRow(
-             column(width = 4, offset = 1, selectInput("character_timetrend",
+             column(10, offset = 1, h4("Trends by NYC ZIP Code Tabulation Areas (ZCTAs)")),
+             column(10, offset = 1, helpText("Last updated: 2020-07-23")),
+             column(width = 4, offset = 1, selectInput("character_time_zip",
                                                        "Data Display",
-                                                       c("Case Count" = "pocase", 
-                                                         "Death Count" = "death", 
+                                                       c(
+                                                         "Total Cases" = "pocase", 
+                                                         "Total Deaths" = "death", 
                                                          "Case Rate (per 100,000 people)" = "porate", 
-                                                         "Death Rate (per 100,000 people)" = "derate",
+                                                         "Death Rate(per 100,000 people)" = "derate",
                                                          "New cases" = "newcase"
                                                        ),
                                                        selected = NULL)),
-             column(width = 5, "this part will have some instructions")
+             column(width = 5, "Weekly data and trends on COVID-19 in each of the NYC ZIP Code Tabulation Areas (ZCTAs). 
+             Select available display options and choose a ZCTA to display the data."),
+           ),
+           
+           
+           #### Cumulative Cases Count
+           conditionalPanel(
+             condition = "input.character_time_zip == 'pocase'",
+             
+             fluidRow(
+               column(width = 4, offset = 1,
+                      pickerInput("zip_nbh1", 
+                                  label = "Choose a ZCTA", 
+                                  choices =zip_nbh,
+                                  multiple = FALSE)),
+               column(6,plotlyOutput("pocase", width="100%",height="500px"))
+             )),
+           
+           #### Death Count
+           conditionalPanel(
+             condition = "input.character_time_zip == 'death'",
+             #column(10, offset = 1, h4("Death Count")),
+             fluidRow(
+               column(width = 4,offset = 1,
+                      pickerInput("zip_nbh2", label = "Choose a ZCTA", 
+                                  choices =zip_nbh, 
+                                  multiple = FALSE)),
+               column(6,plotlyOutput("death", width="100%",height="500px")))
+           ),
+           
+           #### Case Rate
+           conditionalPanel(
+             condition = "input.character_time_zip == 'porate'",
+             #column(10, offset = 1, h4("Case Rate")),
+             fluidRow(
+               column(width = 4,offset = 1,
+                      pickerInput("zip_nbh3", 
+                                  label = "Choose a ZCTA", 
+                                  choices =zip_nbh, 
+                                  multiple = FALSE)),
+               column(6, plotlyOutput("porate", width="100%",height="500px")))
+           ),
+           
+           #### Death Rate
+           conditionalPanel(
+             condition = "input.character_time_zip == 'derate'",
+             #column(10, offset= 1, h4("Death Rate")),
+             fluidRow(
+               column(width = 4,offset = 1,
+                      pickerInput("zip_nbh4", 
+                                  label = "Choose a ZCTA", 
+                                  choices =zip_nbh,
+                                  multiple = FALSE)),
+               column(6, plotlyOutput("derate", width="100%",height="500px")))
+           ),
+           
+           #### New cases
+           conditionalPanel(
+             condition = "input.character_time_zip == 'newcase'",
+             #column(10, offset = 1, h4("New cases")),
+             fluidRow(
+               column(width = 4,offset = 1,pickerInput("zip_nbh5", 
+                                                       label = "Choose a ZCTA", 
+                                                       choices =zip_nbh,
+                                                       multiple = FALSE)),
+               column(6, plotlyOutput("newcases", width="100%",height="500px")))
+           ),
+           
+           
+           hr(),
+           #####
+           fluidRow(
+             column(10, offset = 1, h4("Trends by demographics and borough")),
+             column(10, offset = 1, helpText("Last updated: 2020-07-23")),
+             column(width = 4, offset = 1, selectInput("character_timetrend",
+                                                       "Data Display",
+                                                       c("Total Cases" = "pocase_tt", 
+                                                         "Total Deaths" = "death", 
+                                                         "Case Rate (per 100,000 people)" = "porate", 
+                                                         "Death Rate (per 100,000 people)" = "derate"
+                                                         
+                                                       ),
+                                                       selected = NULL)),
+             column(width = 5, "A look at how COVID-19 cases and deaths count and rate change over time by age, gender and race/ethnicity in each NYC borough. 
+             Data are updated weekly. 
+             Select available display options to visualize the data.")
            ),
            
            #### Cumulative Cases Count
            conditionalPanel(
-             condition = "input.character_timetrend == 'pocase'",
-             fluidRow(column(10, offset = 1,h4("Cases Count"))),
+             condition = "input.character_timetrend == 'pocase_tt'",
+             
+             
              fluidRow(
-               column(3, offset = 1, pickerInput("zip1", 
-                                                 label = "Choose zipcodes", 
-                                                 choices =zip_nbh,
-                                                 selected = zip_nbh[1],
-                                                 options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("pocase", width="100%",height="500px"))),
-             fluidRow(
+               column(10, offset = 1, h5("By Age Groups")),
                column(10, offset = 1, plotlyOutput("tt_age_cac", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Gender")),
                column(10, offset = 1, plotlyOutput("tt_sex_cac", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Race/Ethnicity")),
                column(10, offset = 1, plotlyOutput("tt_race_cac", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
@@ -964,35 +1087,29 @@ ui <- navbarPage(
            #### Death Count
            conditionalPanel(
              condition = "input.character_timetrend == 'death'",
-             fluidRow(column(10, offset = 1, h4("Death Count"))),
+             #fluidRow(column(10, offset = 1, h4("Death Count"))),
+             
              fluidRow(
-               column(width = 3, offset = 1, pickerInput("zip2", 
-                                                         label = "Choose zipcodes", 
-                                                         choices =zip_nbh, 
-                                                         selected = zip_nbh[1],
-                                                         options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("death", width="100%",height="500px"))),
-             fluidRow(
+               column(10, offset = 1, h5("By Age Groups")),
                column(10, offset = 1, plotlyOutput("tt_age_dec", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Gender")),
                column(10, offset = 1, plotlyOutput("tt_sex_dec", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Race/Ethnicity")),
                column(10, offset = 1, plotlyOutput("tt_race_dec", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
            
-           #### Positive Cases Rate
+           #### Case Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'porate'",
-             fluidRow(column(10, offset = 1, h4("Cases Rate (per 100,000 people)"))),
+             #fluidRow(column(10, offset = 1, h4("Case Rate (per 100,000 people)"))),
+             
              fluidRow(
-               column(width = 3, offset = 1,pickerInput("zip3", 
-                                                        label = "Choose zipcodes", 
-                                                        choices =zip_nbh, 
-                                                        selected = zip_nbh[1],
-                                                        options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("porate", width="100%",height="500px"))),
-             fluidRow(
+               column(10, offset = 1, h5("By Age Groups")),
                column(10, offset = 1, plotlyOutput("tt_age_carate", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Gender")),
                column(10, offset = 1, plotlyOutput("tt_sex_carate", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Race/Ethnicity")),
                column(10, offset = 1, plotlyOutput("tt_race_carate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
@@ -1000,30 +1117,18 @@ ui <- navbarPage(
            #### Death Rate
            conditionalPanel(
              condition = "input.character_timetrend == 'derate'",
-             fluidRow(column(10, offset = 1, h4("Death Rate (per 100,000 people)"))),
+             #fluidRow(column(10, offset = 1, h4("Death Rate (per 100,000 people)"))),
+             
              fluidRow(
-               column(width = 3, offset = 1, pickerInput("zip4", 
-                                                         label = "Choose zipcodes", 
-                                                         choices =zip_nbh,
-                                                         selected = zip_nbh[1],
-                                                         options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("derate", width="100%",height="500px"))),
-             fluidRow(
+               column(10, offset = 1, h5("By Age Groups")),
                column(10, offset = 1, plotlyOutput("tt_age_derate", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Gender")),
                column(10, offset = 1, plotlyOutput("tt_sex_derate", width="100%",height="80%")),
+               column(10, offset = 1, h5("By Race/Ethnicity")),
                column(10, offset = 1, plotlyOutput("tt_race_derate", width="100%",height="80%")),
                column(10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data")))
            ),
-           conditionalPanel(
-             condition = "input.character_timetrend == 'newcase'",
-             fluidRow(column(10, offset = 1, h4("New cases"))),
-             fluidRow(
-               column(width = 3, offset = 1, pickerInput("zip5", 
-                                                         label = "Choose zipcodes", 
-                                                         choices =zip_nbh,
-                                                         selected = zip_nbh[1],
-                                                         options = list(`actions-box` = TRUE))),
-               column(7, plotlyOutput("newcases", width="100%",height="500px")))),
+           
            br(),
            fluidRow(align="center",
                     span(htmlOutput("bannertext3", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
@@ -1069,7 +1174,7 @@ ui <- navbarPage(
   
   
   tabPanel(title = "Neighborhoods",
-           fluidRow(column(10, offset = 1, h2("Neighborhoods Characteristics"))),
+           fluidRow(column(10, offset = 1, h2("NYC Neighborhoods Characteristics"))),
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
@@ -1090,8 +1195,8 @@ ui <- navbarPage(
                                                        label = "Choose a Neighborhood", 
                                                        choices =nbh_name, 
                                                        selected = NULL)),
-               column(width = 6, "Choose a NYC ZCTAs neighborhood. 
-               See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
+               column(width = 6, "Choose a NYC ZCTA neighborhood. 
+               See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to. 
                "),
                column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%"))
              ),
@@ -1129,8 +1234,8 @@ ui <- navbarPage(
                                                         label = "Choose a Neighborhood", 
                                                         choices =nbh_name, 
                                                         selected = NULL)),
-               column(width = 6, "Choose a NYC ZCTAs neighborhood. 
-               See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to."),
+               column(width = 6, "Choose a NYC ZCTA neighborhood. 
+               See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to."),
                column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%"))),
              
              
@@ -1168,8 +1273,8 @@ ui <- navbarPage(
                                                               label = "Choose a Neighbourhood", 
                                                               choices =nbh_name, 
                                                               selected = NULL)),
-                      column(6, "Choose a NYC ZCTAs neighborhood. 
-                             See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to."),
+                      column(6, "Choose a NYC ZCTA neighborhood. 
+                             See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to."),
                       column(width = 10, offset = 2,
                              plotlyOutput("income_nbh", width="80%",height="600px"))),
              
@@ -1226,6 +1331,9 @@ ui <- navbarPage(
   
   tabPanel("About",
            fluidRow(column(10, offset = 1, h2("About Us")),
+                    column(10, offset = 1, div(img(src = "Mailman school of public health.jpg", height = "100%",width = "100%"),
+                                               style="text-align: center;")),
+                    column(10, offset = 1,helpText("The picture is from Internet.")),
                     column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
                     column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
            br(),
@@ -1328,11 +1436,14 @@ server <- function(input, output) {
   
   output$Hometext = renderText({
     return(
-      "The NYC Neighborhoods COVID-19 Dashboard is a tracker and data visualization tool to provide continuously updated sources of COVID-19 data for lay public, policymakers and researchers. 
-      <b> The COVID-19 Tracker </b> provides daily tracking of the local development for COVID-19 cases, deaths and tests in 177 NYC ZIP Code Tabulation Areas (ZCTAs).
-      <b> The COVID-19 Distribution </b> provides a data visualization of COVID-19 case count, case rate, death count, death rate and new cases in NYC ZCTAs and by age, sex and race/ethnicity.
-      <b> The COVID-19 Trends </b> shows the time trends for COVID-19 data by neighborhoods and demographics.
-      <b> The Neighborhoods </b> shows and compares the neighborhood characteristics of NYC ZCTAs."
+      "The NYC Neighborhoods COVID-19 Dashboard is a tracker and data visualization tool to provide continuously updated sources of COVID-19 data in NYC for lay public, essential workers, policymakers, and researchers. 
+ <br><br>
+ 
+ There are four tools available (located at the top navigation menu): <br>
+<b> <span>&#8226;</span>  COVID-19 Tracker </b> provides daily tracking of the local development for COVID-19 cases, deaths and tests in 177 NYC ZIP Code Tabulation Areas (ZCTAs). <br>
+<b> <span>&#8226;</span>  COVID-19 Distribution </b> provides a data visualization of COVID-19 cases, hospitalizations, and deaths in NYC ZCTAs and by age, gender, and race/ethnicity. <br>
+<b> <span>&#8226;</span>  COVID-19 Trends </b> shows the time trends for COVID-19 cases, hospitalizations, and deaths by NYC boroughs, ZCTAs, and demographics. <br>
+<b> <span>&#8226;</span>  Neighborhoods </b> shows and compares the neighborhood characteristics of NYC ZCTAs."
       
     )
   })
@@ -1340,69 +1451,75 @@ server <- function(input, output) {
   
   output$Trackertext = renderText({
     return(
-      "Tracking daily COVID-19 cases and deaths by <b> NYC ZIP Code Tabulation Areas (ZCTAs) </b>. 
-      Data are presented as case count, new cases, incidence rate, death count, and new deaths. 
-      <b> Case count and death count </b> are <b> total cumulative numbers </b> of COVID-19 cases and deaths by the updated date. 
-      <b> New cases and new deaths </b> are incremental numbers of COVID-19 positive cases and deaths on the updated date. 
-      <b> Incidence rate </b> is calculated as new cases divided by ZCTA population size and multiplied by 100,000 and are interpreted as daily new cases per 100,000 people in the ZCTA. 
-      The population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning updated in 2019. 
-      
+      "Data are presented as total cases, new cases, incidence rate (per 100,000 people), total deaths, new deaths, and total tests. 
+      <b> Total cases, total deaths, and total tests </b> are total cumulative numbers of COVID-19 cases, deaths, and tests, respectively. 
+      <b> New cases and new deaths </b> are the single day new reported confirmed COVID-19 positive cases and deaths. 
+      <b> Incidence rate </b> is calculated as new cases divided by ZCTA population size and multiplied by 100,000, and interpreted as daily new cases per 100,000 people in a ZCTA. 
+      The ZCTA population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning. 
+      These data were last updated in 2019. 
       <br> <br>
-      Choose number of records to show in each page or search neighborhoods using the search box. 
-      The data can be sorted by case count, new cases, incidence rate, death count, and new deaths.
-      <br> <br>"
+      Choose number of records to show in each page or search neighborhoods using the search box. The data can be sorted within columns. 
+
+      <br> <br>
+      "
     )
   })
   output$Distributionmap_help_text = renderText({
     return(
-      "<span>&#8226;</span> Case count and death count are total cumulative numbers of COVID-19 cases and deaths by the updated date. 
+      "<span>&#8226;</span>  Total cases and total deaths are total cumulative numbers of COVID-19 cases and deaths since the start of the outbreak. 
+      <br>
+     <span>&#8226;</span>  New cases are single day new reported confirmed COVID-19 cases on the updated date.  
      <br>
-     <span>&#8226;</span>  New cases are incremental number of COVID-19 cases on the updated date. 
-     <br>
-     <span>&#8226;</span>  Case rate, death rate and incidence rate are calculated using case count, death count and new cases divided by ZCTA population size and multiplied by 100,000 and are interpreted as number of COVID-19 cases and deaths per 100,000 people in the ZCTA. 
-    
+     <span>&#8226;</span>  Case rate, death rate, and incidence rate are calculated using total cases, total deaths, and new cases divided by ZCTA population size and multiplied by 100,000.
+
     "
     )
   })
   
   output$borotrendtext = renderText({
     return(
-      "A look at how COVID-19 case count, case rate, death count, death rate, new cases, and incidence rate change over time in each of the NYC ZIP Code Tabulation Areas (ZCTAs) and by demographics groups. Choose a ZCTA to display the data.
- Change “Choose zipcodes” to “Choose a ZCTA”"     
+      "A look at how COVID-19 cases, hospitalizations, and deaths change over time as cumulative and incidence counts and rates in each of the NYC boroughs. 
+      Data are updated weekly. Select available display options to visualize the data. 
+      Total count shows cumulative counts of COVID-19 cases, hospitalizations, and deaths since the start of the outbreak. 
+      Incidence count shows the new numbers of COVID-19 cases, hospitalizations, and deaths on the updated date. 
+      Total rate and incidence rate are calculated using total count and incidence count divided by borough population size and multiplied by 100,000. 
+"     
     )
   })
   
   output$Distributionmaptext = renderText({
     return(
-      "Use this map to see how COVID-19 cases and deaths vary by NYC ZIP Code Tabulation Areas (ZCTAs). 
-      Select available display options to visualize the data. Click a ZCTA on the map to see the data.
-      <br> <br>"
+      "This map may be used to visualize how COVID-19 cases and deaths vary by NYC ZCTAs. 
+      Select available display options to visualize the data.
+      Click a ZCTA on the map to see the data. These data are updated daily.<br> "
     )
   })
   
   
   output$DistribAgetext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by age groups and NYC boroughs. 
-           The bar charts present counts and rates per 100,000 people. 
-           The pie charts show percentage of age groups in each NYC borough.<br>")
+    return("The bar charts present counts and rates per 100,000 people. 
+    The pie charts show percentage of age groups in each NYC borough. 
+    Total hospitalizations are total hospitalized COVID-19 patients since the start of the outbreak. 
+    Hospitalization rate is calculated using total hospitalizations divided by ZCTA population size and multiplied by 100,000.
+<br>")
     
   })
   
   output$DistribRacetext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by race/ethnicity and NYC boroughs. 
+    return("See how COVID-19 cases, hospitalization and deaths differ by race/ethnicity and NYC boroughs. 
            The bar charts present counts and rates per 100,000 people. 
            The pie charts show percentage of race and ethnicity groups in each NYC borough.<br>")
   })
   
   output$DistribSextext = renderText({
-    return("<br><br>See how COVID-19 cases, hospitalization and deaths differ by Sex and NYC boroughs. 
+    return("See how COVID-19 cases, hospitalization and deaths differ by Sex and NYC boroughs. 
     The bar charts present counts and rates per 100,000 people.
     The pie charts show percentage of sex groups in each NYC borough. <br>
 ")
   })
   
   output$NeighborhoodsText = renderText({
-    return("Choose a NYC ZCTAs neighborhood. See how the selected neighborhood differs from the entire NYC and the NYC borough it belongs to. 
+    return("Choose a NYC ZCTA neighborhood. See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to. 
 Keep one decimal for all numbers.")
   })
   
@@ -1414,16 +1531,17 @@ Keep one decimal for all numbers.")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
     
-    tagList("The NYC Neighborhood COVID-19 Dashboard is developed by Chen’s lab at Columbia University Biostatistics Department: 
-    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,",",
-            
-            ".We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
-")
+    tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Chen's Lab in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
+    ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
+    )
     
   })  
   
   output$abouttext2 = renderText({
-    return("Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
+    return("<br>
+    We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+    <br><br>
+    Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
   })
   
@@ -2239,7 +2357,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyage %>% 
-      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2267,7 +2385,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklysex %>% 
-      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2292,7 +2410,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyrace %>% 
-      filter(group != "Boroughwide" & outcome == "Case Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2404,7 +2522,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyage %>% 
-      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2432,7 +2550,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklysex %>% 
-      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2457,7 +2575,7 @@ Keep one decimal for all numbers.")
     break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     a = weeklyrace %>% 
-      filter(group != "Boroughwide" & outcome == "Death Count") %>% 
+      filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
       ggplot(aes(x = day, y = count ,color = group, group = group)) + 
       geom_line(size = 0.3) + geom_point(size = 0.8) + facet_grid(~boro) + 
       theme_minimal() +  
@@ -2585,9 +2703,10 @@ Keep one decimal for all numbers.")
   output$pocase <- renderPlotly({
     
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip1) %>%
+      filter(zipcode_new %in% input$zip_nbh1,
+             type == "Total Cases") %>%
       plot_ly(x = ~day,
-              y = ~positive,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2601,9 +2720,10 @@ Keep one decimal for all numbers.")
   
   output$death <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip2) %>%
+      filter(zipcode_new %in% input$zip_nbh2,
+             type == "Total Deaths") %>%
       plot_ly(x = ~day,
-              y = ~covid_death_count,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2615,9 +2735,10 @@ Keep one decimal for all numbers.")
   
   output$porate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip3) %>%
+      filter(zipcode_new %in% input$zip_nbh3,
+             type == "Case Rate (per 100,000 people)") %>%
       plot_ly(x = ~day,
-              y = ~covid_case_rate,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2628,9 +2749,10 @@ Keep one decimal for all numbers.")
   
   output$derate <- renderPlotly({
     weeklydf %>% 
-      filter(zipcode_new %in% input$zip4) %>%
+      filter(zipcode_new %in% input$zip_nbh4,
+             type == "Death Rate (per 100,000 people)") %>%
       plot_ly(x = ~day,
-              y = ~covid_death_rate,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
@@ -2640,11 +2762,11 @@ Keep one decimal for all numbers.")
   })
   
   output$newcases <- renderPlotly({
-    weeklynew %>% 
-      mutate(zipcode_new = factor(zipcode_new)) %>% 
-      filter(zipcode_new %in% input$zip5) %>%
-      plot_ly(x = ~week,
-              y = ~new_cases,
+    weeklydf %>% 
+      filter(zipcode_new %in% input$zip_nbh5,
+             type == "New Cases") %>%
+      plot_ly(x = ~day,
+              y = ~num,
               type="scatter",
               mode = 'lines+markers',
               colors= "Blues") %>% 
