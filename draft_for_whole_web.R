@@ -55,12 +55,12 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 #  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
 ### trakcer data
-data_yester = read_csv("./data/data_for_table/data-by-modzcta0817.csv") %>% 
-  janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-08-17"))
-data_today = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
+data_yester = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-08-18"))
+data_today = read_csv("./data/data_for_table/data-by-modzcta0819.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-19"))
 
 data = rbind(data_today,data_yester)
 new_case = 0
@@ -192,13 +192,22 @@ income = left_join(income_raw, data_by_modzcta) %>%
 household_raw = read_csv("./data/predictor_data/household_zipcode_nyc.csv") %>% select(-1)
 household = left_join(household_raw, data_by_modzcta) %>% 
   select(zipcode, neighborhood_name, borough_group, everything()) %>% 
-  rename(size_2 = person_2,
-         size_1 = person_1,
-         size_3 = person_3,
-         size_4 = person_4,
-         size_5 = person_5,
-         size_6 = person_6,
-         size_7_or_more = person_7_or_more)
+  rename("2_persons" = person_2,
+         "1_person" = person_1,
+        "3_persons"  = person_3,
+         "4_persons" = person_4,
+         "5_persons" = person_5,
+         "6_persons" = person_6,
+         "7_persons_or_more" = person_7_or_more)
+household_for_pie = left_join(household_raw, data_by_modzcta) %>% 
+  select(zipcode, neighborhood_name, borough_group, everything()) %>% 
+  rename("size_2" = person_2,
+         "size_1" = person_1,
+         "size_3"  = person_3,
+         "size_4" = person_4,
+         "size_5" = person_5,
+         "size_6" = person_6,
+         "size_7_or_more" = person_7_or_more)
 
 race_raw = read_csv("./data/predictor_data/race_by_zipcode_nyc.csv") %>% select(-1)
 race = left_join(race_raw, data_by_modzcta) %>% 
@@ -219,7 +228,10 @@ race_new =
 zipcode = sex_age %>% distinct(zipcode) %>% pull()
 nbh_name = sex_age %>% distinct(neighborhood_name) %>% pull() %>% sort()
 boro_name = sex_age %>% distinct(borough_group) %>% pull() %>% sort()
-race_name = sort(colnames(race)[5:11])
+race_name = c("White Alone","Black or African American Alone",
+              "Asian Alone","American Indian and Alaska Native Alone",
+              "Native Hawaiian and Other Pacific Islander Alone",
+              "Some Other Race Alone","Two or More Races")
 house_name  = colnames(household)[5:11]
 
 ###Time Trend
@@ -234,7 +246,15 @@ final_Junedata <- read_csv("data/final_Junedata.csv") %>%
 
 Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
 
+final_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases) 
+  
+Aug19data <- read_csv("data/Aug19data.csv") %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
+
 data <- rbind(finalMaydata,final_Junedata)
+data <- rbind(data,final_Julydata)
+data <- rbind(data,Aug19data)
 Week <- unique(as.Date(cut(data$day, "week")) + 6)
 
 weeklydf_ <- data %>% 
@@ -273,7 +293,7 @@ weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
 
 
 
-# boro time trend written on Aug 12
+# boro time trend written on Aug 19
 borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
 borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
 week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
@@ -693,11 +713,12 @@ ui <- navbarPage(
   tabPanel('Home',
            shinyjs::useShinyjs(),
            fluidRow(
-             column(width = 5, offset = 1, div(img(src = "HomePagepic.png", height = "100%",width = "100%"),
-                                               style="text-align: center;")),
+             column(width = 5, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "100%"),
+                                    style="text-align: center;")),
+             column(width = 5,  div(img(src = "HomePagepic.png", height = "100%",width = "100%"),
+                                               style="text-align: center;"))),
              
-             column(width = 5,  div(img(src = "newlogo3.png", height = "100%",width = "85%"),
-                                    style="text-align: center;"))),
+             
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
@@ -754,7 +775,7 @@ ui <- navbarPage(
       column(width = 10, offset = 1, h4("Tracking yesterday’s COVID-19 cases, deaths, and tests by NYC ZIP Code Tabulation Areas (ZCTAs).")),
       
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
-      column(width = 10, offset = 1, helpText("Last updated : 2020-08-18")),
+      column(width = 10, offset = 1, helpText("Last updated : 2020-08-19")),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("* per 100,000 people")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
@@ -808,7 +829,7 @@ ui <- navbarPage(
     column(width = 10, offset = 1, h4("COVID-19 cases and deaths by NYC ZIP Code Tabulation Areas (ZCTAs)")),
     column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext"), 
                                         style="font-size: 15px;  line-height:150%")),
-    column(10, offset = 1, helpText("Last updated: 2020-08-18")),
+    column(10, offset = 1, helpText(paste("Last updated: ", max(data_to_plot$date)))),
     column(width = 10,offset = 1,
            sidebarLayout(
              
@@ -937,7 +958,7 @@ ui <- navbarPage(
            fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths trends by borough"))),
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-12"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-16"))),
            br(),
            fluidRow(column(width = 2,offset = 1,
                            # radioButtons(inputId = "selection",
@@ -970,7 +991,7 @@ ui <- navbarPage(
            ####zipcode trends
            fluidRow(
              column(10, offset = 1, h4("Trends by NYC ZIP Code Tabulation Areas (ZCTAs)")),
-             column(10, offset = 1, helpText("Last updated: 2020-07-23")),
+             column(10, offset = 1, helpText(paste("Last updated:",max(weeklydf$day)))),
              column(width = 4, offset = 1, selectInput("character_time_zip",
                                                        "Data Display",
                                                        c(
@@ -1054,7 +1075,7 @@ ui <- navbarPage(
            #####
            fluidRow(
              column(10, offset = 1, h4("Trends by demographics and borough")),
-             column(10, offset = 1, helpText("Last updated: 2020-07-23")),
+             column(10, offset = 1, helpText(paste("Last updated",max(weeklydf$day)))),
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Data Display",
                                                        c("Total Cases" = "pocase_tt", 
@@ -1174,7 +1195,7 @@ ui <- navbarPage(
   
   
   tabPanel(title = "Neighborhoods",
-           fluidRow(column(10, offset = 1, h2("NYC Neighborhoods Characteristics"))),
+           fluidRow(column(10, offset = 1, h2("NYC Neighborhood Characteristics"))),
            hr(),
            fluidRow(
              column(width = 4, offset = 1, selectInput("character",
@@ -1182,7 +1203,7 @@ ui <- navbarPage(
                                                        c("Race" = "race",
                                                          "Income" = "income",
                                                          "Household Size" = "house"))),
-             column(width = 6, "Select available display options to see and compare neighborhood characteristics using NYC ZIP Code Tabulation Areas (ZCTAs)")
+             column(width = 6, "Select available data display options to see and compare neighborhood characteristics. Data sources: Census 2010.")
            ),
            hr(),
            
@@ -1191,13 +1212,12 @@ ui <- navbarPage(
              condition = "input.character == 'race'",
              
              fluidRow(
+               column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
                column(width = 4,offset = 1,selectInput("nbhid1", 
                                                        label = "Choose a Neighborhood", 
                                                        choices =nbh_name, 
                                                        selected = NULL)),
-               column(width = 6, "Choose a NYC ZCTA neighborhood. 
-               See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to. 
-               "),
+              
                column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%"))
              ),
              hr(),
@@ -1213,9 +1233,9 @@ ui <- navbarPage(
                         column(12,
                                pickerInput(inputId = "raceid",
                                            label = "Choose a Race",
-                                           choices = str_replace_all(race_name, "_", " "),
+                                           choices = race_name,
                                            multiple = TRUE,
-                                           selected = str_replace_all(race_name, "_", " ")[1],
+                                           selected = race_name[1],
                                            options = list(`actions-box` = TRUE)
                                ))
                         
@@ -1230,12 +1250,12 @@ ui <- navbarPage(
              condition = "input.character == 'house'",
              
              fluidRow(
+               column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
+               
                column(width = 4, offset = 1,selectInput("nbhid2", 
                                                         label = "Choose a Neighborhood", 
                                                         choices =nbh_name, 
                                                         selected = NULL)),
-               column(width = 6, "Choose a NYC ZCTA neighborhood. 
-               See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to."),
                column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%"))),
              
              
@@ -1269,12 +1289,13 @@ ui <- navbarPage(
            conditionalPanel(
              condition = "input.character == 'income'",
              
-             fluidRow(column(width = 4,offset = 1,selectInput("nbhid3", 
+             fluidRow(
+               column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
+               
+               column(width = 4,offset = 1,selectInput("nbhid3", 
                                                               label = "Choose a Neighbourhood", 
                                                               choices =nbh_name, 
                                                               selected = NULL)),
-                      column(6, "Choose a NYC ZCTA neighborhood. 
-                             See how the selected neighborhood differs from NYC as a whole and the NYC borough it belongs to."),
                       column(width = 10, offset = 2,
                              plotlyOutput("income_nbh", width="80%",height="600px"))),
              
@@ -1329,11 +1350,11 @@ ui <- navbarPage(
                     
            )),
   
-  tabPanel("About",
+  tabPanel("About Us",
            fluidRow(column(10, offset = 1, h2("About Us")),
-                    column(10, offset = 1, div(img(src = "Mailman school of public health.jpg", height = "100%",width = "100%"),
+                    column(10, offset = 1, div(img(src = "msph-n-bios.png", height = "100%",width = "100%"),
                                                       style="text-align: center;")),
-                    column(10, offset = 1,helpText("The picture is from Internet.")),
+                    column(10, offset = 1,helpText("MSPH photo source: https://globalcenters.columbia.edu/content/yusuf-hamied-fellowships-program")),
                     column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
                     column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
            br(),
@@ -1526,12 +1547,12 @@ Keep one decimal for all numbers.")
   
   output$abouttext = renderUI({
     urlzzq = a("Ziqi Zhou",href = "https://www.linkedin.com/in/ziqi-zhou-1b448a145/")
-    urlzmy = a("Mengyu Zhang",href = "www.linkedin.com/in/mengyu-zhang-553421197")
+    urlzmy = a("Mengyu Zhang",href = "https://www.linkedin.com/in/mengyu-zhang-553421197")
     urlyyz = a("Yuanzhi Yu", href = "https://www.linkedin.com/in/yuanzhi（fisher）-yu-a1529918a/")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
     
-    tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Chen's Lab in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
+    tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Chen Lab in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
     ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
       )
     
@@ -1539,7 +1560,7 @@ Keep one decimal for all numbers.")
   
   output$abouttext2 = renderText({
     return("<br>
-    We are thankful to Cindy Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+    We are thankful to Cynthia Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
     <br><br>
     Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
@@ -1622,7 +1643,7 @@ Keep one decimal for all numbers.")
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(b) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
+    ggplotly(b) %>% layout(legend = list(orientation = "h", x = 0.5, y = 1.2))
     
     
   })
@@ -1646,7 +1667,7 @@ Keep one decimal for all numbers.")
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
     
-    ggplotly(c) %>% layout(legend = list(orientation = "h", x = 0.4, y = 1.2))
+    ggplotly(c) %>% layout(legend = list(orientation = "h", x = 0.5, y = 1.2))
     
     
   })
@@ -2029,7 +2050,7 @@ Keep one decimal for all numbers.")
   
   output$race_map <- renderLeaflet({
     pt = race %>% 
-      select(zipcode:total, str_replace_all(input$raceid," ","_"))
+      select(zipcode:total, str_replace_all(str_to_lower(input$raceid)," ","_"))
     
     pct = rowSums(pt[5:ncol(pt)])/pt$total
     
@@ -2068,7 +2089,7 @@ Keep one decimal for all numbers.")
       addLegend(pal = pal, 
                 values = posi_map_race$percentage, 
                 position = "bottomright", 
-                title = "Proportions on NTA Level")
+                title = "Proportions in ZCTAs")
     
   })
   
@@ -2228,58 +2249,58 @@ Keep one decimal for all numbers.")
       addLegend(pal = pal, 
                 values = posi_map_house$percentage, 
                 position = "bottomright", 
-                title = "Proportions on NTA Level")
+                title = "Proportions in ZCTAs")
     
   })
   
   
   output$household_nbh <- renderPlotly({
     
-    house_nbh = household %>% 
+    house_nbh = household_for_pie %>% 
       filter(neighborhood_name == input$nbhid2) %>%
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
       group_by(neighborhood_name, size) %>% 
-      summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
+      summarise(num = sum(number))  %>% 
+      mutate(size = str_replace_all(size,"size_1","1 person"),
+             size = str_replace_all(size,"size_2","2 persons"),
+             size = str_replace_all(size,"size_3","3 persons"),
+             size = str_replace_all(size,"size_4","4 persons"),
+             size = str_replace_all(size,"size_5","5 persons"),
+             size = str_replace_all(size,"size_6","6 persons"),
+            size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
       mutate(size = factor(size)) %>% 
       drop_na()
     
     which_boro = race %>% filter(neighborhood_name == input$nbhid2) %>% select(borough_group) %>% unique()
     
-    house_gp = household %>% 
+    house_gp = household_for_pie %>% 
       filter(borough_group == which_boro$borough_group) %>% 
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>% 
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
+      mutate(size = str_replace_all(size,"size_1","1 person"),
+             size = str_replace_all(size,"size_2","2 persons"),
+             size = str_replace_all(size,"size_3","3 persons"),
+             size = str_replace_all(size,"size_4","4 persons"),
+             size = str_replace_all(size,"size_5","5 persons"),
+             size = str_replace_all(size,"size_6","6 persons"),
+             size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
       mutate(size = factor(size)) %>% 
-      drop_na() 
+      drop_na()
     
     
-    house_nyc = household %>% 
+    house_nyc = household_for_pie %>% 
       pivot_longer(size_1:size_7_or_more, names_to = "size", values_to = "number") %>%
       group_by(size) %>% 
       summarise(num = sum(number)) %>% 
-      mutate(size = str_replace_all(size,"size_1","Size 1"),
-             size = str_replace_all(size,"size_2","Size 2"),
-             size = str_replace_all(size,"size_3","Size 3"),
-             size = str_replace_all(size,"size_4","Size 4"),
-             size = str_replace_all(size,"size_5","Size 5"),
-             size = str_replace_all(size,"size_6","Size 6"),
-             size = str_replace_all(size,"size_7_or_more","Size 7 or more")) %>% 
-      mutate(size = factor(size)) %>% 
+      mutate(size = str_replace_all(size,"size_1","1 person"),
+             size = str_replace_all(size,"size_2","2 persons"),
+             size = str_replace_all(size,"size_3","3 persons"),
+             size = str_replace_all(size,"size_4","4 persons"),
+             size = str_replace_all(size,"size_5","5 persons"),
+             size = str_replace_all(size,"size_6","6 persons"),
+             size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
+       mutate(size = factor(size)) %>% 
       drop_na()
     
     plot = plot_ly(sort = FALSE)
