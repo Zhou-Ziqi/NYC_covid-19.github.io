@@ -1,0 +1,111 @@
+---
+title: "trends2"
+author: "Ziqi Zhou"
+date: "8/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+finalMaydata <- read_csv("data/finalMaydata.csv") %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases) %>% 
+  mutate(day = as.Date(day,format = "%m/%d/%y"))
+
+final_Junedata <- read_csv("data/final_Junedata.csv") %>% 
+  dplyr::rename(newcases = newcases_june) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
+
+Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
+
+pop = read_csv("data/final_Junedata.csv") %>% 
+  select(zipcode,pop_denominator)
+pop
+data <- rbind(finalMaydata,final_Junedata)
+
+data_trend2 = full_join(data, pop) %>% 
+  distinct() %>% 
+  mutate(incidence_rate = round(newcases/pop_denominator*100000,digits = 1))
+```
+```{r}
+N = nrow(data_trend2)
+cases = pull(data_trend2,positive)
+deaths = pull(data_trend2,covid_death_count)
+case_rate = pull(data_trend2,covid_case_rate)
+death_rate = pull(data_trend2,covid_death_rate)
+new_case = pull(data_trend2, newcases)
+incidence_rate = pull(data_trend2, incidence_rate)
+
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+ave.case_rate = rep(0, N-6)
+ave.death_rate = rep(0, N-6)
+ave.new_case = rep(0, N-6)
+ave.incidence_rate = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+  ave.case_rate[i] = mean(case_rate[(i-3):(i+3)])
+  ave.death_rate[i] = mean(death_rate[(i-3):(i+3)])
+  ave.new_case[i] = mean(new_case[(i-3):(i+3)])
+  ave.incidence_rate[i] = mean(incidence_rate[(i-3):(i+3)])
+}
+for (i in 1:3) {
+  ave.cases[i] = ave.cases[1]
+  ave.deaths[i] = ave.deaths[1]
+  ave.case_rate[i] = ave.case_rate[1]
+  ave.death_rate[i] = ave.death_rate[1]
+  ave.new_case[i] = ave.new_case[1]
+  ave.incidence_rate[i] = ave.incidence_rate[1]
+}
+for (i in (N-2):N) {
+  ave.cases[i] = ave.cases[N-3]
+  ave.deaths[i] = ave.deaths[N-3]
+  ave.case_rate[i] = ave.case_rate[N-3]
+  ave.death_rate[i] = ave.death_rate[N-3]
+  ave.new_case[i] = ave.new_case[N-3]
+  ave.incidence_rate[i] = ave.incidence_rate[N-3]
+}
+
+df.ave = data_trend2 %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths),
+         ave.case_rate = round(ave.case_rate),ave.death_rate = round(ave.death_rate),
+         ave.new_case = round(ave.new_case),ave.incidence_rate = round(ave.incidence_rate))
+
+ggplot(df1, aes(x = day, y = positive)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+df1 = df.ave %>% filter(zipcode == "10001")
+ggplot(df1, aes(x = day, y = covid_death_count)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = day, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+
+ggplot(df1, aes(x = day, y = covid_case_rate)) + 
+  geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + 
+  geom_line(aes(x = day, y = ave.case_rate), color = "black", size = 1) + 
+  ggtitle("New reported deaths by day in New York City") + 
+  theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+
+ggplot(df1, aes(x = day, y = newcases)) + 
+  geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + 
+  geom_line(aes(x = day, y = ave.new_case), color = "black", size = 1) + 
+  ggtitle("New case by day in New York City") + 
+  theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+```
+

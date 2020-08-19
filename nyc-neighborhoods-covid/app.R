@@ -982,7 +982,7 @@ ui <- navbarPage(
                                                        ),
                                                        selected = NULL)),
              column(width = 5, "Weekly data and trends on COVID-19 in each of the NYC ZIP Code Tabulation Areas (ZCTAs). 
-             Select available display options and choose a ZCTA to display the data."),
+             Select available display options and choose a ZCTA to display the data.")
            ),
            
            
@@ -1500,7 +1500,7 @@ server <- function(input, output) {
     return("The bar charts present counts and rates per 100,000 people. 
     The pie charts show percentage of age groups in each NYC borough. 
     Total hospitalizations are total hospitalized COVID-19 patients since the start of the outbreak. 
-    Hospitalization rate is calculated using total hospitalizations divided by ZCTA population size and multiplied by 100,000.
+    Hospitalization rate is calculated using total hospitalizations divided by borough population size and multiplied by 100,000.
 <br>")
     
   })
@@ -1526,7 +1526,7 @@ Keep one decimal for all numbers.")
   
   output$abouttext = renderUI({
     urlzzq = a("Ziqi Zhou",href = "https://www.linkedin.com/in/ziqi-zhou-1b448a145/")
-    urlzmy = a("Mengyu Zhang",href = "https://www.google.com/")
+    urlzmy = a("Mengyu Zhang",href = "www.linkedin.com/in/mengyu-zhang-553421197")
     urlyyz = a("Yuanzhi Yu", href = "https://www.linkedin.com/in/yuanzhi（fisher）-yu-a1529918a/")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
