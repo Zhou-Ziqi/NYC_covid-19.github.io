@@ -404,6 +404,243 @@ byage0714 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0714.cs
          day = as.Date(day))
 ```
 
+
+```{r}
+byage0715 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0715.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-15",
+         day = as.Date(day))
+byage0716 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0716.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-16",
+         day = as.Date(day))
+byage0717 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0717.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-17",
+         day = as.Date(day))
+byage0718 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0718.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-18",
+         day = as.Date(day))
+
+
+byage0719 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0719.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-19",
+         day = as.Date(day))
+
+byage0720 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0720.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-20",
+         day = as.Date(day))
+byage0721 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0721.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-21",
+         day = as.Date(day))
+byage0722 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0722.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-22",
+         day = as.Date(day))
+byage0723 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0723.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-23",
+         day = as.Date(day))
+
+
+byage0724 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0724.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-24",
+         day = as.Date(day))
+
+byage0725 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0725.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-25",
+         day = as.Date(day))
+byage0726 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0726.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-26",
+         day = as.Date(day))
+byage0727 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0727.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-27",
+         day = as.Date(day))
+byage0728 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0728.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-28",
+         day = as.Date(day))
+
+
+byage0729 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0729.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-29",
+         day = as.Date(day))
+
+
+byage0730 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0730.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-30",
+         day = as.Date(day))
+byage0731 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0731.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-07-31",
+         day = as.Date(day))
+
+byage0801 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0801.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-01",
+         day = as.Date(day))
+byage0802 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0802.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-02",
+         day = as.Date(day))
+byage0803 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0803.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-03",
+         day = as.Date(day))
+byage0804 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0804.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-04",
+         day = as.Date(day))
+byage0804 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0804.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-04",
+         day = as.Date(day))
+byage0805 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0805.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-05",
+         day = as.Date(day))
+byage0806 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0806.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-06",
+         day = as.Date(day))
+byage0807 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0807.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-07",
+         day = as.Date(day))
+byage0808 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0808.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-08",
+         day = as.Date(day))
+byage0809 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0809.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-09",
+         day = as.Date(day))
+byage0810 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0810.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-10",
+         day = as.Date(day))
+byage0811 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0811.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-11",
+         day = as.Date(day))
+byage0812 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0812.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-12",
+         day = as.Date(day))
+byage0813 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0813.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-13",
+         day = as.Date(day))
+byage0814 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0814.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-14",
+         day = as.Date(day))
+byage0815 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0815.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-15",
+         day = as.Date(day))
+byage0816 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0816.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-16",
+         day = as.Date(day))
+byage0817 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0817.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-17",
+         day = as.Date(day))
+byage0818 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0818.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-18",
+         day = as.Date(day))
+byage0819 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0819.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-19",
+         day = as.Date(day))
+```
+
 ```{r,include=FALSE,message=FALSE,warning=FALSE}
 byage = rbind(byage0518,byage0519)
 byage = rbind(byage,byage0520)
@@ -462,6 +699,44 @@ byage = rbind(byage,byage0711)
 byage = rbind(byage,byage0712)
 byage = rbind(byage,byage0713)
 byage = rbind(byage,byage0714)
+
+byage = rbind(byage,byage0715)
+byage = rbind(byage,byage0716)
+byage = rbind(byage,byage0717)
+byage = rbind(byage,byage0718)
+byage = rbind(byage,byage0719)
+byage = rbind(byage,byage0720)
+byage = rbind(byage,byage0721)
+byage = rbind(byage,byage0722)
+byage = rbind(byage,byage0723)
+byage = rbind(byage,byage0724)
+byage = rbind(byage,byage0725)
+byage = rbind(byage,byage0726)
+byage = rbind(byage,byage0727)
+byage = rbind(byage,byage0728)
+byage = rbind(byage,byage0729)
+byage = rbind(byage,byage0730)
+byage = rbind(byage,byage0731)
+byage = rbind(byage,byage0801)
+byage = rbind(byage,byage0802)
+byage = rbind(byage,byage0803)
+byage = rbind(byage,byage0804)
+byage = rbind(byage,byage0805)
+byage = rbind(byage,byage0806)
+byage = rbind(byage,byage0807)
+byage = rbind(byage,byage0808)
+byage = rbind(byage,byage0809)
+byage = rbind(byage,byage0810)
+byage = rbind(byage,byage0811)
+byage = rbind(byage,byage0812)
+byage = rbind(byage,byage0813)
+byage = rbind(byage,byage0814)
+byage = rbind(byage,byage0815)
+byage = rbind(byage,byage0816)
+byage = rbind(byage,byage0817)
+byage = rbind(byage,byage0818)
+byage = rbind(byage,byage0819)
+
 ```
 
 
@@ -471,7 +746,7 @@ byage = byage %>% separate(location_n_event,
   separate(location, into = c("boro", "x"),sep = 2) %>% 
   dplyr:: select(-x)
 
-#write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
+write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
 ```
 
 ### Rate per 100,000 people

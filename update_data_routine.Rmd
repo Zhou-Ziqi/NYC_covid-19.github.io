@@ -1,0 +1,197 @@
+---
+title: "How to update data"
+author: "Ziqi Zhou"
+date: "8/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Daily Update
+## Use 2020-08-19 as example
+### Tracker, Distribution Map
+Just need to download the raw data(data-by-modzcta0819.csv).(add the date!)
+```{r}
+write_csv(x,paste0("./data/data_for_table/data-by-modzcta",date,".csv"))
+```
+And then change path in the app.R code.
+
+search the "data_yester" and "data_today" change the date
+
+### Time Trend
+Also the "data-by-modzcta0819.csv"
+
+```{r}
+data_yester = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-18"))
+data_today = read_csv("./data/data_for_table/data-by-modzcta0819.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-19"))
+
+data_tracker = rbind(data_today,data_yester)
+new_case = 0
+new_death = 0
+
+for (i in 1:177) {
+  new_case[i] = data_tracker[i,4] - data_tracker[i+177,4]
+  new_case
+  
+  new_death[i] = data_tracker[i,7] - data_tracker[i+177,7]
+  new_death
+}
+
+for (i in 178:354) {
+  
+  new_case[i] = NA
+  
+  new_death[i] = NA
+}
+
+data_today = data_tracker %>% 
+  mutate(new_case = new_case,
+         new_death = new_death) %>% 
+  filter(date == max(date)) %>% 
+  mutate(newcases = as.numeric(new_case),
+         new_death = as.numeric(new_death) )%>% 
+  rename(zipcode = modified_zcta,
+         positive  = covid_case_count,
+         day = date)
+  dplyr::select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
+
+Augdata = read_csv("./data/Aug19data.csv")
+
+Augdata = rbind(Augdata,data_today)
+write_csv(Augdata,"./data/Aug19data.csv")
+#write_csv(Augdata,"nyc-neighborhoods-covid/data/Aug19data.csv")
+
+
+```
+
+
+Aug19data <- read_csv("data/Aug19data.csv") %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
+
+### COVID-19 by demo
+
+#### byage
+
+```{r}
+byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv")
+
+byage0819 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0819.csv") %>% 
+ pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-19",
+         day = as.Date(day))%>% separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+byage = rbind(byage, byage0819)
+
+write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
+#write_csv(byage,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data.csv")
+```
+
+#### by race
+```{r}
+byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv")
+
+byrace0819 = read_csv("./data/data_covid_demo/boros_by_race/boroughs-by-race0819.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE_ADJ,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = "2020-08-19",
+         day = as.Date(day)) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+byrace = rbind(byrace, byrace0819)
+
+write_csv(byrace,"./distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
+#write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
+```
+
+#### by sex
+```{r}
+bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") 
+bysex0819 = read_csv("./data/data_covid_demo/boros_by_sex/boroughs-by-sex0819.csv") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count")%>% 
+  mutate(day = "2020-08-19",
+         day = as.Date(day))%>% separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+bysex = rbind(bysex, bysex0819)
+write_csv(byrace,"./distribution_of_covid-19/data/demoage_data_sex.csv") 
+#write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
+```
+
+
+
+
+
+# Weekly Update
+```{r}
+boroughs_case_hosp_death <- read_csv("data/boroughs-case-hosp-death0819.csv") %>% janitor::clean_names()
+```
+
+Download: "coronavirus-data/boro/boroughs-case-hosp-death.csv" add the date; change the path and run the code below
+
+
+```{r}
+bk <- boroughs_case_hosp_death %>% 
+  select(date_of_interest, starts_with("bk")) %>% 
+  mutate(boro = "Brooklyn")
+names(bk) <- str_replace(colnames(bk),"bk_","")
+bk <- bk %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+bx <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("bx")) %>% mutate(boro = "Bronx")
+names(bx) <- str_replace(colnames(bx),"bx_","")
+bx <- bx %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+mn <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("mn")) %>% mutate(boro = "Manhattan")
+names(mn) <- str_replace(colnames(mn),"mn_","")
+mn <- mn %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+qn <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("qn")) %>% mutate(boro = "Queens")
+names(qn) <- str_replace(colnames(qn),"qn_","")
+qn <- qn %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+si <- boroughs_case_hosp_death %>% select(date_of_interest, starts_with("si")) %>% mutate(boro = "Staten Island")
+names(si) <- str_replace(colnames(si),"si_","")
+si <- si %>% mutate(cum_case_count = cumsum(case_count),
+         cum_hospitalized_count = cumsum(hospitalized_count),
+         cum_death_count = cumsum(death_count))
+
+borocase <- rbind(bk,bx,mn,qn,si) %>% 
+  separate(date_of_interest, into = c("mon", "day", "year"),sep = '/') %>% 
+  mutate(date_of_interest = as.Date(with(., paste(year, mon, day,sep="-")), "%Y-%m-%d")) %>%
+  select(date_of_interest, boro,everything(), -c(mon,day,year))
+  
+
+borocase_new <- borocase %>% select(-starts_with("cum"))
+borocase_cum <- borocase %>% select(date_of_interest, boro, starts_with("cum"))
+
+#write.csv(borocase_new, "nyc-neighborhoods-covid/data/boro_newcase_trend.csv")
+#write.csv(borocase_cum, "nyc-neighborhoods-covid/data/boro_cumcase_trend.csv")
+write.csv(borocase_new, "data/boro_newcase_trend.csv")
+write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
+```
+

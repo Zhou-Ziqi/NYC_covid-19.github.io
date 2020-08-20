@@ -19,9 +19,9 @@ weeklydf <- data %>%
   filter(day %in% Week)
 ```
 
-
+Just need to start from here
 ```{r}
-boroughs_case_hosp_death <- read_csv("data/boroughs-case-hosp-death.csv") %>% janitor::clean_names()
+boroughs_case_hosp_death <- read_csv("data/boroughs-case-hosp-death0819.csv") %>% janitor::clean_names()
   
 bk <- boroughs_case_hosp_death %>% 
   select(date_of_interest, starts_with("bk")) %>% 
@@ -69,8 +69,10 @@ write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
 
 borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
 borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
+```
 
 
+```{r}
 week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
 
 weeklydf_new <- borocase_new %>% 

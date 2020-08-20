@@ -62,15 +62,15 @@ data_today = read_csv("./data/data_for_table/data-by-modzcta0819.csv") %>%
   janitor::clean_names() %>% 
   mutate(date = as.Date("2020-08-19"))
 
-data = rbind(data_today,data_yester)
+data_tracker = rbind(data_today,data_yester)
 new_case = 0
 new_death = 0
 
 for (i in 1:177) {
-  new_case[i] = data[i,4] - data[i+177,4]
+  new_case[i] = data_tracker[i,4] - data_tracker[i+177,4]
   new_case
   
-  new_death[i] = data[i,7] - data[i+177,7]
+  new_death[i] = data_tracker[i,7] - data_tracker[i+177,7]
   new_death
 }
 
@@ -81,7 +81,7 @@ for (i in 178:354) {
   new_death[i] = NA
 }
 
-data_to_table = data %>% 
+data_to_table = data_tracker %>% 
   mutate(new_case = new_case,
          new_death = new_death) %>% 
   filter(date == max(date)) %>% 
@@ -101,7 +101,7 @@ data_to_table = data %>%
          "Incidence Rate*" = incidence_rate,
          "Total Tests" = total_covid_tests )
 
-data_to_plot = data %>% 
+data_to_plot = data_tracker %>% 
   mutate(new_case = new_case,
          new_death = new_death
   ) %>% 
@@ -194,7 +194,7 @@ household = left_join(household_raw, data_by_modzcta) %>%
   select(zipcode, neighborhood_name, borough_group, everything()) %>% 
   rename("2_persons" = person_2,
          "1_person" = person_1,
-        "3_persons"  = person_3,
+         "3_persons"  = person_3,
          "4_persons" = person_4,
          "5_persons" = person_5,
          "6_persons" = person_6,
@@ -248,7 +248,7 @@ Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
 
 final_Julydata = read_csv("data/final_Julydata.csv") %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases) 
-  
+
 Aug19data <- read_csv("data/Aug19data.csv") %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
 
@@ -370,7 +370,7 @@ cum_case_count <- function(){
     xlab("") + 
     ylab("")
   
-
+  
   
   vline <- function(x = 0, color = "red") {
     list(
@@ -410,7 +410,7 @@ cum_case_count <- function(){
 }
 
 cum_case_rate <- function(){
-
+  
   
   temp3 <- weeklydf_cum %>% 
     ggplot(aes(x = Date, y = Rate)) + 
@@ -442,7 +442,7 @@ cum_case_rate <- function(){
            yaxis = list(title = ""),
            margin = list(b=100))
   
-
+  
 }
 
 # weeklydf_new_positive <- weeklydf_new %>% filter(type == "Case Count")
@@ -481,7 +481,7 @@ new_case_count <- function(){
     theme_minimal() +
     xlab("") +
     ylab("")
-
+  
   
   ggplotly(temp2) %>% 
     layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
@@ -497,7 +497,7 @@ new_case_count <- function(){
 }
 
 new_case_rate <- function(){
-
+  
   
   temp4 <- weeklydf_new %>%
     ggplot(aes(x = Date, y = Rate)) +
@@ -714,11 +714,11 @@ ui <- navbarPage(
            shinyjs::useShinyjs(),
            fluidRow(
              column(width = 5, offset = 1, div(img(src = "newlogo3.png", height = "100%",width = "100%"),
-                                    style="text-align: center;")),
+                                               style="text-align: center;")),
              column(width = 5,  div(img(src = "HomePagepic.png", height = "100%",width = "100%"),
-                                               style="text-align: center;"))),
-             
-             
+                                    style="text-align: center;"))),
+           
+           
            br(),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("Hometext"), style="font-size: 15px;line-height:150%"))),
            br(),
@@ -843,7 +843,7 @@ ui <- navbarPage(
                               "New Cases" = "newcase",
                               "Incidence Rate (per 100,000 people)" = "incidencerate")),
                
-              
+               
                span(htmlOutput("Distributionmap_help_text"), 
                     style="font-size: 14px;line-height:150% ; color:grey")
              )
@@ -972,7 +972,7 @@ ui <- navbarPage(
                                         c("Total Count" = "cum_case_count",
                                           "Incidence Count" = "new_case_count"))),
                     column(width = 8, plotlyOutput(outputId = "boro_cases1"))),
-    
+           
            fluidRow(column(width = 2,offset = 1,
                            # radioButtons(inputId = "selection",
                            #              label =  "Data Display:",   
@@ -1005,7 +1005,7 @@ ui <- navbarPage(
              column(width = 5, "Weekly data and trends on COVID-19 in each of the NYC ZIP Code Tabulation Areas (ZCTAs). 
              Select available display options and choose a ZCTA to display the data.")
            ),
-
+           
            
            #### Cumulative Cases Count
            conditionalPanel(
@@ -1217,7 +1217,7 @@ ui <- navbarPage(
                                                        label = "Choose a Neighborhood", 
                                                        choices =nbh_name, 
                                                        selected = NULL)),
-              
+               
                column(width = 10, offset = 1, plotlyOutput("race_nbh",width = "100%"))
              ),
              hr(),
@@ -1239,7 +1239,7 @@ ui <- navbarPage(
                                            options = list(`actions-box` = TRUE)
                                ))
                         
-                        )),
+                      )),
                column(width = 6,leafletOutput("race_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
            ),
@@ -1260,7 +1260,7 @@ ui <- navbarPage(
              
              
              hr(),
-    
+             
              fluidRow(
                
                
@@ -1280,7 +1280,7 @@ ui <- navbarPage(
                                            selected = str_replace_all(house_name, "_", " ")[1],
                                            options = list(`actions-box` = TRUE)))
                         
-                        )),
+                      )),
                column(width = 6,leafletOutput("household_map", width="100%",height="700px"))),
              column(10, offset = 1, helpText("Data Sources: Census 2010"))
            ),
@@ -1293,19 +1293,19 @@ ui <- navbarPage(
                column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
                
                column(width = 4,offset = 1,selectInput("nbhid3", 
-                                                              label = "Choose a Neighbourhood", 
-                                                              choices =nbh_name, 
-                                                              selected = NULL)),
-                      column(width = 10, offset = 2,
-                             plotlyOutput("income_nbh", width="80%",height="600px"))),
+                                                       label = "Choose a Neighbourhood", 
+                                                       choices =nbh_name, 
+                                                       selected = NULL)),
+               column(width = 10, offset = 2,
+                      plotlyOutput("income_nbh", width="80%",height="600px"))),
              
              hr(),
-            
+             
              fluidRow(
                column(4,offset = 1, "Use this map to see how the selected neighborhood characteristics vary by NYC ZCTAs."),
                column(width = 6, leafletOutput("income_map", width="100%",height="700px"))),
-               
-           column(10, offset = 1, helpText("Data Sources: Census 2010"))),
+             
+             column(10, offset = 1, helpText("Data Sources: Census 2010"))),
            
            br(),
            br(),br(),
@@ -1353,7 +1353,7 @@ ui <- navbarPage(
   tabPanel("About Us",
            fluidRow(column(10, offset = 1, h2("About Us")),
                     column(10, offset = 1, div(img(src = "msph-n-bios.png", height = "100%",width = "100%"),
-                                                      style="text-align: center;")),
+                                               style="text-align: center;")),
                     column(10, offset = 1,helpText("MSPH photo source: https://globalcenters.columbia.edu/content/yusuf-hamied-fellowships-program")),
                     column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
                     column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
@@ -1505,7 +1505,7 @@ server <- function(input, output) {
       Incidence count shows the new numbers of COVID-19 cases, hospitalizations, and deaths on the updated date. 
       Total rate and incidence rate are calculated using total count and incidence count divided by borough population size and multiplied by 100,000. 
 "     
-      )
+    )
   })
   
   output$Distributionmaptext = renderText({
@@ -1554,7 +1554,7 @@ Keep one decimal for all numbers.")
     
     tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Chen Lab in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
     ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
-      )
+    )
     
   })  
   
@@ -2267,7 +2267,7 @@ Keep one decimal for all numbers.")
              size = str_replace_all(size,"size_4","4 persons"),
              size = str_replace_all(size,"size_5","5 persons"),
              size = str_replace_all(size,"size_6","6 persons"),
-            size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
+             size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
       mutate(size = factor(size)) %>% 
       drop_na()
     
@@ -2300,7 +2300,7 @@ Keep one decimal for all numbers.")
              size = str_replace_all(size,"size_5","5 persons"),
              size = str_replace_all(size,"size_6","6 persons"),
              size = str_replace_all(size,"size_7_or_more","7 persons or more")) %>% 
-       mutate(size = factor(size)) %>% 
+      mutate(size = factor(size)) %>% 
       drop_na()
     
     plot = plot_ly(sort = FALSE)
