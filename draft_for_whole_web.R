@@ -255,13 +255,11 @@ final_Junedata <- read_csv("data/final_Junedata.csv") %>%
 #Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
 
 final_Julydata = read_csv("data/final_Julydata.csv") %>% 
-  mutate(pop_denominator = round(pop_denominator),
-         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) 
 
 Aug19data <- read_csv("data/Aug19data.csv") %>% 
-  mutate(pop_denominator = round(pop_denominator),
-         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
 data <- rbind(finalMaydata,final_Junedata)
@@ -1505,7 +1503,7 @@ server <- function(input, output) {
       <b> New cases and new deaths </b> are the single day new reported confirmed COVID-19 positive cases and deaths. There might be some negative values in new cases and new deaths due to adjustments to lags with surveillance data.
       <b> Incidence rate </b> is calculated as new cases divided by ZCTA population size and multiplied by 100,000, and interpreted as daily new cases per 100,000 people in a ZCTA. 
       The ZCTA population size is based on the intercensal population estimates from the U.S. Census Bureau and NYC Department of City Planning. 
-      These data were last updated in 2019. 
+      Population size data were last updated in 2019. 
       <br> <br>
       Choose number of records to show in each page or search neighborhoods using the search box. The data can be sorted within columns. 
 
