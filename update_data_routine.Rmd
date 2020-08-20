@@ -6,9 +6,19 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 library(tidyverse)
+library(curl)
+library(lubridate)
 ```
+
+# Date change
+```{r}
+today = Sys.Date()
+
+yesterday = today - 1
+```
+
 
 
 # Daily Update
@@ -16,7 +26,8 @@ library(tidyverse)
 ### Tracker, Distribution Map
 Just need to download the raw data(data-by-modzcta0819.csv).(add the date!)
 ```{r}
-write_csv(x,paste0("./data/data_for_table/data-by-modzcta",date,".csv"))
+x <- read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/data-by-modzcta.csv")) 
+write_csv(x,paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
 ```
 And then change path in the app.R code.
 
@@ -26,12 +37,12 @@ search the "data_yester" and "data_today" change the date
 Also the "data-by-modzcta0819.csv"
 
 ```{r}
-data_yester = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
+data_yester = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(yesterday),day(yesterday),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-08-18"))
-data_today = read_csv("./data/data_for_table/data-by-modzcta0819.csv") %>% 
+  mutate(date = as.Date(yesterday)) 
+data_today = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-08-19"))
+  mutate(date = as.Date(today))
 
 data_tracker = rbind(data_today,data_yester)
 new_case = 0
@@ -60,13 +71,17 @@ data_today = data_tracker %>%
          new_death = as.numeric(new_death) )%>% 
   rename(zipcode = modified_zcta,
          positive  = covid_case_count,
-         day = date)
-  dplyr::select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
+         day = date) %>% mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>%
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
-Augdata = read_csv("./data/Aug19data.csv")
+newdata = read_csv(paste0("./data/modzcta_until",month(yesterday),day(yesterday),".csv")) %>% 
+  mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>%
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
-Augdata = rbind(Augdata,data_today)
-write_csv(Augdata,"./data/Aug19data.csv")
+newdata = rbind(newdata,data_today)
+write_csv(newdata,paste0("./data/modzcta_until",month(today),day(today),".csv"))
 #write_csv(Augdata,"nyc-neighborhoods-covid/data/Aug19data.csv")
 
 
@@ -81,58 +96,58 @@ Aug19data <- read_csv("data/Aug19data.csv") %>%
 #### byage
 
 ```{r}
-byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv")
+byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(yesterday),day(yesterday),".csv")) # 
 
-byage0819 = read_csv("./data/data_covid_demo/boros_by_age/boroughs-by-age0819.csv") %>% 
+byage_new = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/boro/boroughs-by-age.csv")) %>% 
  pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
                names_to = "location_n_event",
                values_to = "count")%>% 
-  mutate(day = "2020-08-19",
+  mutate(day = today, 
          day = as.Date(day))%>% separate(location_n_event,
                    into = c("location","outcome"),sep = 3) %>% 
   separate(location, into = c("boro", "x"),sep = 2) %>% 
   dplyr:: select(-x)
 
-byage = rbind(byage, byage0819)
+byage = rbind(byage, byage_new)
 
-write_csv(byage,"./distribution_of_covid-19/data/demoage_data.csv")
+write_csv(byage,paste0("./distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) 
 #write_csv(byage,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data.csv")
 ```
 
 #### by race
 ```{r}
-byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv")
+byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(yesterday),day(yesterday),".csv"))
 
-byrace0819 = read_csv("./data/data_covid_demo/boros_by_race/boroughs-by-race0819.csv") %>% 
+byrace_new = read_csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/boro/boroughs-by-race.csv")) %>% 
   pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE_ADJ,
                names_to = "location_n_event",
                values_to = "count") %>% 
-  mutate(day = "2020-08-19",
+  mutate(day = today,
          day = as.Date(day)) %>% 
   separate(location_n_event,
                    into = c("location","outcome"),sep = 3) %>% 
   separate(location, into = c("boro", "x"),sep = 2) %>% 
   dplyr:: select(-x)
-byrace = rbind(byrace, byrace0819)
+byrace = rbind(byrace, byrace_new)
 
-write_csv(byrace,"./distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
+write_csv(byrace,paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) 
 #write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
 ```
 
 #### by sex
 ```{r}
-bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") 
-bysex0819 = read_csv("./data/data_covid_demo/boros_by_sex/boroughs-by-sex0819.csv") %>% 
+bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv")) 
+bysex_new = read_csv("./data/data_covid_demo/boros_by_sex/boroughs-by-sex0819.csv") %>% 
   pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
                names_to = "location_n_event",
                values_to = "count")%>% 
-  mutate(day = "2020-08-19",
+  mutate(day = today,
          day = as.Date(day))%>% separate(location_n_event,
                    into = c("location","outcome"),sep = 3) %>% 
   separate(location, into = c("boro", "x"),sep = 2) %>% 
   dplyr:: select(-x)
-bysex = rbind(bysex, bysex0819)
-write_csv(byrace,"./distribution_of_covid-19/data/demoage_data_sex.csv") 
+bysex = rbind(bysex, bysex_new)
+write_csv(byrace,paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) 
 #write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
 ```
 
