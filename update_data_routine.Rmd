@@ -14,9 +14,13 @@ library(lubridate)
 
 # Date change
 ```{r}
-today = Sys.Date()
+#today = Sys.Date()
+
 
 yesterday = today - 1
+
+today = as.Date("2020-08-20")
+
 ```
 
 
@@ -27,7 +31,8 @@ yesterday = today - 1
 Just need to download the raw data(data-by-modzcta0819.csv).(add the date!)
 ```{r}
 x <- read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/data-by-modzcta.csv")) 
-write_csv(x,paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
+#write_csv(x,paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
+write_csv(x,paste0("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
 ```
 And then change path in the app.R code.
 
@@ -81,8 +86,8 @@ newdata = read_csv(paste0("./data/modzcta_until",month(yesterday),day(yesterday)
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
 newdata = rbind(newdata,data_today)
-write_csv(newdata,paste0("./data/modzcta_until",month(today),day(today),".csv"))
-#write_csv(Augdata,"nyc-neighborhoods-covid/data/Aug19data.csv")
+#write_csv(newdata,paste0("./data/modzcta_until",month(today),day(today),".csv"))
+write_csv(newdata,paste0("nyc-neighborhoods-covid/data/modzcta_until",month(today),day(today),".csv"))
 
 
 ```
@@ -110,7 +115,8 @@ byage_new = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/mas
 
 byage = rbind(byage, byage_new)
 
-write_csv(byage,paste0("./distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) 
+#write_csv(byage,paste0("./distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) 
+write_csv(byage,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) 
 #write_csv(byage,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data.csv")
 ```
 
@@ -130,14 +136,18 @@ byrace_new = read_csv(curl("https://raw.github.com/nychealth/coronavirus-data/ma
   dplyr:: select(-x)
 byrace = rbind(byrace, byrace_new)
 
-write_csv(byrace,paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) 
+#write_csv(byrace,paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) 
+write_csv(byrace,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) 
 #write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
 ```
 
 #### by sex
 ```{r}
-bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv")) 
-bysex_new = read_csv("./data/data_covid_demo/boros_by_sex/boroughs-by-sex0819.csv") %>% 
+#bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv")) 
+bysex = read_csv("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
+
+
+bysex_new = read_csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/boro/boroughs-by-sex.csv")) %>% 
   pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
                names_to = "location_n_event",
                values_to = "count")%>% 
@@ -147,8 +157,9 @@ bysex_new = read_csv("./data/data_covid_demo/boros_by_sex/boroughs-by-sex0819.cs
   separate(location, into = c("boro", "x"),sep = 2) %>% 
   dplyr:: select(-x)
 bysex = rbind(bysex, bysex_new)
-write_csv(byrace,paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) 
-#write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
+#write_csv(bysex,paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) 
+write_csv(bysex,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) 
+#write_csv(bysex,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
 ```
 
 
@@ -205,9 +216,9 @@ borocase <- rbind(bk,bx,mn,qn,si) %>%
 borocase_new <- borocase %>% select(-starts_with("cum"))
 borocase_cum <- borocase %>% select(date_of_interest, boro, starts_with("cum"))
 
-#write.csv(borocase_new, "nyc-neighborhoods-covid/data/boro_newcase_trend.csv")
-#write.csv(borocase_cum, "nyc-neighborhoods-covid/data/boro_cumcase_trend.csv")
-write.csv(borocase_new, "data/boro_newcase_trend.csv")
-write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
+write.csv(borocase_new, "nyc-neighborhoods-covid/data/boro_newcase_trend.csv")
+write.csv(borocase_cum, "nyc-neighborhoods-covid/data/boro_cumcase_trend.csv")
+#write.csv(borocase_new, "data/boro_newcase_trend.csv")
+#write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
 ```
 

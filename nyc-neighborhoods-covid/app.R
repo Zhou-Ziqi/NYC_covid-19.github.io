@@ -24,6 +24,12 @@ library(grid)
 
 
 library(Dict)
+library(lubridate)
+
+###set the date
+
+today = as.Date("2020-08-20")
+yesterday = today - 1
 
 ##
 url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
@@ -55,12 +61,14 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 #  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
 
 ### trakcer data
-data_yester = read_csv("./data/data_for_table/data-by-modzcta0818.csv") %>% 
+data_yester = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(yesterday),day(yesterday),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-08-18"))
-data_today = read_csv("./data/data_for_table/data-by-modzcta0819.csv") %>% 
+  mutate(date = yesterday)
+data_today = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv"))  %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date("2020-08-19"))
+  mutate(date = today)
+
+
 
 data_tracker = rbind(data_today,data_yester)
 new_case = 0
@@ -87,7 +95,8 @@ data_to_table = data_tracker %>%
   filter(date == max(date)) %>% 
   mutate(new_case = as.numeric(new_case),
          new_death = as.numeric(new_death),
-         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )%>% 
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) ,
+  )%>% 
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
                 covid_death_count,new_death, total_covid_tests) %>% 
@@ -121,7 +130,7 @@ choices = c("Total Cases", "Total Deaths", "Case Rate (per 100,000 people)", "De
 
 ######
 #demographics
-byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>% 
+byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -136,7 +145,7 @@ byage = read_csv("./distribution_of_covid-19/data/demoage_data.csv") %>%
          count = round(count))
 
 
-byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>% 
+byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -152,7 +161,7 @@ byrace = read_csv("./distribution_of_covid-19/data/BYRACE_demoage_data.csv") %>%
   mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))
 
 
-bysex = read_csv("./distribution_of_covid-19/data/demoage_data_sex.csv") %>% 
+bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -258,13 +267,13 @@ final_Julydata = read_csv("data/final_Julydata.csv") %>%
   mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) 
 
-Aug19data <- read_csv("data/Aug19data.csv") %>% 
+Augdata <- read_csv(paste0("./data/modzcta_until",month(today),day(today),".csv")) %>% 
   mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
 data <- rbind(finalMaydata,final_Junedata)
 data <- rbind(data,final_Julydata)
-data <- rbind(data,Aug19data)
+data <- rbind(data,Augdata)
 Week <- unique(as.Date(cut(data$day, "week")) + 6)
 
 weeklydf_ <- data %>% 
@@ -786,7 +795,7 @@ ui <- navbarPage(
       column(width = 10, offset = 1, h4("Tracking yesterday’s COVID-19 cases, deaths, and tests by NYC ZIP Code Tabulation Areas (ZCTAs).")),
       
       column(width = 10, offset = 1, span(htmlOutput("Trackertext"), style="font-size: 15px; line-height:150%")),
-      column(width = 10, offset = 1, helpText("Last updated : 2020-08-19")),
+      column(width = 10, offset = 1, helpText(paste("Last updated: ", max(data_today$date)))),
       column(width = 10, offset = 1, align="center",DT::dataTableOutput("table")),
       column(width = 10, offset = 1, helpText("* per 100,000 people")),
       column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
@@ -1237,7 +1246,7 @@ ui <- navbarPage(
              fluidRow(
                column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
                column(width = 4,offset = 1,selectInput("nbhid1", 
-                                                       label = "Choose a Neighborhood", 
+                                                       label = "Choose a ZCTA", 
                                                        choices =nbh_name, 
                                                        selected = NULL)),
                
@@ -1277,7 +1286,7 @@ ui <- navbarPage(
                column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
                
                column(width = 4, offset = 1,selectInput("nbhid2", 
-                                                        label = "Choose a Neighborhood", 
+                                                        label = "Choose a ZCTA", 
                                                         choices =nbh_name, 
                                                         selected = NULL)),
                column(width = 10, offset = 1, plotlyOutput("household_nbh", width="100%"))),
@@ -1317,7 +1326,7 @@ ui <- navbarPage(
                column(10, offset = 1, h4("Compare a NYC ZIP Code Tabulation Area (ZCTA) to the NYC borough it belongs to and NYC as a whole.")),
                
                column(width = 4,offset = 1,selectInput("nbhid3", 
-                                                       label = "Choose a Neighbourhood", 
+                                                       label = "Choose a ZCTA", 
                                                        choices =nbh_name, 
                                                        selected = NULL)),
                column(width = 10, offset = 2,
@@ -2214,7 +2223,8 @@ Keep one decimal for all numbers.")
     income_nyc = c(mean, median)
     
     income_final = rbind(income_nbh, income_boro, income_nyc) %>% 
-      mutate(level = c("NTA", "Borough", "NYC")) %>% 
+      mutate(level = c("ZCTA", "Borough", "NYC")) %>% 
+      mutate(level = factor(level, levels = c("ZCTA", "Borough", "NYC"))) %>% 
       pivot_longer(mean:median, names_to = "stat", values_to = "value")
     
     
