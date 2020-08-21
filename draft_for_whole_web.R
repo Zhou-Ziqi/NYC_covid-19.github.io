@@ -5,6 +5,7 @@ library(tidyverse)
 library(shiny)
 library(DT)
 library(patchwork)
+library(grid)
 
 library(readxl)
 library(sp)
@@ -142,7 +143,9 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(to
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
-         count = round(count))
+         count = round(count)) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Hospitalizations Count",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)")))
 
 
 byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) %>% 
@@ -158,7 +161,10 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
-  mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))
+  mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))%>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Hospitalizations Count",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)")))
+
 
 
 bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) %>% 
@@ -173,7 +179,10 @@ bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(to
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
-         count = round(count))
+         count = round(count))%>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Hospitalizations Count",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)")))
+
 
 
 
@@ -341,9 +350,13 @@ weeklydf_new <- borocase_new %>%
          Rate = rate) %>% 
   mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
          type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Hospitalizations Count"),
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Hospitalizations Count")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)")))
+
 
 
 
@@ -372,9 +385,13 @@ weeklydf_cum <- borocase_cum %>%
          Rate = rate) %>% 
   mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
          type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Hospitalizations Count"),
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Hospitalizations Count")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)")))
+
 
 
 
@@ -1654,6 +1671,7 @@ Keep one decimal for all numbers.")
       theme(strip.background = element_blank()) + 
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      #theme(panel.spacing.y=unit(2, "lines")) + 
       xlab("") +
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")

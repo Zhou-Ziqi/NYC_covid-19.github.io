@@ -132,7 +132,7 @@ choices = c("Total Cases", "Total Deaths", "Case Rate (per 100,000 people)", "De
 #demographics
 byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
@@ -142,12 +142,15 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(to
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
-         count = round(count))
+         count = round(count)) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+  arrange(outcome)
 
 
 byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalizations Rate (per 100,000 people)"),
@@ -158,12 +161,16 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
-  mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))
+  mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))%>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+  arrange(outcome)
+
 
 
 bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Hospitalizations Count"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
@@ -173,7 +180,11 @@ bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(to
          boro = str_replace_all(boro, "QN","Queens"),
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
-         count = round(count))
+         count = round(count))%>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+  arrange(outcome)
+
 
 
 
@@ -341,9 +352,15 @@ weeklydf_new <- borocase_new %>%
          Rate = rate) %>% 
   mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
          type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  arrange(type) %>% 
+  arrange(newtype)
+
 
 
 
@@ -372,9 +389,15 @@ weeklydf_cum <- borocase_cum %>%
          Rate = rate) %>% 
   mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
          type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  arrange(type) %>% 
+  arrange(newtype)
+
 
 
 
@@ -1654,6 +1677,7 @@ Keep one decimal for all numbers.")
       theme(strip.background = element_blank()) + 
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      theme(panel.spacing.y=unit(1, "lines")) + 
       xlab("") +
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
@@ -1674,6 +1698,7 @@ Keep one decimal for all numbers.")
       theme(strip.background = element_blank()) + 
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      theme(panel.spacing.y=unit(1, "lines")) + 
       xlab("") +
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
@@ -1698,6 +1723,7 @@ Keep one decimal for all numbers.")
       theme(strip.background = element_blank()) + 
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
+      theme(panel.spacing.y=unit(1, "lines")) + 
       xlab("") +
       ylab("") + 
       facet_wrap(outcome ~ ., scales = "free")
