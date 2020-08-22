@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-08-20")
+today = as.Date("2020-08-21")
 yesterday = today - 1
 
 ##
@@ -135,7 +135,7 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(to
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -144,7 +144,7 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(to
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
   mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
@@ -153,7 +153,7 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE_ADJ","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalizations Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE_ADJ","Hospitalization Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE_ADJ","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -163,7 +163,7 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(
          count = round(count)) %>% 
   mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))%>% 
   mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
@@ -173,7 +173,7 @@ bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(to
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
          outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
-         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalizations Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
          outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
          boro = str_replace_all(boro, "BK","Brooklyn"),
          boro = str_replace_all(boro, "MN","Manhattan"),
@@ -182,7 +182,7 @@ bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(to
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count))%>% 
   mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalizations Rate (per 100,000 people)"))) %>% 
+                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
