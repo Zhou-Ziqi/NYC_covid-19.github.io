@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-08-21")
+today = as.Date("2020-08-24")
 yesterday = today - 1
 
 ##
@@ -1001,7 +1001,7 @@ ui <- navbarPage(
            fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths trends by borough"))),
            
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Last updated : 2020-08-16"))),
+           fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(borocase_cum$date_of_interest))))),
            br(),
            fluidRow(column(width = 2,offset = 1,
                            # radioButtons(inputId = "selection",
