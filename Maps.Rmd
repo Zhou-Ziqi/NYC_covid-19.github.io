@@ -1,0 +1,171 @@
+---
+title: "MapGif"
+author: "Ziqi Zhou"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(gganimate)
+library(tidyverse)
+
+library(magrittr)
+library(leaflet)
+library(maps)
+library(tigris)
+library(sf)
+library(RColorBrewer)
+#library(plotly)
+#library(rnaturalearth)
+library(lubridate)
+```
+
+```{r}
+#read the data
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>% 
+  rename(zipcode = MODZCTA) %>% 
+  mutate(month = 4) %>% 
+  select(zipcode,positive,month, date) 
+
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>% 
+  #rename(zipcode = MODZCTA) %>% 
+  mutate(month = 4) %>% 
+  select(MODZCTA,positive,month, date) 
+
+
+
+
+finalMaydata <- read_csv("data/May_data.csv") %>% 
+mutate(month = 5,
+       zipcode = modified_zcta) %>% 
+  select(zipcode,positive,month, date) 
+
+final_Junedata <- read_csv("data/final_Junedata.csv")%>% 
+ mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,positive,month, date) 
+
+  
+final_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,positive,month, date) 
+
+
+#data = rbind(Aprildata_with_nebhod, finalMaydata)
+data <- rbind(finalMaydata,final_Junedata)
+data <- rbind(data,final_Julydata)
+
+data = data %>% 
+  rename(MODZCTA = zipcode)
+#data <- rbind(data,Augdata)
+
+### original d not available
+spdf2 = read_sf("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+```
+
+```{r}
+Aprildata_with_nebhod_break = Aprildata_with_nebhod
+Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive, 
+                                     breaks = c(0,50,100,200,500,1000,
+                                                2000,3000,4000,10000),
+                                     labels = c('0-50','50-100','100-200','200-500',
+                                                '500-1000','1000-2000',
+                                                '2000-3000','3000-4000','4000+'),
+                                    order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+
+
+```{r}
+data_break = data
+data_break$positive = cut(data$positive, 
+                                     breaks = c(0,50,100,200,500,1000,
+                                                2000,3000,4000,10000),
+                                     labels = c('0-50','50-100','100-200','200-500',
+                                                '500-1000','1000-2000',
+                                                '2000-3000','3000-4000','4000+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+
+
+
+```
+
+```{r}
+i = 3
+#j= 4
+ p =  Aprildata_with_nebhod_break %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
+ p = subset(p, !is.na(positive))
+    
+aprplot = ggplot(p) + 
+    geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", j ,"/" ,i,"/2020"))
+
+    #ggsave(filename = paste0(i,"_2020FromApritoJuly.png"),   width = 10, height = 10, units = "cm")
+```
+
+## plotly animation
+
+```{r}
+df.p = Aprildata_with_nebhod_break %>% 
+    mutate(MODZCTA = as.character(MODZCTA)) %>% 
+    #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
+df.p = subset(df.p, !is.na(positive))
+
+```
+
+
+
+```{r}
+
+data_break_may =  data_break %>% 
+    dplyr::filter(month == 7) 
+
+for (i in 1:31) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(positive))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 7 ,"/" ,i,"/2020"))
+
+    ggsave(filename = paste0("2020-FromApritoJuly","7-",i,".png"), plot = a, path = "./allpics/May",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+```
+
+```{r}
+library(magick)
+list.files(path='./allpics/July', pattern = '*.png', full.names = TRUE) %>% 
+        image_read() %>% # reads each path file
+        image_join() %>% # joins image
+        image_animate(fps=4) %>% # animates, can opt for number of loops
+        image_write("JulyMap.gif")
+```
+
+```{r}
+animate_p = image_animate(image=image_read(path=paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/allpics/2020-FromApritoJuly",i,".png")))
+
+anim_save(filename = "aprmap.gif",animation = animate_p,path="/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics")
+
+print(animate_p)
+```
+

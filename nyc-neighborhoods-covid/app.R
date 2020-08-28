@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-08-24")
+today = as.Date("2020-08-27")
 yesterday = today - 1
 
 ##
@@ -36,7 +36,7 @@ url1 = "https://twitter.com/intent/tweet?text=Hello%20world&url=https://msph.shi
 url2 = "https://www.facebook.com/sharer.php?u=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url3 = "https://www.instagram.com/columbiapublichealth/"
 url4 = "https://www.linkedin.com/shareArticle?mini=true&url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title=&summary=&source="
-url5 = "mailto:info@example.com?&subject=&body=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
+url5 = "mailto:NYCN-COVID@cumc.columbia.edu?&subject=&body=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url6 = "whatsapp://send?text=https://msph.shinyapps.io/nyc-neighborhoods-covid/"
 url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/nyc-neighborhoods-covid/&title="
 ##read data

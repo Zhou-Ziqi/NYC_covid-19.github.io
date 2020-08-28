@@ -18,32 +18,81 @@ library(sf)
 
 library(plotly)
 library(rnaturalearth)
+library(lubridate)
 ```
 
 ```{r}
 #read the data
-Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv")
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>% 
+  rename(zipcode = MODZCTA) %>% 
+  mutate(month = 4) %>% 
+  select(zipcode,positive,month, date) 
+
+
+
+finalMaydata <- read_csv("data/finalMaydata.csv") %>% 
+  mutate(day = as.Date(day,format = "%m/%d/%y")) %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,positive,month, date) 
+
+final_Junedata <- read_csv("data/final_Junedata.csv")%>% 
+ mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,positive,month, date) 
+
+  
+final_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,positive,month, date) 
+
+data = rbind(Aprildata_with_nebhod, finalMaydata)
+data <- rbind(data,final_Junedata)
+data <- rbind(data,final_Julydata)
+
+data = data %>% 
+  rename(MODZCTA = zipcode)
+#data <- rbind(data,Augdata)
+
 ### original d not available
 spdf2 = read_sf("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 ```
 
 ```{r}
-Aprildata_with_nebhod_break = Aprildata_with_nebhod
-Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive, 
+#Aprildata_with_nebhod_break = Aprildata_with_nebhod
+#Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive, 
+                                     #breaks = c(0,50,100,200,500,1000,
+                                     #           2000,3000,4000,10000),
+                                     #labels = c('0-50','50-100','100-200','200-500',
+                                     #           '500-1000','1000-2000',
+                                     #           '2000-3000','3000-4000','4000+'),
+                                   # order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+
+
+```{r}
+data_break = data
+data_break$positive = cut(data$positive, 
                                      breaks = c(0,50,100,200,500,1000,
                                                 2000,3000,4000,10000),
                                      labels = c('0-50','50-100','100-200','200-500',
                                                 '500-1000','1000-2000',
                                                 '2000-3000','3000-4000','4000+'),
                                    order = TRUE,include.lowest = TRUE, right = TRUE)
+
+
+
 ```
 
 ```{r}
 i = 3
- p =  Aprildata_with_nebhod_break %>% 
-    dplyr::filter(date == i) %>% 
+j= 4
+ p =  data_break %>% 
+    dplyr::filter(date == i & month == j) %>% 
    mutate(MODZCTA = as.character(MODZCTA)) %>% 
-   dplyr::select(-zcta_cum_perc_pos) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
     left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
  p = subset(p, !is.na(positive))
     
@@ -51,7 +100,9 @@ ggplot(p) +
     geom_sf(aes(fill = positive)) + 
     coord_sf()+
     scale_fill_brewer(palette = "OrRd",direction = 1) + 
-    labs(title = paste0("Positive Cases in NYC at zipcode level on April: ",i))
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", j ,"/" ,i,"/2020"))
+
+    #ggsave(filename = paste0(j,"/",i,"/2020/FromApritoJuly.png"), path = "/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/zipcode_covid-19/data/pics",plot = plot, width = 20, height = 20, units = "cm")
 ```
 
 ## plotly animation
@@ -85,26 +136,27 @@ plot_ly(df.p, color = ~positive, frame = ~date, split = ~MODZCTA, showlegend = F
 
 
 ```{r}
-#for April map
 
+data_break =  data_break %>% 
+    dplyr::filter(month == 4) 
 for (i in 1:30) {
- p =  Aprildata_with_nebhod_break %>% 
-    filter(date == i) %>% 
+     p =  data_break %>% 
+    dplyr::filter(date == i) %>% 
    mutate(MODZCTA = as.character(MODZCTA)) %>% 
-   select(-zcta_cum_perc_pos) %>% 
-    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA')) 
- p = subset(p, !is.na(positive))
-    
-plot =   ggplot(p) + 
-    geom_sf(aes(fill = positive)) + 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(positive))
+    plot = 
+      ggplot(p) + 
+      geom_sf(aes(fill = positive)) + 
     coord_sf()+
     scale_fill_brewer(palette = "OrRd",direction = 1) + 
-    labs(title = paste0("Positive Cases in NYC at zipcode level on April: ",i))
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 4 ,"/" ,i,"/2020"))
 
+    ggsave(filename = paste0(j,"/",i,"/2020/FromApritoJuly.png"), plot = plot, width = 20, height = 20, units = "cm")
   
-  ggsave(filename = paste0(i,"Apr.png"),
- plot = plot, path = "/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics",
-width = 20, height = 20, units = "cm")
+  
 }
 
 ```
