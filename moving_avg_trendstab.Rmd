@@ -1,0 +1,224 @@
+---
+title: "Trends_1stpic_7dayaver"
+author: "Ziqi Zhou"
+date: "8/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
+borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
+week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
+weeklydf_new <- borocase_new %>% 
+  mutate(week = week) %>% 
+  group_by(boro,week) %>% 
+  summarise(case_count = sum(case_count),
+            hospitalization_count = sum(hospitalized_count),
+            death_count = sum(death_count)) %>% 
+  pivot_longer(case_count:death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_to_title(str_replace_all(type, "_", " ")),
+         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
+         pop_num = ifelse(boro == "Bronx", 1434693, 
+                          ifelse(boro == "Brooklyn",2582830, 
+                                 ifelse(boro == "Manhattan",1611943, 
+                                        ifelse(boro == "Staten Island", 476179,
+                                               ifelse(boro == "Queens", 2288710, 2288710))))),
+         rate = round(count/pop_num*1000000,1)) %>% 
+  rename(Borough = boro,
+         Date = week,
+         Count = count,
+         Rate = rate) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
+         type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
+         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  arrange(type) %>% 
+  arrange(newtype)
+
+
+weeklydf_cum <- borocase_cum %>% 
+  mutate(boro = factor(boro)) %>% 
+  filter(date_of_interest %in% week) %>%
+  rename(cum_hospitalization_count = cum_hospitalized_count) %>% 
+  pivot_longer(cum_case_count:cum_death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(type = str_replace_all(type, "cum_", ""),
+         type = str_to_title(str_replace_all(type, "_", " ")),
+         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
+         pop_num = ifelse(boro == "Bronx", 1434693, 
+                          ifelse(boro == "Brooklyn",2582830, 
+                                 ifelse(boro == "Manhattan",1611943, 
+                                        ifelse(boro == "Staten Island", 476179,
+                                               ifelse(boro == "Queens", 2288710, 2288710))))),
+         rate = round(count/pop_num*1000000,1)) %>% 
+  rename(Borough = boro,
+         Date = date_of_interest,
+         Count = count,
+         Rate = rate) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
+         type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
+         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  arrange(type) %>% 
+  arrange(newtype)
+
+```
+weeklydf_cum 
+
+
+```{r}
+df_totalcase_bx = weeklydf_cum %>% 
+  filter(type == "Total Cases" & Borough == "Bronx") %>% 
+  select(-newtype,-Rate)
+```
+## BY Week
+
+```{r}
+N = nrow(df_totalcase_bx )
+cases = pull(df_totalcase_bx ,Count)
+#deaths = pull(df_totalcase_bx ,deaths)
+ave.cases = rep(0, N-6)
+#ave.deaths = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+for (i in 1:3) {
+  ave.cases[i] = ave.cases[1]
+  #ave.deaths[i] = ave.deaths[1]
+}
+for (i in (N-2):N) {
+  ave.cases[i] = ave.cases[N-3]
+  #ave.deaths[i] = ave.deaths[N-3]
+}
+
+df.ave = df_totalcase_bx  %>% 
+  mutate(ave_cases = round(ave.cases))
+
+ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = Date, y = Count), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+
+#ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_classic() + theme(
+#    axis.title.x = element_blank(),
+#    axis.title.y = element_blank(),
+#    plot.title = element_text(hjust = 0, size = 14)
+#  )
+```
+
+## By day
+
+```{r}
+borocase_new_day = borocase_new %>% 
+  mutate(boro = factor(boro)) %>% 
+ # filter(date_of_interest %in% week) %>%
+  rename(hospitalization_count = hospitalized_count) %>% 
+  pivot_longer(case_count:death_count,
+               names_to = "type",
+               values_to = "count") %>% 
+  mutate(#type = str_replace_all(type, "cum_", ""),
+         type = str_to_title(str_replace_all(type, "_", " ")),
+         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
+         pop_num = ifelse(boro == "Bronx", 1434693, 
+                          ifelse(boro == "Brooklyn",2582830, 
+                                 ifelse(boro == "Manhattan",1611943, 
+                                        ifelse(boro == "Staten Island", 476179,
+                                               ifelse(boro == "Queens", 2288710, 2288710))))),
+         rate = round(count/pop_num*1000000,1)) %>% 
+  rename(Borough = boro,
+         Date = date_of_interest,
+         Count = count,
+         Rate = rate) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
+         type = str_replace_all(type,"Death Count", "Total Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
+         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  arrange(type) %>% 
+  arrange(newtype)
+```
+
+```{r}
+borocase_cum_day_bx_case = borocase_new_day %>% 
+  filter(type == "Total Cases" & Borough == "Bronx") %>% 
+  select(-newtype,-Rate)
+
+N = nrow(borocase_cum_day_bx_case )
+cases = pull(borocase_cum_day_bx_case ,Count)
+#deaths = pull(df_totalcase_bx ,deaths)
+ave.cases = rep(0, N-6)
+#ave.deaths = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+for (i in 1:3) {
+  ave.cases[i] = ave.cases[1]
+  #ave.deaths[i] = ave.deaths[1]
+}
+for (i in (N-2):N) {
+  ave.cases[i] = ave.cases[N-3]
+  #ave.deaths[i] = ave.deaths[N-3]
+}
+
+df.ave = borocase_cum_day_bx_case  %>% 
+  mutate(ave_cases = round(ave.cases))
+
+ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = Date, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+```
+
+
+```{r, eval=FALSE}
+N = nrow(weeklydf_cum )
+cases = pull(weeklydf_cum ,cases)
+deaths = pull(weeklydf_cum ,deaths)
+ave.cases = rep(0, N-6)
+ave.deaths = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+ave.cases[1] = mean(cases[1:7])
+ave.cases[2] = mean(cases[1:7])
+ave.cases[3] = mean(cases[1:7])
+ave.cases[N] = mean(cases[(N-6):N])
+ave.cases[N-1] = mean(cases[(N-6):N])
+ave.cases[N-2] = mean(cases[(N-6):N])
+
+df.ave = weeklydf_cum  %>% 
+  mutate(ave_cases = round(ave.cases), ave_deaths = round(ave.deaths))
+
+ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "Red")
+```
+
+
+
+weeklydf_new
+

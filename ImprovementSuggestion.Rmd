@@ -7,12 +7,6 @@ output: pdf_document
 
 # The improvements we supposed to do.
 
-1. Change the variable name of the tracker table.(done)
-
-2. Make the table into shiny table. So that the users could click somewhere to get the information they are interested in.(done)
-
-3. Write the description of the outcome in the covid map. Make it clear! (done)(but maybe need some improve)
-
 4. Write the descriptive part in the distribution of covid-19 map!!!! (done but it is ugly; waiting for make it look good.)
 
 ```{r}
@@ -40,26 +34,9 @@ tab1 = table1(~ positive + covid_case_rate + covid_death_count + covid_death_rat
 ```
 
 
-4. Make the plot of the time trends of the cases by demographics(sex; age; race)
+
 
 Add the policy time line in the plot
-
-5. Make the "Description of COVID-19" in one page.
-
-6. ?Maybe we could put the time trend near the map page? but we already have our own website structure.
-
-7. The time trend line curve. Use weekly data so that fix the data problem.
-
-8. The black lines on the pie charts? in Demographics shiny app. Fix it.
-
-9. Write where the data sources from.
-
-10. Group name!! in Demographics app person 1 **people** 2 !!!
-
-11. Write the introduction of the website.
-
-12. Combine all the things into one website!!
-
 
 
 
