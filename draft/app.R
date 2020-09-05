@@ -783,6 +783,56 @@ incidencerate = function(date){
   p1
 }
 
+######projection data#########
+train_data =read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 3) %>% 
+  janitor::clean_names() %>% 
+  separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
+  mutate(new_cases_value = as.numeric(new_cases_value),
+         new_cases_lower = as.numeric(new_cases_lower),
+         new_cases_upper = as.numeric(new_cases_upper))%>% 
+  separate(col = new_deaths, into = c("new_deaths_value","new_deaths_lower","new_deaths_upper")) %>%
+  mutate(new_deaths_value = as.integer(new_deaths_value),
+         new_deaths_lower = as.integer(new_deaths_lower),
+         new_deaths_upper = as.integer(new_deaths_upper)
+  ) %>% 
+  separate(col = new_total_hospitalizations, into = c("new_hosp_value","new_hosp_lower","new_hosp_upper")) %>%
+  mutate(new_hosp_value = as.integer(new_hosp_value),
+         new_hosp_lower = as.integer(new_hosp_lower),
+         new_hosp_upper = as.integer(new_hosp_upper),
+         date = as.Date(date,format = "%m/%d/%y")
+  ) 
+
+project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>% 
+  janitor::clean_names() %>% 
+  separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
+  mutate(new_cases_value = as.numeric(new_cases_value),
+         new_cases_lower = as.numeric(new_cases_lower),
+         new_cases_upper = as.numeric(new_cases_upper)
+  ) %>% 
+  separate(col = new_deaths, into = c("new_deaths_value","new_deaths_lower","new_deaths_upper")) %>%
+  mutate(new_deaths_value = as.integer(new_deaths_value),
+         new_deaths_lower = as.integer(new_deaths_lower),
+         new_deaths_upper = as.integer(new_deaths_upper)) %>% 
+  separate(col = new_total_hospitalizations, into = c("new_hosp_value","new_hosp_lower","new_hosp_upper")) %>%
+  mutate(new_hosp_value = as.integer(new_hosp_value),
+         new_hosp_lower = as.integer(new_hosp_lower),
+         new_hosp_upper = as.integer(new_hosp_upper),
+         date = as.Date(date,format = "%m/%d/%y"),
+         week = format(date, format="%Y-%U")) 
+
+
+#select seasonality
+season = train_data %>% distinct(seasonality) %>% pull()
+#select location
+location = train_data %>% distinct(location) %>% pull()
+#select intervention
+intervention = project_data %>% distinct(intervention) %>% pull()
+
+
+
+
+
+####################
 
 ## ui
 ui <- navbarPage(
@@ -1039,7 +1089,7 @@ ui <- navbarPage(
            ######### Added by 2020-09-03 ############
            fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths Map video by ZCTAs"))),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1,uiOutput("mapvideo"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
            #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
            br(),
            
@@ -1319,15 +1369,38 @@ ui <- navbarPage(
   ),
   
   tabPanel("Projection",
-           fluidRow(column(10, offset = 1, h2("Projection")),
-                    column(10, offset = 1, div(img(src = "msph-n-bios2.JPG", height = "100%",width = "100%"),
-                                               style="text-align: center;")),
-                    column(10, offset = 1,helpText("MSPH photo source: https://globalcenters.columbia.edu/content/yusuf-hamied-fellowships-program")),
-                    column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
-                    column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
+           fluidRow(column(10, offset = 1, h2("NYC COVID-19 Projection")),
+           column(width = 10, offset = 1, h4("Model by Columbia")),
            br(),
+           column(width = 10, offset = 1, span(htmlOutput("Projecttext"), style="font-size: 15px; line-height:150%")),
+           column(width = 10, offset = 1, helpText(paste("Train Data last updated: ", max(train_data$date)))),
+           column(4, offset = 1,
+                  selectInput("season", 
+                              label = "Choose Seasonality Assumption", 
+                              choices = season
+                  )),
+           column(4, offset = 1,
+                  selectInput("loc_proj", 
+                              label = "Choose a location", 
+                              choices = location
+                  )),
+           column(4, offset = 1,
+                  selectInput("interve", 
+                              label = "Choose intervention", 
+                              choices = intervention
+                  )),
+           
+             column(10, offset = 1, h5("New Cases")),
+             column(10, offset = 1, plotlyOutput("proj_line_case", width="100%",height="80%")),
+             column(10, offset = 1, h5("New Deaths")),
+             column(10, offset = 1, plotlyOutput("proj_line_deat", width="100%",height="80%")),
+             column(10, offset = 1, h5("New Total Hospitalizations")),
+             column(10, offset = 1, plotlyOutput("proj_line_hosp", width="100%",height="80%")),
+             column(10, offset = 1, helpText("Data Sources: https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC"))),
+           
+           
            fluidRow(align="center",
-                    span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+                    span(htmlOutput("bannertext7", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
   letter-spacing: 0.3px;font-size:18px")),
                     #span(htmlOutput("sharetext", style="color:white")),
                     #br(),
@@ -1531,8 +1604,8 @@ ui <- navbarPage(
                     column(10, offset = 1, div(img(src = "msph-n-bios2.JPG", height = "100%",width = "100%"),
                                                style="text-align: center;")),
                     column(10, offset = 1,helpText("MSPH photo source: https://globalcenters.columbia.edu/content/yusuf-hamied-fellowships-program")),
-                    column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
-                    column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
+                    column(10, offset = 1,span(htmlOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
+                    column(10, offset = 1,span(htmlOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
            br(),
            fluidRow(align="center",
                     span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
@@ -1620,6 +1693,11 @@ server <- function(input, output) {
   })
   
   output$bannertext6 = renderText({
+    return(
+      "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
+    )
+  })
+  output$bannertext7 = renderText({
     return(
       "<b> NYC </b> Neighborhoods <b> COVID-19 </b> Dashboard"
     )
@@ -3131,6 +3209,110 @@ Keep one decimal for all numbers.")
     h6(tags$video(src = 'test.mp4',type = "video/mp4", width = "100%", controls = "controls"))
 
   })
+  
+  
+  output$proj_line_case = renderPlotly({
+    train_data_sel = train_data %>% 
+      filter(seasonality == input$season  & location == input$loc_proj) 
+    season_city_newcases = project_data %>% 
+      filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+    b = ggplot() + 
+      geom_line(data = train_data_sel ,aes(x = date, y = new_cases_value,group = 1)) +
+      geom_point(data = train_data_sel , aes(x = date, y = new_cases_value)) +
+      theme_minimal() +
+      #theme(legend.position = "none")+
+      #theme(panel.spacing.y=unit(2, "lines")) + 
+      #ggplot(season_city_newcases) + 
+      geom_path(data = season_city_newcases,aes(y=new_cases_value, x=date, colour = "Projected Median Number",group = 1))+
+      geom_ribbon(data = season_city_newcases, aes(ymin=new_cases_lower, 
+                                                   ymax=new_cases_upper, 
+                                                   x=date, fill = "IQR"), alpha = 0.2,group = 1) + 
+      scale_colour_manual("",values="red") + 
+      scale_fill_manual("",values="grey12") + 
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(panel.spacing.y=unit(1, "lines")) + 
+      theme(legend.position = "none")+
+      xlab("") + 
+      ylab("") + 
+      ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
+    
+    ggplotly(b)
+  })
+  
+  output$proj_line_deat = renderPlotly({
+    train_data_sel = train_data %>% 
+      filter(seasonality == input$season  & location == input$loc_proj) 
+    season_city_newcases = project_data %>% 
+      filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+    
+    b = ggplot() + 
+      geom_line(data = train_data_sel ,aes(x = date, y = new_deaths_value,group = 1)) +
+      geom_point(data = train_data_sel , aes(x = date, y = new_deaths_value)) +
+      theme_minimal() +
+      #theme(legend.position = "none")+
+      #theme(panel.spacing.y=unit(2, "lines")) + 
+      #ggplot(season_city_newcases) + 
+      geom_path(data = season_city_newcases,aes(y=new_deaths_value, x=date, colour = "Projected Median Number",group = 1))+
+      geom_ribbon(data = season_city_newcases, aes(ymin=new_deaths_lower, 
+                                                   ymax=new_deaths_upper, 
+                                                   x=date, fill = "IQR"), alpha = 0.2,group = 1) + 
+      scale_colour_manual("",values="red") + 
+      scale_fill_manual("",values="grey12") + 
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(panel.spacing.y=unit(1, "lines")) + 
+      theme(legend.position = "none")+
+      xlab("") + 
+      ylab("") + 
+      ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
+    
+    ggplotly(b)
+  })
+  
+  output$proj_line_hosp = renderPlotly({
+    train_data_sel = train_data %>% 
+      filter(seasonality == input$season  & location == input$loc_proj) 
+    season_city_newcases = project_data %>% 
+      filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+    
+    
+    b = ggplot() + 
+      geom_line(data = train_data_sel ,aes(x = date, y = new_hosp_value,group = 1)) +
+      geom_point(data = train_data_sel , aes(x = date, y = new_hosp_value)) +
+      theme_minimal() +
+      #theme(legend.position = "none")+
+      #theme(panel.spacing.y=unit(2, "lines")) + 
+      #ggplot(season_city_newcases) + 
+      geom_path(data = season_city_newcases,aes(y=new_hosp_value, x=date, colour = "Projected Median Number",group = 1))+
+      geom_ribbon(data = season_city_newcases, aes(ymin=new_hosp_lower, 
+                                                   ymax=new_hosp_upper, 
+                                                   x=date, fill = "IQR"), alpha = 0.2,group = 1) + 
+      scale_colour_manual("",values="red") + 
+      scale_fill_manual("",values="grey12") + 
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(panel.spacing.y=unit(1, "lines")) + 
+      theme(legend.position = "none")+
+      xlab("") + 
+      ylab("") + 
+      ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
+    
+    ggplotly(b)
+  })
+  
 }
 
 shinyApp(ui, server)
