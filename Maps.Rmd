@@ -28,10 +28,10 @@ Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>%
   mutate(month = 4) %>% 
   select(zipcode,positive,month, date) 
 
-Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>% 
+#Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>% 
   #rename(zipcode = MODZCTA) %>% 
-  mutate(month = 4) %>% 
-  select(MODZCTA,positive,month, date) 
+  #mutate(month = 4) %>% 
+  #select(MODZCTA,positive,month, date) 
 
 
 
@@ -50,8 +50,7 @@ final_Junedata <- read_csv("data/final_Junedata.csv")%>%
 final_Julydata = read_csv("data/final_Julydata.csv") %>% 
   mutate(date = day(day),
          month = month(day)) %>% 
-  select(zipcode,positive,month, date) 
-
+  select(zipcode,positive,month, date)
 
 #data = rbind(Aprildata_with_nebhod, finalMaydata)
 data <- rbind(finalMaydata,final_Junedata)
@@ -129,7 +128,28 @@ df.p = subset(df.p, !is.na(positive))
 data_break_may =  data_break %>% 
     dplyr::filter(month == 7) 
 
-for (i in 1:31) {
+for (i in 1:9) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(positive))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 7 ,"/0" ,i,"/2020"))
+
+    ggsave(filename = paste0("2020-FromApritoJuly","7-0",i,".png"), plot = a, path = "./allpics/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+for (i in 10:31) {
      p =  data_break_may %>% 
     dplyr::filter(date == i) %>% 
    mutate(MODZCTA = as.character(MODZCTA)) %>% 
@@ -144,28 +164,36 @@ for (i in 1:31) {
     scale_fill_brewer(palette = "OrRd",direction = 1) + 
     labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 7 ,"/" ,i,"/2020"))
 
-    ggsave(filename = paste0("2020-FromApritoJuly","7-",i,".png"), plot = a, path = "./allpics/May",width = 20, height = 20, units = "cm")
+    ggsave(filename = paste0("2020-FromApritoJuly","7-",i,".png"), plot = a, path = "./allpics/",width = 20, height = 20, units = "cm")
   
   
 }
 
 
+#system("ffmpeg -i warming.mp4 -vf 'setpts=2*PTS' warming_slow.mp4")
 ```
 
 ```{r}
 library(magick)
-list.files(path='./allpics/July', pattern = '*.png', full.names = TRUE) %>% 
+list.files(path='./allpics/', pattern = '*.png', full.names = TRUE) %>% 
         image_read() %>% # reads each path file
         image_join() %>% # joins image
         image_animate(fps=4) %>% # animates, can opt for number of loops
         image_write("JulyMap.gif")
+
 ```
 
 ```{r}
-animate_p = image_animate(image=image_read(path=paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/allpics/2020-FromApritoJuly",i,".png")))
 
-anim_save(filename = "aprmap.gif",animation = animate_p,path="/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics")
+#animate_p = image_animate(image=image_read(path=paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/allpics/2020-FromApritoJuly7-9.png")))
+animate_p = image_animate(image=image_read(list.files(path='./allpics/July', pattern = '*.png', full.names = TRUE)))
 
-print(animate_p)
+
+av::av_encode_video(list.files(path='./allpics/', pattern = '*.png', full.names = TRUE), framerate = 4,
+                    output = 'test.mp4')
+
+#anim_save(filename = "aprmap.gif",animation = animate_p,path="/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data/pics")
+
+#print(animate_p) # too fast
 ```
 

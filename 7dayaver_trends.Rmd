@@ -76,36 +76,5 @@ df.ave = data_trend2 %>%
          ave.case_rate = round(ave.case_rate),ave.death_rate = round(ave.death_rate),
          ave.new_case = round(ave.new_case),ave.incidence_rate = round(ave.incidence_rate))
 
-ggplot(df1, aes(x = day, y = positive)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_classic() + theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    plot.title = element_text(hjust = 0, size = 14)
-  )
-df1 = df.ave %>% filter(zipcode == "10001")
-ggplot(df1, aes(x = day, y = covid_death_count)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = day, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_classic() + theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    plot.title = element_text(hjust = 0, size = 14)
-  )
-
-ggplot(df1, aes(x = day, y = covid_case_rate)) + 
-  geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + 
-  geom_line(aes(x = day, y = ave.case_rate), color = "black", size = 1) + 
-  ggtitle("New reported deaths by day in New York City") + 
-  theme_classic() + theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    plot.title = element_text(hjust = 0, size = 14)
-  )
-
-ggplot(df1, aes(x = day, y = newcases)) + 
-  geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + 
-  geom_line(aes(x = day, y = ave.new_case), color = "black", size = 1) + 
-  ggtitle("New case by day in New York City") + 
-  theme_classic() + theme(
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    plot.title = element_text(hjust = 0, size = 14)
-  )
 ```
 

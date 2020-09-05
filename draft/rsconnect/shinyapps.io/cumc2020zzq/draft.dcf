@@ -1,0 +1,12 @@
+name: draft
+title: draft
+username:
+account: cumc2020zzq
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2750418
+bundleId: 3590282
+url: https://cumc2020zzq.shinyapps.io/draft/
+when: 1599164660.77534
+asMultiple: FALSE
+asStatic: FALSE

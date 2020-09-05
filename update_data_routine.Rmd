@@ -15,7 +15,7 @@ library(lubridate)
 # Date change
 ```{r}
 #today = Sys.Date()
-today = as.Date("2020-08-30")
+today = as.Date("2020-09-05")
 
 yesterday = today - 1
 
@@ -216,6 +216,8 @@ borocase_cum <- borocase %>% select(date_of_interest, boro, starts_with("cum"))
 
 write.csv(borocase_new, "nyc-neighborhoods-covid/data/boro_newcase_trend.csv")
 write.csv(borocase_cum, "nyc-neighborhoods-covid/data/boro_cumcase_trend.csv")
+#write.csv(borocase_new, "projection/data/boro_newcase_trend.csv")
+#write.csv(borocase_cum, "projection/data/boro_cumcase_trend.csv")
 #write.csv(borocase_new, "data/boro_newcase_trend.csv")
 #write.csv(borocase_cum, "data/boro_cumcase_trend.csv")
 ```

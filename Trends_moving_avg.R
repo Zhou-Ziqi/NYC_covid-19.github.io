@@ -6,7 +6,7 @@ library(RColorBrewer)
 borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
 
 
-boro_incidence_case_day = borocase_new %>% 
+boro_incidence_case_daily = borocase_new %>% 
   mutate(boro = factor(boro)) %>% 
   # filter(date_of_interest %in% week) %>%
   rename(hospitalization_count = hospitalized_count) %>% 
@@ -38,7 +38,7 @@ boro_incidence_case_day = borocase_new %>%
   arrange(newtype)
 
 
-NBH_trends1 = boro_incidence_case_day %>% distinct(boro) %>% pull()
+NBH_trends1 = boro_incidence_case_day %>% distinct(Borough) %>% pull()
 choices_trend_mvag = c("Total Cases", "Total Deaths","Total Hospitalizations") 
 choices_trend_mvag_rate = c("Case Rate (per 100,000 people)", "Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)")
 
@@ -48,23 +48,23 @@ choices_trend_mvag_rate = c("Case Rate (per 100,000 people)", "Death Rate (per 1
 ui =  fluidPage(
   
   
-  fluidRow(column(width = 9,selectInput("choices_trend_mvag", 
+  fluidRow(column(width = 10,offset = 1 ,selectInput("choices_trend_mvag", 
                                         label = "Choose an outcome", 
                                         choices = choices_trend_mvag
                                         )),
            
-           column(width = 9, 
-                 plotlyOutput("trendsmoving_avg")),
+           column(width = 10,offset = 1 , 
+                 plotlyOutput("trendsmoving_avg",width = "100%", height = "100%")),
            
   ),
   
-  fluidRow(column(width = 9,selectInput("choices_trend_mvag_rate", 
+  fluidRow(column(width = 10,offset = 1 ,selectInput("choices_trend_mvag_rate", 
                                           label = "Choose an outcome", 
                                           choices = choices_trend_mvag_rate
   )),
   
-  column(width = 9, 
-         plotlyOutput("trendsmoving_avg_rate"))
+  column(width = 10,offset = 1 , 
+         plotlyOutput("trendsmoving_avg_rate",width = "100%", height = "100%"))
   )
   
   
@@ -78,7 +78,7 @@ server = function(input, output) {
   
   output$trendsmoving_avg = renderPlotly({
     
-    borocase_new_day_bx_case = borocase_new_day %>% 
+    borocase_new_day_bx_case = boro_incidence_case_day %>% 
       filter(type == input$choices_trend_mvag ) %>% 
       select(-newtype,-Rate)
     
@@ -114,7 +114,9 @@ server = function(input, output) {
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
       theme(panel.spacing.y=unit(1, "lines")) + 
-        facet_wrap(.~Borough, scales = "free")
+        facet_wrap(.~Borough, scales = "free") + 
+      xlab("") + 
+      ylab("")
       
       ggplotly(a)
     
@@ -123,7 +125,7 @@ server = function(input, output) {
   
   output$trendsmoving_avg_rate = renderPlotly({
     
-    borocase_new_day_bx_case = borocase_new_day %>% 
+    borocase_new_day_bx_case = boro_incidence_case_day %>% 
       filter(newtype == input$choices_trend_mvag_rate ) %>% 
       select(-newtype,-Rate)
     
@@ -159,7 +161,9 @@ server = function(input, output) {
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(legend.title = element_blank()) +
       theme(panel.spacing.y=unit(1, "lines")) + 
-      facet_wrap(.~Borough, scales = "free")
+      facet_wrap(.~Borough, scales = "free") + 
+      xlab("") + 
+      ylab("")
     
     ggplotly(a)
     
