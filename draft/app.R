@@ -1033,6 +1033,7 @@ ui <- navbarPage(
              
     )
   ),
+
   tabPanel(title = "COVID-19 Trends",
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Trends"))),
            ######### Added by 2020-09-03 ############
@@ -1317,7 +1318,54 @@ ui <- navbarPage(
            )
   ),
   
-  
+  tabPanel("Projection",
+           fluidRow(column(10, offset = 1, h2("Projection")),
+                    column(10, offset = 1, div(img(src = "msph-n-bios2.JPG", height = "100%",width = "100%"),
+                                               style="text-align: center;")),
+                    column(10, offset = 1,helpText("MSPH photo source: https://globalcenters.columbia.edu/content/yusuf-hamied-fellowships-program")),
+                    column(10, offset = 1,span(uiOutput("abouttext",style = "font-size: 15px; line-height:150%"))),
+                    column(10, offset = 1,span(uiOutput("abouttext2",style = "font-size: 15px; line-height:150%")))),
+           br(),
+           fluidRow(align="center",
+                    span(htmlOutput("bannertext5", style="color:white;font-family: sans-serif, Helvetica Neue, Arial;
+  letter-spacing: 0.3px;font-size:18px")),
+                    #span(htmlOutput("sharetext", style="color:white")),
+                    #br(),
+                    #img(src='bottomlogo.png', height="20%", width="20%"),
+                    h5("Share on", style="color:white;font-size:12px"),
+                    actionButton("twitter_index",
+                                 label = "",
+                                 icon = icon("twitter"),
+                                 onclick = sprintf("window.open('%s')", url1),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("fb_index",
+                                 label = "",
+                                 icon = icon("facebook"),
+                                 onclick = sprintf("window.open('%s')", url2),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    #actionButton("ins_index",
+                    #             label = "",
+                    #             icon = icon("instagram"),
+                    #             onclick = sprintf("window.open('%s')", url3),
+                    #             style = "border-color: #FFFFFF;"),
+                    actionButton("linkedin_index",
+                                 label = "",
+                                 icon = icon("linkedin"),
+                                 onclick = sprintf("window.open('%s')", url4),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("whats_index",
+                                 label = "",
+                                 icon = icon("whatsapp"),
+                                 onclick = sprintf("window.open('%s')", url6),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    actionButton("email_index",
+                                 label = "",
+                                 icon = icon("envelope"),
+                                 onclick = sprintf("window.open('%s')", url5),
+                                 style = "border-color: #225091;color: #fff; background-color: #225091;"),
+                    style = "background-color:#225091;padding-top:40px;padding-bottom:40px;"
+                    
+           )),
   
   tabPanel(title = "Neighborhoods",
            fluidRow(column(10, offset = 1, h2("NYC Neighborhood Characteristics"))),
