@@ -15,7 +15,7 @@ library(lubridate)
 # Date change
 ```{r}
 #today = Sys.Date()
-today = as.Date("2020-09-05")
+today = as.Date("2020-09-10")
 
 yesterday = today - 1
 

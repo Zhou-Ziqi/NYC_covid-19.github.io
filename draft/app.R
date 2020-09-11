@@ -800,7 +800,11 @@ train_data =read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 3) %>%
          new_hosp_lower = as.integer(new_hosp_lower),
          new_hosp_upper = as.integer(new_hosp_upper),
          date = as.Date(date,format = "%m/%d/%y")
-  ) 
+  ) %>% 
+  mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
+         seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
+         location = str_replace_all(location, "city","City")
+         )
 
 project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>% 
   janitor::clean_names() %>% 
@@ -818,7 +822,11 @@ project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>%
          new_hosp_lower = as.integer(new_hosp_lower),
          new_hosp_upper = as.integer(new_hosp_upper),
          date = as.Date(date,format = "%m/%d/%y"),
-         week = format(date, format="%Y-%U")) 
+         week = format(date, format="%Y-%U")) %>% 
+  mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
+         seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
+         location = str_replace_all(location, "city","City")
+  )
 
 
 #select seasonality
@@ -1105,18 +1113,21 @@ ui <- navbarPage(
            )),
            
            column(width = 10,offset = 1 , 
-                  plotlyOutput("trendsmoving_avg",width = "100%", height = "100%")),
+                  plotlyOutput("trendsmoving_avg",width = "100%", height = "600px"))
+         
            
            ),
-           
-           fluidRow(column(width = 10,offset = 1 ,selectInput("choices_trend_mvag_rate", 
+           br(),
+           fluidRow(
+                    column(width = 10,offset = 1 ,selectInput("choices_trend_mvag_rate", 
                                                               label = "Data Display", 
                                                               choices = choices_trend_mvag_rate
            )),
            column(width = 10,offset = 1 , 
-                  plotlyOutput("trendsmoving_avg_rate",width = "100%", height = "100%"))
-           ),
+                  plotlyOutput("trendsmoving_avg_rate",width = "100%", height = "600px"))
            
+           ),
+           br(),
            ##################
            fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths trends by borough"))),
            
@@ -1368,7 +1379,7 @@ ui <- navbarPage(
            )
   ),
   
-  tabPanel("Projection",
+  tabPanel("COVID-19 Projection",
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Projection")),
            column(width = 10, offset = 1, h4("Model by Columbia")),
            br(),
@@ -3087,9 +3098,9 @@ Keep one decimal for all numbers.")
     if (input$choices_trend_mvag == "Total Cases") {
       clr = "#F6BDBC"
     } else if (input$choices_trend_mvag == "Total Deaths") {
-      clr = "#0077C8"
+      clr = "#87c7ed"
     } else if (input$choices_trend_mvag == "Total Hospitalizations") {
-      clr = "#7bdb9e"
+      clr = "#aaed93"
       
     }
     
@@ -3115,6 +3126,22 @@ Keep one decimal for all numbers.")
     df.ave = borocase_new_day_bx_case  %>% 
       mutate(ave_cases = round(ave.cases))
     
+    x_min = min(df.ave$Date)		
+    x_max = max(df.ave$Date)		
+    if (as.numeric(x_max - x_min) < 15 ) {		
+      break.vec <- seq( x_min, x_max, by = "day")		
+    } else {		
+      if (as.numeric(x_max - x_min) %% 3 == 2) {		
+        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + x_min, x_max, by = "3 days"))		
+      } else {		
+        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + 3 + x_min, x_max, by = "3 days"))		
+      }		
+    }
+    
+    break.vec = pretty(break.vec,n=9)
+    break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
+    length(break.vec)
+    
     a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.8) + 
       geom_line(aes(x = Date, y = ave.cases), color = "red", size = 1) + 
       ggtitle(paste0(input$choices_trend_mvag, " in different Boroughs")) + theme_classic() + 
@@ -3127,10 +3154,11 @@ Keep one decimal for all numbers.")
       theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
       theme(axis.line = element_line(colour = "black")) +
       theme(strip.background = element_blank()) + 
-      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1, size = 7.5)) +
       theme(legend.title = element_blank()) +
       theme(panel.spacing.y=unit(1, "lines")) + 
       facet_wrap(.~Borough, scales = "free") + 
+      scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
       xlab("") + 
       ylab("")
     
@@ -3145,13 +3173,14 @@ Keep one decimal for all numbers.")
     borocase_new_day_bx_case = boro_incidence_daily %>% 
       filter(newtype == input$choices_trend_mvag_rate ) %>% 
       select(-newtype,-Rate)
+  
     
     if (input$choices_trend_mvag_rate == "Case Rate (per 100,000 people)") {
       clr = "#F6BDBC"
     } else if (input$choices_trend_mvag_rate == "Death Rate (per 100,000 people)") {
-      clr = "#0077C8"
+      clr = "#87c7ed"
     } else if (input$choices_trend_mvag_rate == "Hospitalization Rate (per 100,000 people)") {
-      clr = "#7bdb9e"
+      clr = "#aaed93"
       
     }
     
@@ -3177,6 +3206,22 @@ Keep one decimal for all numbers.")
     df.ave = borocase_new_day_bx_case  %>% 
       mutate(ave_cases = round(ave.cases))
     
+    x_min = min(df.ave$Date)		
+    x_max = max(df.ave$Date)		
+    if (as.numeric(x_max - x_min) < 15 ) {		
+      break.vec <- seq( x_min, x_max, by = "day")		
+    } else {		
+      if (as.numeric(x_max - x_min) %% 3 == 2) {		
+        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + x_min, x_max, by = "3 days"))		
+      } else {		
+        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + 3 + x_min, x_max, by = "3 days"))		
+      }		
+    }
+    
+    break.vec = pretty(break.vec,n=9)
+    break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
+    length(break.vec)
+    
    
       a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.8) + 
         geom_line(aes(x = Date, y = ave.cases), color = "red", size = 1) + 
@@ -3190,8 +3235,10 @@ Keep one decimal for all numbers.")
         theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
         theme(axis.line = element_line(colour = "black")) +
         theme(strip.background = element_blank()) + 
+        theme(axis.text.x = element_text(angle = 65, hjust = 1, size = 7.5)) +
         theme(legend.title = element_blank()) +
         theme(panel.spacing.y=unit(1, "lines")) + 
+        scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
         facet_wrap(.~Borough, scales = "free") + 
         xlab("") + 
         ylab("")
@@ -3202,11 +3249,11 @@ Keep one decimal for all numbers.")
   
   
   output$trends_video_text = renderText({
-    return("This is the map video which shows the destribution of COVID-19 at ZCTAs level.")
+    return("This is the map video which shows the destribution of COVID-19 at ZCTAs level. Please Choose 1080p by setting in the video")
   })
   
   output$mapvideo = renderUI({
-    h6(tags$video(src = 'test.mp4',type = "video/mp4", width = "100%", controls = "controls"))
+    h6(tags$iframe(src = "https://www.youtube.com/embed/XfAw5dJkXfc",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
 
   })
   

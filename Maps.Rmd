@@ -33,9 +33,6 @@ Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") %>%
   #mutate(month = 4) %>% 
   #select(MODZCTA,positive,month, date) 
 
-
-
-
 finalMaydata <- read_csv("data/May_data.csv") %>% 
 mutate(month = 5,
        zipcode = modified_zcta) %>% 
@@ -52,10 +49,172 @@ final_Julydata = read_csv("data/final_Julydata.csv") %>%
          month = month(day)) %>% 
   select(zipcode,positive,month, date)
 
+
 #data = rbind(Aprildata_with_nebhod, finalMaydata)
 data <- rbind(finalMaydata,final_Junedata)
 data <- rbind(data,final_Julydata)
+```
 
+
+```{r}
+Aug_data = read_csv("nyc-neighborhoods-covid/data/Aug19data.csv") %>% 
+  rename("covid_case_count" = positive,
+         modified_zcta = zipcode,
+         date = day) 
+```
+
+
+
+```{r}
+newdeath = 0
+
+for (i in 1:177) {
+  newdeath[i] = 0 
+
+}
+
+for (i in 178:3186) {
+  newdeath[i] = Aug_data[i,7] - Aug_data[i-177,7]
+}
+
+Aug_data = Aug_data %>% 
+  mutate(newdeath = newdeath,
+         newdeath = as.integer(newdeath)) %>% 
+  filter(date != "2020-08-01") %>% 
+  rename(
+         new_death = newdeath) %>% 
+  mutate(new_case = as.numeric(new_case),
+         new_death = as.numeric(new_death),
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) ) 
+
+aug01_1 = aug01_1 %>% 
+  rename(new_case = newcases)
+Aug_data = rbind(aug01_1,Aug_data)
+
+
+```
+
+
+```{r}
+aug01 = Aug_data %>% 
+  filter(date == min(date))
+July31 = July31 %>% 
+  rename("covid_case_count" = positive,
+         modified_zcta = zipcode,
+         date = day)
+data01 = rbind(aug01, July31) 
+
+new_death = 0
+
+for (i in 1:177) {
+  #new_case[i] = data01[i,4] - data01[i+177,4]
+  #new_case
+  
+  new_death[i] = data01[i,7] - data01[i+177,7]
+  new_death
+}
+
+for (i in 178:354) {
+  
+  #new_case[i] = NA
+  
+  new_death[i] = NA
+}
+
+
+  
+```
+
+#read the new aug data
+today-yesterday = today new
+```{r}
+aug19 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta819.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-19")) 
+
+aug20 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta820.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-20"))
+aug21 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta821.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-21")) 
+
+aug22 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta822.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-22")) 
+aug23 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta823.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-23")) 
+aug24 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta824.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-24")) 
+aug25 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta825.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-25")) 
+aug26 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta826.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-26")) 
+aug27 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta827.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-27")) 
+aug28 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta828.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-28")) 
+aug29 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta829.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-29")) 
+aug30 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta830.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-30")) 
+aug31 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta831.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-31")) 
+
+sep01 = read_csv("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta91.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-01")) 
+
+
+NewAugdata = rbind(aug19_1, aug20_1)
+NewAugdata = rbind(NewAugdata, aug21_1)
+NewAugdata = rbind(NewAugdata, aug22_1)
+NewAugdata = rbind(NewAugdata, aug23_1)
+NewAugdata = rbind(NewAugdata, aug24_1)
+NewAugdata = rbind(NewAugdata, aug25_1)
+NewAugdata = rbind(NewAugdata, aug26_1)
+NewAugdata = rbind(NewAugdata, aug27_1)
+NewAugdata = rbind(NewAugdata, aug28_1)
+NewAugdata = rbind(NewAugdata, aug29_1)
+NewAugdata = rbind(NewAugdata, aug30_1)
+NewAugdata = rbind(NewAugdata, aug31_1)
+
+#write_csv(NewAugdata, "./data/NewAugdata")
+
+Augdata = rbind(Aug_data,NewAugdata)
+#write_csv(Augdata, "./data/Augdata_final.csv")
+```
+
+
+data we have
+from May 18 to Aug 31
+
+```{r}
+May18to30 = read_csv("data/May_data.csv") %>% 
+  filter(date >= 19)
+  
+Juneall = read_csv("data/final_Junedata.csv") %>% 
+  select(-X1)
+
+
+
+Julyall = read_csv("data/final_Julydata.csv") %>% 
+
+#Augdata is from august 1 to 31
+Augdata
+```
+
+```{r}
+data <- rbind(data,final_Aug_data)
 data = data %>% 
   rename(MODZCTA = zipcode)
 #data <- rbind(data,Augdata)
