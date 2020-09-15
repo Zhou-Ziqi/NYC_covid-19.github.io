@@ -15,7 +15,7 @@ library(lubridate)
 # Date change
 ```{r}
 #today = Sys.Date()
-today = as.Date("2020-09-11")
+today = as.Date("2020-09-14")
 
 yesterday = today - 1
 
@@ -87,12 +87,7 @@ newdata = rbind(newdata,data_today)
 #write_csv(newdata,paste0("./data/modzcta_until",month(today),day(today),".csv"))
 write_csv(newdata,paste0("nyc-neighborhoods-covid/data/modzcta_until",month(today),day(today),".csv"))
 
-
 ```
-
-
-Aug19data <- read_csv("data/Aug19data.csv") %>% 
-  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,newcases)
 
 ### COVID-19 by demo
 
@@ -139,11 +134,10 @@ write_csv(byrace,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/d
 #write_csv(byrace,"nyc-neighborhoods-covid/distribution_of_covid-19/data/BYRACE_demoage_data.csv") 
 ```
 
+
 #### by sex
 ```{r}
-#bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv")) 
-bysex = read_csv("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
-
+bysex = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv")) 
 
 bysex_new = read_csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/boro/boroughs-by-sex.csv")) %>% 
   pivot_longer(BK_CASE_COUNT:SI_DEATH_RATE,
@@ -159,9 +153,6 @@ bysex = rbind(bysex, bysex_new)
 write_csv(bysex,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv")) 
 #write_csv(bysex,"nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_data_sex.csv") 
 ```
-
-
-
 
 
 # Weekly Update

@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-09-12")
+today = as.Date("2020-09-14")
 yesterday = today - 1
 
 ##
@@ -684,7 +684,8 @@ death_rate = function(date){
 newcase = function(date){
   
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
-    mutate(new_case = as.numeric(new_case))
+    mutate(new_case = as.numeric(new_case)) %>% 
+    filter(new_case >= 0)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_case))
   pal <- colorNumeric("Greens", domain=data_to_plot_geo$new_case)
@@ -1041,7 +1042,7 @@ ui <- navbarPage(
                                                          "Total Cases" = "pocase", 
                                                          "Total Deaths" = "death", 
                                                          "Case Rate (per 100,000 people)" = "porate", 
-                                                         "Death Rate(per 100,000 people)" = "derate",
+                                                         "Death Rate (per 100,000 people)" = "derate",
                                                          "New Cases" = "newcase",
                                                          "Incidence Rate (per 100,000 people)" = "incdrate"
                                                        ),
