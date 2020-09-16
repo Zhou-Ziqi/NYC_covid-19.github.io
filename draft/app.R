@@ -579,21 +579,21 @@ boro_incidence_daily = borocase_new %>%
          Date = date_of_interest,
          Count = count,
          Rate = rate) %>% 
-  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
-         type = str_replace_all(type,"Death Count", "Total Deaths"),
-         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
-         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
-  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
-         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(type = str_replace_all(type,"Case Count", "New Cases"),
+         type = str_replace_all(type,"Death Count", "New Deaths"),
+         type = str_replace_all(type,"Hospitalization Count", "New Hospitalizations"),
+         newtype = str_replace_all(newtype,"Case Rate","Incidence Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Death Rate","New Death Rate (per 100,000 people)"),
+         newtype = str_replace_all(newtype,"Hospitalization Rate","New Hospitalization Rate (per 100,000 people)"))%>% 
+  mutate(type = factor(type, levels = c("New Cases","New Deaths","New Hospitalizations")),
+         newtype = factor(newtype, levels = c("Incidence Rate (per 100,000 people)","New Death Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)"))) %>% 
   arrange(type) %>% 
   arrange(newtype)
 
 ####
 #NBH_trends1 = boro_incidence_daily %>% distinct(Borough) %>% pull()
-choices_trend_mvag = c("Total Cases", "Total Deaths","Total Hospitalizations") 
-choices_trend_mvag_rate = c("Case Rate (per 100,000 people)", "Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)")
+choices_trend_mvag = c("New Cases", "New Deaths","New Hospitalizations") 
+choices_trend_mvag_rate = c("Incidence Rate (per 100,000 people)", "New Death Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)")
 ####
 
 
@@ -1095,11 +1095,7 @@ ui <- navbarPage(
   tabPanel(title = "COVID-19 Trends",
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Trends"))),
            ######### Added by 2020-09-03 ############
-           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths Map video by ZCTAs"))),
-           fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
-           #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
-           br(),
+          
            
            
            ######### Added by 2020-09-03 ############
@@ -1163,6 +1159,14 @@ ui <- navbarPage(
            
            hr(),
            ####zipcode trends
+           ###New update###
+           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths Map video by ZCTAs"))),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
+           #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
+           br(),
+           
+           ####
            fluidRow(
              column(10, offset = 1, h4("Trends by NYC ZIP Code Tabulation Areas (ZCTAs)")),
              column(10, offset = 1, helpText(paste("Last updated:",max(weeklydf$day)))),
@@ -3095,12 +3099,21 @@ Keep one decimal for all numbers.")
       filter(type == input$choices_trend_mvag ) %>% 
       select(-newtype,-Rate)
     
-    if (input$choices_trend_mvag == "Total Cases") {
+    if (input$choices_trend_mvag == "New Cases") {
       clr = "#F6BDBC"
-    } else if (input$choices_trend_mvag == "Total Deaths") {
+    } else if (input$choices_trend_mvag == "New Deaths") {
       clr = "#87c7ed"
-    } else if (input$choices_trend_mvag == "Total Hospitalizations") {
+    } else if (input$choices_trend_mvag == "New Hospitalizations") {
       clr = "#aaed93"
+      
+    }
+    
+    if (input$choices_trend_mvag == "New Cases") {
+      cll = "red"
+    } else if (input$choices_trend_mvag == "New Deaths") {
+      cll = "blue"
+    } else if (input$choices_trend_mvag == "New Hospitalizations") {
+      cll = "green"
       
     }
     
@@ -3142,8 +3155,8 @@ Keep one decimal for all numbers.")
     break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
     length(break.vec)
     
-    a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.8) + 
-      geom_line(aes(x = Date, y = ave.cases), color = "red", size = 1) + 
+    a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.5) + 
+      geom_line(aes(x = Date, y = ave.cases), color = cll, size = 1) + 
       ggtitle(paste0(input$choices_trend_mvag, " in different Boroughs")) + theme_classic() + 
       theme_bw() +
       theme(
@@ -3175,12 +3188,21 @@ Keep one decimal for all numbers.")
       select(-newtype,-Rate)
   
     
-    if (input$choices_trend_mvag_rate == "Case Rate (per 100,000 people)") {
+    if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
       clr = "#F6BDBC"
-    } else if (input$choices_trend_mvag_rate == "Death Rate (per 100,000 people)") {
+    } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
       clr = "#87c7ed"
-    } else if (input$choices_trend_mvag_rate == "Hospitalization Rate (per 100,000 people)") {
+    } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
       clr = "#aaed93"
+      
+    }
+    
+    if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
+      cll = "red"
+    } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
+      cll = "blue"
+    } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
+      cll = "green"
       
     }
     
@@ -3223,8 +3245,8 @@ Keep one decimal for all numbers.")
     length(break.vec)
     
    
-      a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.8) + 
-        geom_line(aes(x = Date, y = ave.cases), color = "red", size = 1) + 
+      a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.5) + 
+        geom_line(aes(x = Date, y = ave.cases), color = cll, size = 1) + 
         ggtitle(paste0(input$choices_trend_mvag_rate, " in different Boroughs")) + theme_classic() + 
         theme_bw() +
         theme(
