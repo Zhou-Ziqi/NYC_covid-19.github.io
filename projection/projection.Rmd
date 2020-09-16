@@ -14,99 +14,7 @@ library(readxl)
 
 # City Level
 
-```{r}
-proje = read_xlsx("./data/WeeklyProjections20200828.xlsx",sheet = 4) %>% 
-  janitor::clean_names()
-```
-
-```{r}
-#seasonality assumed
-#city
-#new infections
-season_city_newinf = proje %>% 
-  filter(seasonality == "Seasonality assumed" & intervention == "As Is" & location == "city") %>% 
-  separate(col = new_infections, into = c("new_infe_value","new_infe_lower","new_infe_upper")) %>%
-  mutate(new_infe_value = as.integer(new_infe_value),
-         new_infe_lower = as.integer(new_infe_lower),
-         new_infe_upper = as.integer(new_infe_upper))
-```
-
-```{r}
-p <- ggplot(season_city_newinf) + 
-  geom_path(aes(y=new_infe_value, x=date, colour = "Projected Median Number",group = 1))+
-  geom_ribbon(aes(ymin=new_infe_lower, 
-                  ymax=new_infe_upper, 
-                  x=date, fill = "IQR"), alpha = 0.2,group = 1) + 
-  
-    scale_colour_manual("",values="red") + 
-    scale_fill_manual("",values="grey12") + 
-    theme_bw() +
-      theme(panel.border = element_blank()) +
-      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
-      theme(axis.line = element_line(colour = "black")) +
-      theme(strip.background = element_blank()) + 
-      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
-      theme(panel.spacing.y=unit(1, "lines")) + 
-  xlab("")+
-  ylab("New Infections")
-p
-```
-
-
 #draw a plot
-first half is the trueth and the second half is the next eight weeks projections.
-
-```{r}
-
-#data clean of first half of
-borocase_new <- read_csv("data/boro_newcase_trend.csv") %>% select(-1)
-borocase_cum <- read_csv("data/boro_cumcase_trend.csv") %>% select(-1)
-week <- as.Date(cut(borocase_cum$date_of_interest, "week")) + 6
-
-weeklydf_new <- borocase_new %>% 
-  mutate(week = week) %>% 
-  group_by(boro,week) %>% 
-  summarise(case_count = sum(case_count),
-            hospitalization_count = sum(hospitalized_count),
-            death_count = sum(death_count)) %>% 
-  pivot_longer(case_count:death_count,
-               names_to = "type",
-               values_to = "count") %>% 
-  mutate(type = str_to_title(str_replace_all(type, "_", " ")),
-         newtype = str_replace_all(paste(type, "Rate"),"Count ",""),
-         pop_num = ifelse(boro == "Bronx", 1434693, 
-                          ifelse(boro == "Brooklyn",2582830, 
-                                 ifelse(boro == "Manhattan",1611943, 
-                                        ifelse(boro == "Staten Island", 476179,
-                                               ifelse(boro == "Queens", 2288710, 2288710))))),
-         rate = round(count/pop_num*1000000,1)) %>% 
-  rename(Borough = boro,
-         Date = week,
-         Count = count,
-         Rate = rate) %>% 
-  mutate(type = str_replace_all(type,"Case Count", "Total Cases"),
-         type = str_replace_all(type,"Death Count", "Total Deaths"),
-         type = str_replace_all(type,"Hospitalization Count", "Total Hospitalizations"),
-         newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
-         newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
-  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
-         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
-  arrange(type) %>% 
-  arrange(newtype)
-```
-```{r}
-weeklydf_new %>% 
-    ggplot(aes(x = Date, y = Count)) + 
-    geom_line(aes(color = Borough)) +
-    geom_point(aes(color = Borough)) +
-    facet_wrap(.~type, scales = "free") +
-    theme_minimal() +
-    #theme(legend.position = "none")+
-    #theme(panel.spacing.y=unit(2, "lines")) + 
-    xlab("") + 
-    ylab("")
-```
 
 
 ###########
@@ -300,7 +208,21 @@ ggplotly(c)
 train_data =read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 3) %>% 
   janitor::clean_names()
 project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>% 
-  janitor::clean_names()
+  janitor::clean_names() %>% 
+  mutate(loca = location) %>% 
+  separate(loca,into = c("uhf","name")) %>% 
+  mutate(uhf = as.integer(uhf))
+
+zipcodedata = read_csv("./data/nyc.zips.uhfs.csv") %>% 
+   mutate(num = "zipcode") %>% 
+  pivot_wider(values_from = zip,
+              names_from = num) 
+
+projt_data = left_join(project_data, zipcodedata)
+
+a = projt_data %>% filter(uhf == 101) 
+
+print(a$zipcode[1])
 ```
 #choose the season assumption
 #choose the location
