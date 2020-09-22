@@ -40,7 +40,25 @@ project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>%
          new_hosp_lower = as.integer(new_hosp_lower),
          new_hosp_upper = as.integer(new_hosp_upper),
          date = as.Date(date,format = "%m/%d/%y"),
-         week = format(date, format="%Y-%U")) 
+         week = format(date, format="%Y-%U")) %>% 
+  mutate(loca = location) %>% 
+  separate(loca,into = c("uhf","name")) %>% 
+  mutate(uhf = as.integer(uhf))
+
+zipcodedata = read_csv("./data/nyc.zips.uhfs.csv") %>% 
+  mutate(num = "zipcode") %>% 
+  pivot_wider(values_from = zip,
+              names_from = num) 
+
+projt_data = left_join(project_data, zipcodedata,by = "uhf")
+
+projt_data = projt_data %>% 
+  mutate(zipcode = str_replace_all(zipcode,"NULL","ALL")) %>% 
+  mutate(zipcode = as.character(zipcode),
+         zipcode = str_replace_all(zipcode,"c",""),
+         zipcode = str_replace_all(zipcode,"\\(",""),
+         zipcode = str_replace_all(zipcode,"\\)",""))
+
 
 
 #select seasonality
@@ -75,11 +93,16 @@ ui = fluidPage(
                        label = "Choose intervention", 
                        choices = intervention
            )),
+    column(4, offset = 1,htmlOutput("uhftext")),
    
     column(width = 10, offset = 1, plotlyOutput("proj_line_case", width = "100%", height = "100%")),
     column(width = 10, offset = 1, plotlyOutput("proj_line_deat", width = "100%", height = "100%")),
-    column(width = 10, offset = 1, plotlyOutput("proj_line_hosp", width = "100%", height = "100%"))
-   
+    column(width = 10, offset = 1, plotlyOutput("proj_line_hosp", width = "100%", height = "100%")),
+    
+    fluidRow(column(width = 10, offset = 1,HTML('<iframe width="560" height="315" src="https://www.youtube.com/embed/T1-k7VYwsHg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'),
+    ))
+    
+    
     #column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))
   )
 )
@@ -113,7 +136,7 @@ server = function(input, output) {
       theme(legend.position = "none")+
       xlab("") + 
       ylab("") + 
-      ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
+      ggtitle(paste0("New Total Hospitalizations Under ", input$interve," Control Scenarios"))
     
     ggplotly(b)
   })
@@ -147,7 +170,7 @@ server = function(input, output) {
       theme(legend.position = "none")+
       xlab("") + 
       ylab("") + 
-      ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
+      ggtitle(paste0("New Deaths Under", input$interve,"Control Scenarios"))
     
     ggplotly(b)
   })
@@ -182,12 +205,22 @@ server = function(input, output) {
       theme(legend.position = "none")+
       xlab("") + 
       ylab("") + 
-      ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
+      ggtitle(paste("New Total Hospitalizations Under", input$interve,"Control Scenarios"))
     
     ggplotly(b)
   })
   
+  output$uhftext = renderText({
+    
+      lo = projt_data %>% filter(location == input$loc_proj)
+      
+    return(lo$zipcode[1])
+  })
   
+  output$mapvideo = renderUI({
+    h6(tags$iframe(src = "https://www.youtube.com/watch?v=FtaFXzIiq8A",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
+    
+  })
   
 }
 

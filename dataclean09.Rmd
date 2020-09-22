@@ -1,0 +1,399 @@
+---
+title: "dataclean"
+author: "Ziqi Zhou"
+date: "9/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(gganimate)
+
+library(magrittr)
+library(leaflet)
+library(maps)
+library(tigris)
+library(sf)
+library(RColorBrewer)
+```
+
+```{r}
+Aprildata_with_nebhod = read_csv("./data/Aprildata_with_nebhod.csv") 
+finalMaydata <- read_csv("data/May_data.csv")
+  
+
+
+#######
+final_Junedata <- read_csv("data/final_Junedata.csv")%>% 
+  select(-newcases_june,total_covid_tests,-X1)
+final_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  select(-newcases,total_covid_tests)
+final_Augdata = read_csv("nyc-neighborhoods-covid/data/modzcta_until920.csv") %>% 
+  select(-newcases)
+
+```
+
+# make the case map and new case map first!
+```{r}
+Aprildf = Aprildata_with_nebhod %>% 
+  rename(zipcode = MODZCTA) %>% 
+  mutate(month = 4) %>% 
+  select(zipcode, month, date, positive)
+  
+Maydf = finalMaydata %>% 
+  select(modified_zcta, month, date, positive) %>% 
+   mutate(month = 5) %>% 
+  rename(zipcode = modified_zcta)
+
+Junedf = final_Junedata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,positive)
+
+Julydf = final_Julydata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,positive)
+
+Augdf = final_Augdata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,positive)
+
+df = rbind(Aprildf,Maydf)
+df = rbind(df, Junedf)
+df = rbind(df, Julydf)
+df = rbind(df,Augdf)
+
+data_break = df %>% 
+  rename(MODZCTA = zipcode)
+data_break$positive = cut(df$positive, 
+                                     breaks = c(0,50,100,200,500,1000,
+                                                2000,3000,4000,10000),
+                                     labels = c('0-50','50-100','100-200','200-500',
+                                                '500-1000','1000-2000',
+                                                '2000-3000','3000-4000','4000+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+# Map
+```{r}
+spdf2 = read_sf("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+```
+
+```{r}
+data_break_may =  data_break %>% 
+    dplyr::filter(month == 9) 
+
+for (i in 1:9) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(positive))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 9 ,"/0" ,i,"/2020"))
+
+    ggsave(filename = paste0("Mapvideo","9-0",i,".png"), plot = a, path = "./allpics/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+for (i in 10:20) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(positive))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = positive)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "OrRd",direction = 1) + 
+    labs(title = paste0("COVID-19 in NYC at ZCTAs level on : ", 9 ,"/" ,i,"/2020"))
+
+    ggsave(filename = paste0("Mapvideo","9-",i,".png"), plot = a, path = "./allpics/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+```
+
+```{r}
+library(magick)
+animate_p = image_animate(image=image_read(list.files(path='./allpics/', pattern = '*.png', full.names = TRUE)))
+
+
+av::av_encode_video(list.files(path='./allpics/', pattern = '*.png', full.names = TRUE), framerate = 4,
+                    output = 'fromApriltoSep20.mp4')
+
+```
+
+# New Cases
+
+```{r}
+newdf = df %>% 
+  arrange(month,date)
+
+newdf[178,4] - newdf[1,4]
+ncase = 0
+
+for (i in 1:177) {
+   ncase[i] = 0
+}
+
+for (i in 178:30090) {
+  ncase[i] = newdf[i,4] - newdf[i-177,4]
+}
+
+newdf = newdf %>% 
+  mutate(newcases = ncase,
+         newcases = as.integer(newcases)) 
+newdf.1 = newdf %>% 
+  filter(newcases >= 0)
+```
+
+```{r}
+newdf.break = newdf.1
+newdf.break$newcases = cut(newdf.1$newcases , 
+                                     breaks = c(0,5,10,20,35,50,
+                                                85,100,250,500,1000),
+                                     labels = c('0-5','5-10','10-20','20-35',
+                                                '35-50','50-85','85-100',
+                                                '100-250','250-500','500+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+```{r}
+data_break_may =  newdf.break %>% 
+    dplyr::filter(month == 6) %>% 
+  rename(MODZCTA = zipcode)
+
+for (i in 1:9) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(newcases))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = newcases)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "Greens",direction = 1) + 
+    labs(title = paste0("COVID-19 New Cases in NYC at ZCTAs level on : ", 6 ,"/0" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newcases","6-0",i,".png"), plot = a, path = "./Newcasesmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+for (i in 10:20) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(newcases))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = newcases)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "Greens",direction = 1) + 
+    labs(title = paste0("COVID-19 New Cases in NYC at ZCTAs level on : ", 9 ,"/" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newcases","9-",i,".png"), plot = a, path = "./Newcasesmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+```
+```{r}
+av::av_encode_video(list.files(path='./Newcasesmap/', pattern = '*.png', full.names = TRUE), framerate = 4,
+                    output = 'NewCasesfromApriltoSep20.mp4')
+```
+
+# Death and New death Map video
+
+```{r}
+Junedf_dea = final_Junedata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,covid_death_count)
+
+Julydf_dea = final_Julydata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,covid_death_count)
+
+Augdf_dea = final_Augdata %>% 
+  mutate(date = day(day),
+         month = month(day)) %>% 
+  select(zipcode,month, date,covid_death_count)
+
+ddf = rbind(Junedf_dea,Julydf_dea)
+ddf = rbind(ddf,Augdf_dea)
+
+ddf = ddf %>% 
+  rename(MODZCTA = zipcode)
+ddf.break = ddf
+ddf.break$covid_death_count = cut(ddf$covid_death_count , 
+                                     breaks = c(0,10,25,50,100,150,250,350,500,1000),
+                                     labels = c('0-10','10-25','25-50','50-100',
+                                                '100-150','150-250','250-350','350-500','500+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+```{r}
+data_break_may =  ddf.break %>% 
+    dplyr::filter(month == 9) 
+
+for (i in 1:9) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(covid_death_count))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = covid_death_count)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "Blues",direction = 1) + 
+    labs(title = paste0("COVID-19 Death in NYC at ZCTAs level on : ", 9 ,"/0" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newcases","9-0",i,".png"), plot = a, path = "./deathsmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+for (i in 10:20) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(covid_death_count))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = covid_death_count)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "Blues",direction = 1) + 
+    labs(title = paste0("COVID-19 Death in NYC at ZCTAs level on : ", 9 ,"/" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newcases","9-",i,".png"), plot = a, path = "./deathsmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+```
+```{r}
+av::av_encode_video(list.files(path='./deathsmap/', pattern = '*.png', full.names = TRUE), framerate = 4,
+                    output = 'DeathCasesfromApriltoSep20.mp4')
+```
+
+# New Death
+
+```{r}
+ddf
+```
+```{r}
+newddf = ddf %>% 
+  arrange(month,date)
+
+newddf[178,4] - newddf[1,4]
+ndea = 0
+
+for (i in 1:177) {
+   ndea[i] = 0
+}
+
+for (i in 178:19470) {
+  ndea[i] = newddf[i,4] - newddf[i-177,4]
+}
+
+newddf = newddf %>% 
+  mutate(newdeath = ndea,
+         newdeath = as.integer(newdeath)) 
+newddf.1 = newddf %>% 
+  filter(newdeath >= 0)
+```
+
+```{r}
+newddf.break = newddf.1
+newddf.break$newdeath = cut(newddf.1$newdeath , 
+                                     breaks = c(0,1,5,10,15,20,25,30,50,100),
+                                     labels = c('0','1-5','5-10','10-15','15-20',
+                                                '20-25','25-30',
+                                                '30-50','50+'),
+                                   order = TRUE,include.lowest = TRUE, right = TRUE)
+```
+
+```{r}
+data_break_may =  newddf.break %>% 
+    dplyr::filter(month == 9) 
+
+for (i in 1:9) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(newdeath))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = newdeath)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "GnBu",direction = 1) + 
+    labs(title = paste0("COVID-19 New Deaths in NYC at ZCTAs level on : ", 9 ,"/0" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newdeaths","9-0",i,".png"), plot = a, path = "./newdeathsmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+
+for (i in 10:20) {
+     p =  data_break_may %>% 
+    dplyr::filter(date == i) %>% 
+   mutate(MODZCTA = as.character(MODZCTA)) %>% 
+   #dplyr::select(-zcta_cum_perc_pos) %>% 
+    left_join(spdf2, ., by = c('MODZCTA' = 'MODZCTA'))
+     
+     p = subset(p, !is.na(newdeath))
+    plot = 
+      a = ggplot(p) + 
+      geom_sf(aes(fill = newdeath)) + 
+    coord_sf()+
+    scale_fill_brewer(palette = "GnBu",direction = 1) + 
+    labs(title = paste0("COVID-19 New Deaths in NYC at ZCTAs level on : ", 9,"/" ,i,"/2020"))
+
+    ggsave(filename = paste0("Newdeaths","9-",i,".png"), plot = a, path = "./newdeathsmap/",width = 20, height = 20, units = "cm")
+  
+  
+}
+
+```
+```{r}
+av::av_encode_video(list.files(path='./newdeathsmap/', pattern = '*.png', full.names = TRUE), framerate = 4,
+                    output = 'NewDeathsfromApriltoSep20.mp4')
+```

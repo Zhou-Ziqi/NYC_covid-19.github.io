@@ -19,6 +19,7 @@ library(sf)
 library(plotly)
 library(rnaturalearth)
 library(lubridate)
+
 ```
 
 ```{r}
@@ -58,18 +59,6 @@ data = data %>%
 ### original d not available
 spdf2 = read_sf("Geography-resources/MODZCTA_2010_WGS1984.geo.json")
 ```
-
-```{r}
-#Aprildata_with_nebhod_break = Aprildata_with_nebhod
-#Aprildata_with_nebhod_break$positive = cut(Aprildata_with_nebhod$positive, 
-                                     #breaks = c(0,50,100,200,500,1000,
-                                     #           2000,3000,4000,10000),
-                                     #labels = c('0-50','50-100','100-200','200-500',
-                                     #           '500-1000','1000-2000',
-                                     #           '2000-3000','3000-4000','4000+'),
-                                   # order = TRUE,include.lowest = TRUE, right = TRUE)
-```
-
 
 
 ```{r}

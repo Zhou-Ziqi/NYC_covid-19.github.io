@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-09-15")
+today = as.Date("2020-09-22")
 yesterday = today - 1
 
 ##

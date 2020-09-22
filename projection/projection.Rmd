@@ -219,10 +219,26 @@ zipcodedata = read_csv("./data/nyc.zips.uhfs.csv") %>%
               names_from = num) 
 
 projt_data = left_join(project_data, zipcodedata)
+projt_data = projt_data %>% 
+  mutate(zipcode = str_replace_all(zipcode,"NULL","ALL")) %>% 
+  mutate(zipcode = as.character(zipcode),
+          zipcode = str_replace_all(zipcode,"c",""),
+          zipcode = str_replace_all(zipcode,"\\(",""),
+         zipcode = str_replace_all(zipcode,"\\)",""))
+
+   
+
 
 a = projt_data %>% filter(uhf == 101) 
 
-print(a$zipcode[1])
+b = print(a$zipcode[1]) %>% as.data.frame()
+n = nrow(b)
+b[1,1]
+b[2,1]
+for (i in 1:n) {
+  zip[i] = b[i,1]
+  zip
+}
 ```
 #choose the season assumption
 #choose the location
