@@ -784,7 +784,7 @@ incidencerate = function(date){
 }
 
 ######projection data#########
-train_data =read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 3) %>% 
+train_data =read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 3) %>% 
   janitor::clean_names() %>% 
   separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
   mutate(new_cases_value = as.numeric(new_cases_value),
@@ -806,7 +806,7 @@ train_data =read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 3) %>%
          location = str_replace_all(location, "city","City")
          )
 
-project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>% 
+project_data = read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 4) %>% 
   janitor::clean_names() %>% 
   separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
   mutate(new_cases_value = as.numeric(new_cases_value),
@@ -826,7 +826,29 @@ project_data = read_xlsx("./data/WeeklyProjections20200901.xlsx",sheet = 4) %>%
   mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
          seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
          location = str_replace_all(location, "city","City")
-  )
+  ) %>% 
+  mutate(loca = location) %>% 
+  separate(loca,into = c("uhf","name")) %>% 
+  mutate(uhf = as.integer(uhf)) %>% 
+  mutate(intervention = str_replace_all(intervention, "Worst case", "Worst Case"),
+         intervention = str_replace_all(intervention, "Ctrl 1: moderate redn in trans", "Ctrl 1"),
+         intervention = str_replace_all(intervention, "Ctrl 3: large redn in trans", "Ctrl 3"),
+         intervention = str_replace_all(intervention, "Rebound 1: moderate incr in trans", "Rebound 1"),
+         intervention = str_replace_all(intervention, "Rebound 2: large incr in trans", "Rebound 2"))
+
+zipcodedata = read_csv("./data/nyc.zips.uhfs.csv") %>% 
+  mutate(num = "zipcode") %>% 
+  pivot_wider(values_from = zip,
+              names_from = num) 
+
+projt_data = left_join(project_data, zipcodedata,by = "uhf")
+
+projt_data = projt_data %>% 
+  mutate(zipcode = str_replace_all(zipcode,"NULL","ALL")) %>% 
+  mutate(zipcode = as.character(zipcode),
+         zipcode = str_replace_all(zipcode,"c",""),
+         zipcode = str_replace_all(zipcode,"\\(",""),
+         zipcode = str_replace_all(zipcode,"\\)",""))
 
 
 #select seasonality
@@ -1092,7 +1114,8 @@ ui <- navbarPage(
     )
   ),
 
-  tabPanel(title = "COVID-19 Trends",
+  tabPanel(title= "COVID-19 Trends",
+                      
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Trends"))),
            ######### Added by 2020-09-03 ############
           
@@ -1160,10 +1183,16 @@ ui <- navbarPage(
            hr(),
            ####zipcode trends
            ###New update###
-           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths Map video by ZCTAs"))),
            fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
+           
+           fluidRow(column(10, offset = 1, h4("Cases and deaths Map video by ZCTAs"))),
            fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
-           #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
+          
+           fluidRow(column(10, offset = 1, h6("New Cases Map video by ZCTAs"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_newcase"))),
+           fluidRow(column(10, offset = 1, h6("Deaths Map video by ZCTAs"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_death"))),
+          #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
            br(),
            
            ####
@@ -1383,7 +1412,9 @@ ui <- navbarPage(
            )
   ),
   
-  tabPanel("COVID-19 Projection",
+  tabPanel(titlePanel(title=div(img(src="newcoin.png",height = "5%", width = "5%"), "COVID-19 Projection",style="margin-top: -8px")),
+           
+          
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Projection")),
            column(width = 10, offset = 1, h4("Model by Columbia")),
            br(),
@@ -1405,11 +1436,14 @@ ui <- navbarPage(
                               choices = intervention
                   )),
            
-             column(10, offset = 1, h5("New Cases")),
+            column(2, offset = 1,htmlOutput("zipuhf")),
+           column(2,htmlOutput("uhftext")),
+           
+             column(10, offset = 1, h3("New Cases")),
              column(10, offset = 1, plotlyOutput("proj_line_case", width="100%",height="80%")),
-             column(10, offset = 1, h5("New Deaths")),
+             column(10, offset = 1, h3("New Deaths")),
              column(10, offset = 1, plotlyOutput("proj_line_deat", width="100%",height="80%")),
-             column(10, offset = 1, h5("New Total Hospitalizations")),
+             column(10, offset = 1, h3("New Total Hospitalizations")),
              column(10, offset = 1, plotlyOutput("proj_line_hosp", width="100%",height="80%")),
              column(10, offset = 1, helpText("Data Sources: https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC"))),
            
@@ -3083,14 +3117,21 @@ Keep one decimal for all numbers.")
              yaxis = list(title = ""))
   })
   
+  ###added by 2020-09-15
+  output$trendstitle = renderText({
+    return(list(div(img(src = "newlogo3.png", height = "100%",width = "100%"),
+        style="text-align: center;"),
+        "COVID-19 Trends")
+    )
+  })
 
   ###Added by 2020-09-03
   ### Moving average in Trends
   output$mvag_text = renderText({
-    return("A look at how COVID-19 cases, hospitalizations, and deaths change over time by NYC borough. 
-    Total cases, total deaths and total hospitalizations show <b> single day new numbers </b> of COVID-19 cases, hospitalizations, and deaths. 
-    Cases rate, death rate and hospitalization rate are calculated using total cases, total deaths and total hospitalizations divided by borough population size and multiplied by 100,000. 
-    Data are updated every Sunday. Select available display options to visualize the data.")
+    return("A look at how COVID-19 new cases, new hospitalizations, and new deaths change over time by NYC borough. 
+    Each bar shows the <b> single day new numbers </b> of COVID-19 cases, hospitalizations, and deaths. 
+    Solid lines show the 7-day moving average. The moving average is taken over in 3 days before and 3 days after the day. 
+    Select available display options to visualize the data.")
   })
   
   output$trendsmoving_avg = renderPlotly({
@@ -3271,20 +3312,67 @@ Keep one decimal for all numbers.")
   
   
   output$trends_video_text = renderText({
-    return("This is the map video which shows the destribution of COVID-19 at ZCTAs level. Please Choose 1080p by setting in the video")
-  })
+    return("This is the map video which shows the cumulative cases, new cases, and cumulative deaths destribution of COVID-19 at ZCTAs level. 
+           Please Choose 1080p by setting in the video.")
+ })
   
   output$mapvideo = renderUI({
-    h6(tags$iframe(src = "https://www.youtube.com/embed/XfAw5dJkXfc",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
+    h6(tags$iframe(src = "https://www.youtube.com/embed/FtaFXzIiq8A",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
 
   })
   
+  output$mapvideo_newcase = renderUI({
+    h6(tags$iframe(src = "https://www.youtube.com/embed/QI-PtumOVcY",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
+    
+  })
+  output$mapvideo_death = renderUI({
+    h6(tags$iframe(src = "https://www.youtube.com/embed/16eTyLLjCF0",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
+    
+  })
+  
+  output$Projecttext = renderText({
+    return("A look at how COVID-19 new cases, new deaths, and new hospitalizations would change in next 8 weeks by NYC United Hospital Fund (UHF) neighborhood.
+    New cases, new deaths, and new hospitalizations show single week new numbers of COVID-19 cases, deaths, and hospitalizations last week.
+    <br>
+    Seasonality Assumption contains 2 options: Seasonality Assumption (with seasonal changes to virus transmissibility) and No Seasonality (without seasonality changes to virus transmissibility).
+    <br>
+    The location contains 42 United Hospital Fund (UHF) neighborhoods in NYC. Note that UHF locations are based on residential address and may not match with hospital locations and catchment area.
+    <br>
+    The intervention contains 6 scenarios. 
+    <br>
+    Worst Case: No Control. The model posterior estimated with data from Week 10 (March 1-7) of 2020 (an earlier week with minimal interventions) was integrated 8 weeks into the future to create a reference, worst case.
+    <br>
+    'As Is': the model posterior estimated using data from Week 10 through the most recent week, was integrated 8 weeks into the future to create a reference.
+    <br>
+    'Ctrl 1 moderate reduction in transmission': 10% reduction in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
+    <br>
+    ??????????'Ctrl 3 large reduction in transmission': 25% reduction in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
+    <br>
+    'Rebound 1 moderate increase in transmission': 10% increase in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
+    <br>
+    'Rebound 2 large increase in transmission': 25% increase in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
+    <br>
+    Select available display options to visualize the data.
+    <br>
+    We thank the Professor Yang from Columbia University for allowing us to use their Projections of 
+    COVID-19 Epidemic Outcomes and Healthcare Demands for NYC model.
+    <br>
+    If you would like to get more details about this model, please check the github of Prof. Yang: 
+    https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC.
+    ")
+  })
   
   output$proj_line_case = renderPlotly({
     train_data_sel = train_data %>% 
       filter(seasonality == input$season  & location == input$loc_proj) 
     season_city_newcases = project_data %>% 
       filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+    
+    x_min_us = min(train_data_sel$date)
+    x_max_us = max(season_city_newcases$date)
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    
+  
     b = ggplot() + 
       geom_line(data = train_data_sel ,aes(x = date, y = new_cases_value,group = 1)) +
       geom_point(data = train_data_sel , aes(x = date, y = new_cases_value)) +
@@ -3298,6 +3386,7 @@ Keep one decimal for all numbers.")
                                                    x=date, fill = "IQR"), alpha = 0.2,group = 1) + 
       scale_colour_manual("",values="red") + 
       scale_fill_manual("",values="grey12") + 
+      scale_x_date(breaks = break.train, date_labels = "%m-%d") + 
       theme_bw() +
       theme(panel.border = element_blank()) +
       theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
@@ -3307,8 +3396,8 @@ Keep one decimal for all numbers.")
       theme(panel.spacing.y=unit(1, "lines")) + 
       theme(legend.position = "none")+
       xlab("") + 
-      ylab("") + 
-      ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
+      ylab("") #+ 
+      #ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
     
     ggplotly(b)
   })
@@ -3318,6 +3407,10 @@ Keep one decimal for all numbers.")
       filter(seasonality == input$season  & location == input$loc_proj) 
     season_city_newcases = project_data %>% 
       filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+    
+    x_min_us = min(train_data_sel$date)
+    x_max_us = max(season_city_newcases$date)
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     b = ggplot() + 
       geom_line(data = train_data_sel ,aes(x = date, y = new_deaths_value,group = 1)) +
@@ -3340,9 +3433,10 @@ Keep one decimal for all numbers.")
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(panel.spacing.y=unit(1, "lines")) + 
       theme(legend.position = "none")+
+      scale_x_date(breaks = break.train, date_labels = "%m-%d") + 
       xlab("") + 
-      ylab("") + 
-      ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
+      ylab("") #+ 
+      #ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
     
     ggplotly(b)
   })
@@ -3352,6 +3446,10 @@ Keep one decimal for all numbers.")
       filter(seasonality == input$season  & location == input$loc_proj) 
     season_city_newcases = project_data %>% 
       filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
+   
+    x_min_us = min(train_data_sel$date)
+    x_max_us = max(season_city_newcases$date)
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     
     b = ggplot() + 
@@ -3375,11 +3473,22 @@ Keep one decimal for all numbers.")
       theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
       theme(panel.spacing.y=unit(1, "lines")) + 
       theme(legend.position = "none")+
+      scale_x_date(breaks = break.train, date_labels = "%m-%d") + 
       xlab("") + 
-      ylab("") + 
-      ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
+      ylab("")  
+      #ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
     
     ggplotly(b)
+  })
+  
+  output$zipuhf = renderText({
+    return("This UHF contains zipcode: ")
+  })
+  output$uhftext = renderText({
+    
+    lo = projt_data %>% filter(location == input$loc_proj)
+    
+    return(lo$zipcode[1])
   })
   
 }

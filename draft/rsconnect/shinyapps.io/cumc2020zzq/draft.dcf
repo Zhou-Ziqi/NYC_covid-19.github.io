@@ -5,8 +5,8 @@ account: cumc2020zzq
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2750418
-bundleId: 3625790
+bundleId: 3650580
 url: https://cumc2020zzq.shinyapps.io/draft/
-when: 1600052715.91133
+when: 1600657348.5317
 asMultiple: FALSE
 asStatic: FALSE
