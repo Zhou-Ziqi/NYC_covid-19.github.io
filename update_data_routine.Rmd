@@ -15,7 +15,7 @@ library(lubridate)
 # Date change
 ```{r}
 #today = Sys.Date()
-today = as.Date("2020-09-22")
+today = as.Date("2020-10-06")
 
 yesterday = today - 1
 
@@ -42,10 +42,12 @@ Also the "data-by-modzcta0819.csv"
 ```{r}
 data_yester = read_csv(paste0("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta",month(yesterday),day(yesterday),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date(yesterday)) 
+  mutate(date = as.Date(yesterday))  %>% 
+  drop_na()
 data_today = read_csv(paste0("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = as.Date(today))
+  mutate(date = as.Date(today)) %>% 
+  drop_na()
 
 data_tracker = rbind(data_today,data_yester)
 new_case = 0

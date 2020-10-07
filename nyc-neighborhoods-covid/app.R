@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-09-22")
+today = as.Date("2020-10-06")
 yesterday = today - 1
 
 ##
@@ -63,10 +63,10 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 ### trakcer data
 data_yester = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(yesterday),day(yesterday),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = yesterday)
+  mutate(date = yesterday) %>% drop_na()
 data_today = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv"))  %>% 
   janitor::clean_names() %>% 
-  mutate(date = today)
+  mutate(date = today) %>% drop_na()
 
 
 

@@ -137,3 +137,17 @@ borocase_new_day_bx_case = boro_incidence_daily %>%
 
 ```
 
+```{r}
+weeklydf.1 = weeklydf %>% 
+  mutate(type = round(num))
+if (weeklydf.1$num == 349) {
+  weeklydf.1$num = 0
+}
+N = nrow(weeklydf.1)
+for (i in 1:N) {
+      if (weeklydf.1$type[i] == "Total Cases") {
+        weeklydf.1$type[i] = 8
+      }
+    }
+```
+
