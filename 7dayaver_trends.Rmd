@@ -78,3 +78,192 @@ df.ave = data_trend2 %>%
 
 ```
 
+```{r}
+getwd()
+setwd("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/")
+
+finalMaydata <- read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/finalMaydata.csv") %>% 
+  mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) %>% 
+  mutate(day = as.Date(day,format = "%m/%d/%y"))
+
+final_Junedata <- read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/final_Junedata.csv") %>% 
+  dplyr::rename(newcases = newcases_june) %>% 
+  mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
+
+final_Julydata = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/final_Julydata.csv") %>% 
+  mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) 
+
+Augdata <- read_csv(paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/modzcta_until1014.csv")) %>% 
+  mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
+
+data <- rbind(finalMaydata,final_Junedata)
+data <- rbind(data,final_Julydata)
+data <- rbind(data,Augdata)
+```
+
+```{r}
+adjust_y_interval = function(y_max){
+  temp_interval = y_max / 6
+  if (temp_interval < 15) {
+    y_interval = ceiling((temp_interval/20))*20
+  } else if (temp_interval < 30) {
+    y_interval = ceiling((temp_interval/25))*25
+  } else if (temp_interval < 50) {
+    y_interval = ceiling((temp_interval/50))*50
+  } else if (temp_interval < 500) {
+    y_interval = ceiling((temp_interval/100))*100
+  } else {
+    y_interval = ceiling((temp_interval/1000))*1000
+  }
+  y_interval
+}
+```
+
+```{r}
+data.mvag.daily = data %>% 
+  pivot_longer(positive:newcases,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Total Cases", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Total Deaths",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases",
+                       "incidence_rate" = "Incidence Rate (per 100,000 people)"))
+
+
+```
+
+```{r}
+top_n = 10
+temp1 = data %>% filter(day == max(day))
+temp_positive = temp1[order(temp1$newcases, decreasing = T), ]
+filter_positive = temp_positive$zipcode[1:top_n]
+  
+data_to_plot_positive = data[data$zipcode %in% filter_positive , ]
+temp = data_to_plot_positive[data_to_plot_positive$day == max(data_to_plot_positive$day),]
+temp = temp[order(temp$positive,decreasing = T),]
+zip_order = temp$zipcode
+data_to_plot_positive$zipcode <- factor(data_to_plot_positive$zipcode, levels = zip_order)
+
+y_max = (round(max(data_to_plot_positive$positive)/1000) + 1)*1000
+y_interval = adjust_y_interval(y_max)
+```
+```{r}
+plot1 = data_to_plot_positive %>% 
+  ggplot(aes(x = day, y = positive, 
+             group = zipcode, 
+             colour = zipcode, 
+             shape = zipcode)) + 
+  # geom_point(size = 1) + 
+  geom_line(size = 1) +
+  theme_bw() + 
+  theme(panel.border = element_blank()) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+  theme(axis.line = element_line(colour = "black")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 24)) + 
+  theme(axis.text.y = element_text(size = 24), axis.title.y = element_text(size = 24)) + 
+  #theme(legend.position = c(0.2, 0.8)) + 
+  #theme(legend.title = element_text(size = 24,face = "bold.italic"), legend.text = element_text(size = 15,face = "italic")) +
+  scale_y_continuous(breaks = seq(0,y_max, y_interval), label = comma) +
+ # scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
+  #scale_color_manual(values = color_list[match(country_order, color_list_country)]) +
+  #ggtitle("日新增确诊病例国家趋势图", subtitle = "") + 
+  xlab("") +
+  ylab("Cumulative Cases")
+
+ggplotly(plot1)
+
+#information table
+#latest updated 2020-10-14
+data_to_plot_positive_table = data_to_plot_positive %>% 
+  filter(day == max(day)) %>% 
+  select(zipcode,borough_group,neighborhood_name,positive, newcases) %>% 
+  arrange(-newcases) %>% 
+  rename(ZCTA = zipcode, 
+         Borough = borough_group,
+         Neighborhood = neighborhood_name,
+         "Cumulative Cases" = positive,
+         "New Cases" = newcases)
+  
+knitr::kable(data_to_plot_positive_table)
+```
+
+
+
+```{r}
+top_n = 5
+temp1 = data %>% filter(day == max(day))
+temp_newcases = temp1[order(temp1$newcases, decreasing = T), ]
+filter_newcases = temp_newcases$zipcode[1:top_n]
+  
+data_to_plot_newcases = data[data$zipcode %in% filter_newcases , ]
+temp = data_to_plot_newcases[data_to_plot_newcases$day == max(data_to_plot_newcases$day),]
+temp = temp[order(temp$positive,decreasing = T),]
+zip_order = temp$zipcode
+data_to_plot_newcases$zipcode <- factor(data_to_plot_newcases$zipcode, levels = zip_order)
+
+y_max = (round(max(data_to_plot_newcases$newcases)/10) + 1)*10
+y_interval = adjust_y_interval(y_max)
+```
+
+```{r}
+#new cases moving average
+df = data_to_plot_newcases
+N = nrow(data_to_plot_newcases)
+cases = pull(df,newcases)
+#deaths = pull(df,death_count)
+ave.cases = rep(0, N-6)
+#ave.deaths = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.cases[i] = mean(cases[(i-3):(i+3)])
+  #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+for (i in 1:3) {
+  ave.cases[i] = cases[1]
+  #ave.deaths[i] = ave.deaths[1]
+}
+for (i in (N-2):N) {
+  ave.cases[i] = ave.cases[N-3]
+  #ave.deaths[i] = ave.deaths[N-3]
+}
+
+df.ave = df %>% 
+  mutate(ave_cases = round(ave.cases))
+
+```
+
+
+```{r}
+plot2 = df.ave %>% 
+  ggplot(aes(x = day, y = ave.cases, 
+             group = zipcode, 
+             colour = zipcode, 
+             shape = zipcode)) + 
+  # geom_point(size = 2) + 
+  geom_line(size = 1) +
+  theme_bw() + 
+  theme(panel.border = element_blank()) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+  theme(axis.line = element_line(colour = "black")) + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 24)) + 
+  theme(axis.text.y = element_text(size = 24), axis.title.y = element_text(size = 24)) + 
+  theme(legend.position = c(0.2, 0.8)) + 
+  theme(legend.title = element_text(size = 24,face = "bold.italic"), legend.text = element_text(size = 15,face = "italic")) +
+  scale_y_continuous(breaks = seq(0,y_max, y_interval), label = comma) +
+ # scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
+  #scale_color_manual(values = color_list[match(country_order, color_list_country)]) +
+  #ggtitle("日新增确诊病例国家趋势图", subtitle = "") + 
+  xlab("") +
+  ylab("New Cases")
+
+ggplotly(plot2)
+```

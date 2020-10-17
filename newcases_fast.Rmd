@@ -1,0 +1,93 @@
+---
+title: "newfast"
+author: "Ziqi Zhou"
+date: "10/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+
+
+```
+
+
+```{r}
+today = as.Date("2020-10-03")
+```
+
+```{r}
+finalMaydata <- read_csv("data/finalMaydata.csv") %>% 
+  mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) %>% 
+  mutate(day = as.Date(day,format = "%m/%d/%y"))
+
+final_Junedata <- read_csv("data/final_Junedata.csv") %>% 
+  dplyr::rename(newcases = newcases_june) %>% 
+  mutate(pop_denominator = round(pop_denominator),
+         incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
+#popula_infor = final_Junedata <- read_csv("data/final_Junedata.csv") %>% 
+#  dplyr::rename(newcases = newcases_june) %>% 
+#  select(zipcode, pop_denominator) %>% distinct() %>% 
+#  mutate(pop_denominator = round(pop_denominator))
+
+#Aprildata_with_nebhod <- read_csv("data/Aprildata_with_nebhod.csv")
+
+final_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) 
+
+Augdata <- read_csv(paste0("./nyc-neighborhoods-covid/data/modzcta_until",month(today),day(today),".csv")) %>% 
+  mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
+
+data <- rbind(finalMaydata,final_Junedata)
+data <- rbind(data,final_Julydata)
+data <- rbind(data,Augdata)
+Week <- unique(as.Date(cut(data$day, "week")) + 6)
+
+weeklydf_ <- data %>% 
+  mutate(zipcode = factor(zipcode)) %>% 
+  filter(day %in% Week)
+
+
+weeklydf_max <- weeklydf_ %>%
+  filter(day == max(day)) %>% select(zipcode,neighborhood_name)
+
+weeklydf_ <- weeklydf_ %>% rename(nbh = neighborhood_name) %>% select(-zipcode)
+
+weeklydf <-cbind(weeklydf_max, weeklydf_) 
+
+weeklydf$zipcode_new <- paste(weeklydf$zipcode, weeklydf$neighborhood_name)
+weeklydf <- weeklydf %>% 
+  pivot_longer(positive:newcases,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Total Cases", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Total Deaths",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases",
+                       "incidence_rate" = "Incidence Rate (per 100,000 people)"))
+
+#zip_nbh <- weeklydf %>% pull(zipcode_new) %>% unique()
+
+data$week <- as.Date(cut(data$day, "week")) + 6
+weeklynew <- aggregate(data$newcases, by=list(week=data$week, zipcode = data$zipcode), FUN=sum)
+weeklynew <- weeklynew %>% rename(new_cases = x) %>% mutate(zipcode = factor(zipcode))
+
+weeklynew <- left_join(weeklynew, weeklydf_max)
+weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
+
+```
+
+```{r}
+data.1 = data %>% 
+  filter(month(day) > 8 ) %>% arrange(-newcases)
+```
+
