@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-09-02")
+today = as.Date("2020-11-02")
 yesterday = today - 1
 
 ##
@@ -63,23 +63,24 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 ### trakcer data
 data_yester = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(yesterday),day(yesterday),".csv")) %>% 
   janitor::clean_names() %>% 
-  mutate(date = yesterday)
+  mutate(date = yesterday) %>% drop_na()
 data_today = read_csv(paste0("./data/data_for_table/data-by-modzcta",month(today),day(today),".csv"))  %>% 
   janitor::clean_names() %>% 
-  mutate(date = today)
-
-
+  mutate(date = today) %>% drop_na()
 
 data_tracker = rbind(data_today,data_yester)
 new_case = 0
 new_death = 0
-
+new_test = 0
 for (i in 1:177) {
   new_case[i] = data_tracker[i,4] - data_tracker[i+177,4]
   new_case
   
   new_death[i] = data_tracker[i,7] - data_tracker[i+177,7]
   new_death
+  
+  new_test[i] = data_tracker[i,10] - data_tracker[i+177,10]
+  new_test
 }
 
 for (i in 178:354) {
@@ -87,19 +88,25 @@ for (i in 178:354) {
   new_case[i] = NA
   
   new_death[i] = NA
+  
+  new_test[i] = NA
 }
 
 data_to_table = data_tracker %>% 
   mutate(new_case = new_case,
-         new_death = new_death) %>% 
+         new_death = new_death,
+         new_test = new_test) %>% 
   filter(date == max(date)) %>% 
   mutate(new_case = as.numeric(new_case),
          new_death = as.numeric(new_death),
-         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) ,
+         new_test = as.numeric(new_test),
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1),
+         new_test_rate = round(new_test*100000/pop_denominator, digits = 1),
+         total_test_rate = round(total_covid_tests*100000/pop_denominator, digits = 1)
   )%>% 
   dplyr::select(modified_zcta,neighborhood_name,borough_group,
                 covid_case_count,new_case,incidence_rate,
-                covid_death_count,new_death, total_covid_tests) %>% 
+                covid_death_count,new_death, total_covid_tests,new_test) %>% 
   rename("New Cases" = new_case,
          "New Deaths" = new_death,
          "Zip Code" = modified_zcta,
@@ -108,16 +115,21 @@ data_to_table = data_tracker %>%
          "Total Cases" = covid_case_count,
          "Total Deaths" = covid_death_count,
          "Incidence Rate*" = incidence_rate,
-         "Total Tests" = total_covid_tests )
+         "Total Tests" = total_covid_tests,
+         "New Tests" = new_test )
 
 data_to_plot = data_tracker %>% 
   mutate(new_case = new_case,
-         new_death = new_death
+         new_death = new_death,
+         new_test = new_test
   ) %>% 
   filter(date == max(date)) %>% 
   mutate(new_case = as.numeric(new_case),
          new_death = as.numeric(new_death),
-         incidence_rate = round(new_case*100000/pop_denominator, digits = 1) )
+         new_test = as.numeric(new_test),
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1),
+         new_test_rate = round(new_test*100000/pop_denominator, digits = 1),
+         total_test_rate = round(total_covid_tests*100000/pop_denominator, digits = 1))
 
 ###########
 # The map
@@ -143,8 +155,8 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until",month(to
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
-  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Hospitalizations","Total Deaths",
+                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
@@ -162,8 +174,8 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until",month(
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
   mutate(group = factor(group, levels = c("White","Black/African-American","Asian/Pacific-Islander","Hispanic/Latino")))%>% 
-  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Hospitalizations","Total Deaths",
+                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
@@ -181,8 +193,8 @@ bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until",month(to
          boro = str_replace_all(boro, "BX","Bronx"),
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count))%>% 
-  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Deaths","Total Hospitalizations",
-                                              "Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Hospitalizations","Total Deaths",
+                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
   arrange(outcome)
 
 
@@ -285,6 +297,112 @@ Augdata <- read_csv(paste0("./data/modzcta_until",month(today),day(today),".csv"
 data <- rbind(finalMaydata,final_Junedata)
 data <- rbind(data,final_Julydata)
 data <- rbind(data,Augdata)
+
+data.mvag.daily = data %>% 
+  pivot_longer(positive:newcases,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Total Cases", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Total Deaths",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases",
+                       "incidence_rate" = "Incidence Rate (per 100,000 people)"))
+#fill the blank in 0629 and 0819
+data.mvag.daily0629  = data.mvag.daily %>% 
+filter(day == "2020-06-28") %>% 
+  mutate(date = as.Date("2020-06-29")) %>% 
+  select(-day) %>% 
+  rename(day = date) %>% 
+  select(zipcode,day,everything())
+
+data.mvag.daily0819  = data.mvag.daily %>% 
+  filter(day == "2020-08-18")%>% 
+  mutate(date = as.Date("2020-08-19")) %>% 
+  select(-day) %>% 
+  rename(day = date) %>% 
+  select(zipcode,day,everything())
+
+data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0629)
+data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0819) %>% arrange(day)
+
+data.mvag.daily$zipcode_new <- paste(data.mvag.daily$zipcode, data.mvag.daily$neighborhood_name)
+
+##### Time Trend for test data by ZCTA (total tests, new tests)
+
+test_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
+         incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator) 
+
+test_Augdata <- read_csv(paste0("./data/modzcta_until",month(today),day(today),".csv")) %>% 
+  mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
+         incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator)
+
+test_data <- rbind(test_Julydata,test_Augdata)
+
+Nrow = nrow(test_data)
+
+for (i in 1:test_data-177) {
+  new_case[i] = data_tracker[i,4] - data_tracker[i+177,4]
+  new_case
+  
+  new_death[i] = data_tracker[i,7] - data_tracker[i+177,7]
+  new_death
+  
+  new_test[i] = data_tracker[i,10] - data_tracker[i+177,10]
+  new_test
+}
+
+for (i in test_data-178:test_data) {
+  
+  new_case[i] = NA
+  
+  new_death[i] = NA
+  
+  new_test[i] = NA
+}
+
+
+
+test.mvag.daily = test_data %>% 
+  pivot_longer(positive:total_covid_tests,
+               names_to = "type",
+               values_to = "num") %>% 
+  mutate(type = recode(type, 
+                       "positive" = "Total Cases", 
+                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+                       "covid_death_count" = "Total Deaths",
+                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+                       "newcases" = "New Cases",
+                       "incidence_rate" = "Incidence Rate (per 100,000 people)",
+                       "total_covid_tests" = "Total Tests"))
+#fill the blank in 0629 and 0819
+data.mvag.daily0629  = data.mvag.daily %>% 
+  filter(day == "2020-06-28") %>% 
+  mutate(date = as.Date("2020-06-29")) %>% 
+  select(-day) %>% 
+  rename(day = date) %>% 
+  select(zipcode,day,everything())
+
+data.mvag.daily0819  = data.mvag.daily %>% 
+  filter(day == "2020-08-18")%>% 
+  mutate(date = as.Date("2020-08-19")) %>% 
+  select(-day) %>% 
+  rename(day = date) %>% 
+  select(zipcode,day,everything())
+
+data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0629)
+data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0819) %>% arrange(day)
+
+data.mvag.daily$zipcode_new <- paste(data.mvag.daily$zipcode, data.mvag.daily$neighborhood_name)
+
+
+
+
+######
 Week <- unique(as.Date(cut(data$day, "week")) + 6)
 
 weeklydf_ <- data %>% 
@@ -321,7 +439,7 @@ weeklynew <- weeklynew %>% rename(new_cases = x) %>% mutate(zipcode = factor(zip
 weeklynew <- left_join(weeklynew, weeklydf_max)
 weeklynew$zipcode_new <- paste(weeklynew$zipcode, weeklynew$neighborhood_name)
 
-
+##add moving average
 
 
 # boro time trend written on Aug 19
@@ -356,8 +474,8 @@ weeklydf_new <- borocase_new %>%
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
-  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
-         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Hospitalizations","Total Deaths")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
   arrange(type) %>% 
   arrange(newtype)
 
@@ -390,8 +508,8 @@ weeklydf_cum <- borocase_cum %>%
          newtype = str_replace_all(newtype,"Case Rate","Case Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","Death Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Hospitalization Rate","Hospitalization Rate (per 100,000 people)"))%>% 
-  mutate(type = factor(type, levels = c("Total Cases","Total Deaths","Total Hospitalizations")),
-         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Death Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(type = factor(type, levels = c("Total Cases","Total Hospitalizations","Total Deaths")),
+         newtype = factor(newtype, levels = c("Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
   arrange(type) %>% 
   arrange(newtype)
 
@@ -585,15 +703,22 @@ boro_incidence_daily = borocase_new %>%
          newtype = str_replace_all(newtype,"Case Rate","Incidence Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Death Rate","New Death Rate (per 100,000 people)"),
          newtype = str_replace_all(newtype,"Hospitalization Rate","New Hospitalization Rate (per 100,000 people)"))%>% 
-  mutate(type = factor(type, levels = c("New Cases","New Deaths","New Hospitalizations")),
-         newtype = factor(newtype, levels = c("Incidence Rate (per 100,000 people)","New Death Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)"))) %>% 
+  mutate(type = factor(type, levels = c("New Cases","New Hospitalizations","New Deaths")),
+         newtype = factor(newtype, levels = c("Incidence Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)","New Death Rate (per 100,000 people)"))) %>% 
   arrange(type) %>% 
   arrange(newtype)
 
+mvag_case = boro_incidence_daily %>% select(-newtype,-Rate,-pop_num) 
+mvag_rate = boro_incidence_daily %>% select(-type,-Count,-pop_num) %>% 
+  rename(type = newtype,
+         Count = Rate)
+boro_incidence_daily_new = rbind(mvag_case,mvag_rate)
+
 ####
 #NBH_trends1 = boro_incidence_daily %>% distinct(Borough) %>% pull()
-choices_trend_mvag = c("New Cases", "New Deaths","New Hospitalizations") 
-choices_trend_mvag_rate = c("Incidence Rate (per 100,000 people)", "New Death Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)")
+choices_trend_mvag = c("New Cases","New Hospitalizations", "New Deaths",
+                       "Incidence Rate (per 100,000 people)","New Hospitalization Rate (per 100,000 people)", "New Death Rate (per 100,000 people)") 
+
 ####
 
 
@@ -721,7 +846,8 @@ death_rate = function(date){
 newcase = function(date){
   
   data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date)) %>% 
-    mutate(new_case = as.numeric(new_case))
+    mutate(new_case = as.numeric(new_case)) %>% 
+    filter(new_case >= 0)
   data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
   data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_case))
   pal <- colorNumeric("Greens", domain=data_to_plot_geo$new_case)
@@ -782,9 +908,130 @@ incidencerate = function(date){
               title = "Number")
   p1
 }
+### Total test
+total_test_fc = function(date){
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(total_covid_tests))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$total_covid_tests)
+  
+  popup_sb <- paste0("<b> Neighborhood Name: </b>", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "<b>Total Number of COVID-19 Case: </b>", as.character(data_to_plot_geo$total_covid_tests)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$total_covid_tests), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$total_covid_tests, 
+              position = "bottomright", 
+              title = "Number") 
+  
+  p1
+}
+### Total test rate
+test_rate_fc = function(date){
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(total_test_rate))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$total_test_rate)
+  
+  popup_sb <- paste0("<b> Neighborhood Name: </b>", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "<b>Total Number of COVID-19 Case: </b>", as.character(data_to_plot_geo$total_test_rate)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$total_test_rate), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$total_test_rate, 
+              position = "bottomright", 
+              title = "Number") 
+  
+  p1
+}
+### new test
+new_test_fc = function(date){
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_test))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$new_test)
+  
+  popup_sb <- paste0("<b> Neighborhood Name: </b>", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "<b>Total Number of COVID-19 Case: </b>", as.character(data_to_plot_geo$new_test)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$new_test), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$new_test, 
+              position = "bottomright", 
+              title = "Number") 
+  
+  p1
+}
+### new test rate
+new_test_rate_fc = function(date){
+  data_to_plot = data_to_plot %>% filter(date == max(data_to_plot$date))
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modified_zcta")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(new_test_rate))
+  pal <- colorNumeric("Blues", domain=data_to_plot_geo$new_test_rate)
+  
+  popup_sb <- paste0("<b> Neighborhood Name: </b>", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "<b> MODZCTA:</b> ", as.character(data_to_plot_geo$modified_zcta),
+                     "<br>", 
+                     "<b>Total Number of COVID-19 Case: </b>", as.character(data_to_plot_geo$new_test_rate)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$new_test_rate), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$new_test_rate, 
+              position = "bottomright", 
+              title = "Number") 
+  
+  p1
+}
+
 
 ######projection data#########
-train_data =read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 3) %>% 
+train_data =read_xlsx("./data/WeeklyProjections20201027.xlsx",sheet = 3) %>% 
   janitor::clean_names() %>% 
   separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
   mutate(new_cases_value = as.numeric(new_cases_value),
@@ -804,9 +1051,9 @@ train_data =read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 3) %>%
   mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
          seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
          location = str_replace_all(location, "city","City")
-         )
+  )
 
-project_data = read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 4) %>% 
+project_data = read_xlsx("./data/WeeklyProjections20201027.xlsx",sheet = 4) %>% 
   janitor::clean_names() %>% 
   separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
   mutate(new_cases_value = as.numeric(new_cases_value),
@@ -832,7 +1079,7 @@ project_data = read_xlsx("./data/WeeklyProjections20200918.xlsx",sheet = 4) %>%
   mutate(uhf = as.integer(uhf)) %>% 
   mutate(intervention = str_replace_all(intervention, "Worst case", "Worst Case"),
          intervention = str_replace_all(intervention, "Ctrl 1: moderate redn in trans", "Ctrl 1"),
-         intervention = str_replace_all(intervention, "Ctrl 3: large redn in trans", "Ctrl 3"),
+         intervention = str_replace_all(intervention, "Ctrl 3: large redn in trans", "Ctrl 2"),
          intervention = str_replace_all(intervention, "Rebound 1: moderate incr in trans", "Rebound 1"),
          intervention = str_replace_all(intervention, "Rebound 2: large incr in trans", "Rebound 2"))
 
@@ -856,8 +1103,9 @@ season = train_data %>% distinct(seasonality) %>% pull()
 #select location
 location = train_data %>% distinct(location) %>% pull()
 #select intervention
-intervention = project_data %>% distinct(intervention) %>% pull()
-
+intervention = c("As Is","Rebound 1","Rebound 2","Ctrl 1","Ctrl 2","Worst Case")
+#choose the zcta
+zcta = projt_data %>% distinct(zipcode) %>% pull()
 
 
 
@@ -1012,6 +1260,31 @@ ui <- navbarPage(
              mainPanel(column(10,leafletOutput(outputId = "map",width="120%",height="465px"))),
              position = c("left","right")
            )),
+    ###2020-11-03 added
+    column(width = 10, offset = 1, h4("COVID-19 Tests by NYC ZIP Code Tabulation Areas (ZCTAs)")),
+    #column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext2"), 
+    #                                    style="font-size: 15px;  line-height:150%")),
+    column(10, offset = 1, helpText(paste("Last updated: ", max(data_to_plot$date)))),
+    column(width = 10,offset = 1,
+           sidebarLayout(
+             
+             sidebarPanel(
+               radioButtons(inputId = "outcome_selection_test",
+                            label =  "Data Display:",   
+                            c("Total Tests" = "total_test_fc",
+                              "Test Rate (per 100,000 people)" = "test_rate_fc", 
+                              "New Tests" = "new_test_fc", 
+                              "New Tests Rate (per 100,000 people)" = "new_test_rate_fc")),
+               
+               
+               #span(htmlOutput("Distributionmap_help_text2"), 
+               #     style="font-size: 14px;line-height:150% ; color:grey")
+             )
+             ,
+             
+             mainPanel(column(10,leafletOutput(outputId = "testmap",width="120%",height="465px"))),
+             position = c("left","right")
+           )),
     
     br(),
     fluidPage(
@@ -1113,101 +1386,26 @@ ui <- navbarPage(
              
     )
   ),
-
-  tabPanel(title= "COVID-19 Trends",
-                      
+  
+  tabPanel(title=div(img(src="newcoin.png",height = "17"), "COVID-19 Trends"),
+           
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Trends"))),
-           ######### Added by 2020-09-03 ############
-          
-           
-           
-           ######### Added by 2020-09-03 ############
-           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths moving average trends by borough"))),
-           fluidRow(column(width = 10, offset = 1, span(htmlOutput("mvag_text"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
-           br(),
-           fluidRow(column(width = 10,offset = 1 ,selectInput("choices_trend_mvag", 
-                                                              label = "Data Display", 
-                                                              choices = choices_trend_mvag
-           )),
-           
-           column(width = 10,offset = 1 , 
-                  plotlyOutput("trendsmoving_avg",width = "100%", height = "600px"))
-         
-           
-           ),
-           br(),
-           fluidRow(
-                    column(width = 10,offset = 1 ,selectInput("choices_trend_mvag_rate", 
-                                                              label = "Data Display", 
-                                                              choices = choices_trend_mvag_rate
-           )),
-           column(width = 10,offset = 1 , 
-                  plotlyOutput("trendsmoving_avg_rate",width = "100%", height = "600px"))
-           
-           ),
-           br(),
-           ##################
-           fluidRow(column(10, offset = 1, h4("Cases, hospitalizations, and deaths trends by borough"))),
-           
-           fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
-           fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(borocase_cum$date_of_interest))))),
-           br(),
-           fluidRow(column(width = 2,offset = 1,
-                           # radioButtons(inputId = "selection",
-                           #              label =  "Data Display:",   
-                           #              c("Total Count" = "cum_case_count",
-                           #                "Incidence Count" = "new_case_count",
-                           #                "Total Rate" = "cum_case_rate",
-                           #                "Incidence Rate" = "new_case_rate")),
-                           radioButtons(inputId = "selection1",
-                                        label =  "Data Display:",   
-                                        c("Total Count" = "cum_case_count",
-                                          "Incidence Count" = "new_case_count"))),
-                    column(width = 8, plotlyOutput(outputId = "boro_cases1"))),
-           
-           fluidRow(column(width = 2,offset = 1,
-                           # radioButtons(inputId = "selection",
-                           #              label =  "Data Display:",   
-                           #              c("Total Count" = "cum_case_count",
-                           #                "Incidence Count" = "new_case_count",
-                           #                "Total Rate" = "cum_case_rate",
-                           #                "Incidence Rate" = "new_case_rate")),
-                           radioButtons(inputId = "selection2",
-                                        label =  "Data Display:",   
-                                        c("Total Rate" = "cum_case_rate",
-                                          "Incidence Rate" = "new_case_rate"))),
-                    column(width = 8, plotlyOutput(outputId = "boro_cases2"))),
-           fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
-           
-           hr(),
-           ####zipcode trends
-           ###New update###
-           fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
-           
-           fluidRow(column(10, offset = 1, h4("Cases and deaths Map video by ZCTAs"))),
-           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
-          
-           fluidRow(column(10, offset = 1, h6("New Cases Map video by ZCTAs"))),
-           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_newcase"))),
-           fluidRow(column(10, offset = 1, h6("Deaths Map video by ZCTAs"))),
-           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_death"))),
-          #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
-           br(),
+           ######### Added by 2020-10-03 ############
            
            ####
            fluidRow(
-             column(10, offset = 1, h4("Trends by NYC ZIP Code Tabulation Areas (ZCTAs)")),
+            column(10, offset = 1, h4("Time trends by NYC ZIP Code Tabulation Areas (ZCTAs) with daily data and 7-day average")),
              column(10, offset = 1, helpText(paste("Last updated:",max(weeklydf$day)))),
              column(width = 4, offset = 1, selectInput("character_time_zip",
                                                        "Data Display",
-                                                       c(
+                                                       c("New Cases" = "newcase",
+                                                         "Incidence Rate (per 100,000 people)" = "incdrate",
                                                          "Total Cases" = "pocase", 
-                                                         "Total Deaths" = "death", 
                                                          "Case Rate (per 100,000 people)" = "porate", 
-                                                         "Death Rate(per 100,000 people)" = "derate",
-                                                         "New Cases" = "newcase",
-                                                         "Incidence Rate (per 100,000 people)" = "incdrate"
+                                                         "Total Deaths" = "death", 
+                                                         "Death Rate(per 100,000 people)" = "derate"
+                                                         
+                                                         
                                                        ),
                                                        selected = NULL)),
              column(width = 5, "Weekly data and trends on COVID-19 in each of the NYC ZIP Code Tabulation Areas (ZCTAs). Data are updated every Sunday. 
@@ -1218,9 +1416,9 @@ ui <- navbarPage(
            #### Cumulative Cases Count
            conditionalPanel(
              condition = "input.character_time_zip == 'pocase'",
-             
+            
              fluidRow(
-               column(width = 4, offset = 1,
+              column(width = 4, offset = 1,
                       pickerInput("zip_nbh1", 
                                   label = "Choose a ZCTA", 
                                   choices =zip_nbh,
@@ -1256,7 +1454,7 @@ ui <- navbarPage(
            #### Death Rate
            conditionalPanel(
              condition = "input.character_time_zip == 'derate'",
-             #column(10, offset= 1, h4("Death Rate")),
+            # #column(10, offset= 1, h4("Death Rate")),
              fluidRow(
                column(width = 4,offset = 1,
                       pickerInput("zip_nbh4", 
@@ -1268,8 +1466,8 @@ ui <- navbarPage(
            
            #### New cases
            conditionalPanel(
-             condition = "input.character_time_zip == 'newcase'",
-             #column(10, offset = 1, h4("New cases")),
+            condition = "input.character_time_zip == 'newcase'",
+            # #column(10, offset = 1, h4("New cases")),
              fluidRow(
                column(width = 4,offset = 1,pickerInput("zip_nbh5", 
                                                        label = "Choose a ZCTA", 
@@ -1285,15 +1483,92 @@ ui <- navbarPage(
                column(width = 4,offset = 1,pickerInput("zip_nbh6", 
                                                        label = "Choose a ZCTA", 
                                                        choices =zip_nbh,
-                                                       multiple = FALSE)),
+                                                      multiple = FALSE)),
                column(6, plotlyOutput("incdrate", width="100%",height="500px")))
            ),
            
            
+           #hr(),
+           
+           ######### Added by 2020-09-03 ############
+           fluidRow(column(10, offset = 1, h4("Time trends of new cases, new hospitalizations, and new deaths by borough with daily data and 7-day moving average estimate"))),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("mvag_text"), style="font-size: 15px; line-height:150%"))),
+           fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
+           br(),
+           fluidRow(column(width = 10,offset = 1 ,selectInput("choices_trend_mvag", 
+                                                              label = "Data Display", 
+                                                              choices = choices_trend_mvag
+           )),
+           
+           column(width = 10,offset = 1 , 
+                  plotlyOutput("trendsmoving_avg",width = "100%", height = "600px"))
+           
+           
+           ),
+           br(),
+           #fluidRow(
+           #         column(width = 10,offset = 1 ,selectInput("choices_trend_mvag_rate", 
+           #                                                   label = "Data Display", 
+           #                                                   choices = choices_trend_mvag_rate
+           #)),
+           #column(width = 10,offset = 1 , 
+           #        plotlyOutput("trendsmoving_avg_rate",width = "100%", height = "600px"))
+           
+           #),
+           br(),
+           ##################
+           fluidRow(column(10, offset = 1, h4("Time trends of cumulative counts of cases, hospitalizations, and deaths by borough with weekly summary data"))),
+           
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("borotrendtext"), style="font-size: 15px; line-height:150%"))),
+           fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(borocase_cum$date_of_interest))))),
+           br(),
+           fluidRow(column(width = 2,offset = 1,
+                           # radioButtons(inputId = "selection",
+                           #              label =  "Data Display:",   
+                           #              c("Total Count" = "cum_case_count",
+                           #                "Incidence Count" = "new_case_count",
+                           #                "Total Rate" = "cum_case_rate",
+                           #                "Incidence Rate" = "new_case_rate")),
+                           radioButtons(inputId = "selection1",
+                                        label =  "Data Display:",   
+                                        c("Total Count" = "cum_case_count",
+                                          "Incidence Count" = "new_case_count"))),
+                    column(width = 8, plotlyOutput(outputId = "boro_cases1"))),
+           
+           fluidRow(column(width = 2,offset = 1,
+                           # radioButtons(inputId = "selection",
+                           #              label =  "Data Display:",   
+                           #              c("Total Count" = "cum_case_count",
+                           #                "Incidence Count" = "new_case_count",
+                           #                "Total Rate" = "cum_case_rate",
+                           #                "Incidence Rate" = "new_case_rate")),
+                           radioButtons(inputId = "selection2",
+                                        label =  "Data Display:",   
+                                        c("Total Rate" = "cum_case_rate",
+                                          "Incidence Rate" = "new_case_rate"))),
+                    column(width = 8, plotlyOutput(outputId = "boro_cases2"))),
+           fluidRow(column(width = 10, offset = 1, helpText("Data Sources: https://github.com/nychealth/coronavirus-data"))),
+           
            hr(),
+           ####zipcode trends
+           ###New update###
+           
+           fluidRow(column(10, offset = 1, h4("Map videos of new cases, cumulative cases, and cumulative deaths by NYC Zip Code Tabulation Areas (ZCTAs)"))),
+           fluidRow(column(width = 10, offset = 1, span(htmlOutput("trends_video_text"), style="font-size: 15px; line-height:150%"))),
+           
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo"))),
+           
+           #fluidRow(column(10, offset = 1, h4("New Cases Map video by ZCTAs"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_newcase"))),
+           #fluidRow(column(10, offset = 1, h4("Deaths Map video by ZCTAs"))),
+           fluidRow(column(width = 10, offset = 1,htmlOutput("mapvideo_death"))),
+           #fluidRow(column(width = 10, offset = 1, helpText(paste("Last updated : ",max(boro_incidence_daily$Date))))),
+           br(),
+           
+           
            #####
            fluidRow(
-             column(10, offset = 1, h4("Trends by demographics and borough")),
+             column(10, offset = 1, h4("Time trends by demographics and borough with weekly summary data")),
              column(10, offset = 1, helpText(paste("Last updated",max(weeklydf$day)))),
              column(width = 4, offset = 1, selectInput("character_timetrend",
                                                        "Data Display",
@@ -1412,40 +1687,56 @@ ui <- navbarPage(
            )
   ),
   
-  tabPanel(titlePanel(title=div(img(src="newcoin.png",height = "5%", width = "5%"), "COVID-19 Projection",style="margin-top: -8px")),
-           
-          
+  tabPanel(title=div(img(src="newcoin.png",height = "17"), "COVID-19 Projection"),
            fluidRow(column(10, offset = 1, h2("NYC COVID-19 Projection")),
-           column(width = 10, offset = 1, h4("Model by Columbia")),
-           br(),
-           column(width = 10, offset = 1, span(htmlOutput("Projecttext"), style="font-size: 15px; line-height:150%")),
-           column(width = 10, offset = 1, helpText(paste("Train Data last updated: ", max(train_data$date)))),
-           column(4, offset = 1,
-                  selectInput("season", 
-                              label = "Choose Seasonality Assumption", 
-                              choices = season
-                  )),
-           column(4, offset = 1,
-                  selectInput("loc_proj", 
-                              label = "Choose a location", 
-                              choices = location
-                  )),
-           column(4, offset = 1,
-                  selectInput("interve", 
-                              label = "Choose intervention", 
-                              choices = intervention
-                  )),
-           
-            column(2, offset = 1,htmlOutput("zipuhf")),
-           column(2,htmlOutput("uhftext")),
-           
-             column(10, offset = 1, h3("New Cases")),
-             column(10, offset = 1, plotlyOutput("proj_line_case", width="100%",height="80%")),
-             column(10, offset = 1, h3("New Deaths")),
-             column(10, offset = 1, plotlyOutput("proj_line_deat", width="100%",height="80%")),
-             column(10, offset = 1, h3("New Total Hospitalizations")),
-             column(10, offset = 1, plotlyOutput("proj_line_hosp", width="100%",height="80%")),
-             column(10, offset = 1, helpText("Data Sources: https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC"))),
+                    #column(width = 10, offset = 1, h4("Model by Columbia")),
+                    br(),
+                    column(width = 10, offset = 1, span(htmlOutput("Projecttext"), style="font-size: 15px; line-height:150%")),
+                    column(width = 10, offset = 1, helpText(paste("Last updated: ", max(train_data$date)))),
+                    column(width = 10, offset = 1,
+                           sidebarLayout(
+                             
+                             sidebarPanel(
+                               
+                               selectInput("season", 
+                                           label = "Choose Seasonality Assumption", 
+                                           choices = season),
+                               selectInput("interve", 
+                                           label = "Choose Intervention", 
+                                           choices = intervention),
+                               selectInput("loc_proj", 
+                                           label = "Choose a Location", 
+                                           choices = location),
+                               
+                              #selectInput("zcta_proj", 
+                              #             label = "Choose a Location", 
+                              #             choices = zcta),
+                               htmlOutput("zipuhf"),
+                               
+                               htmlOutput("uhftext")
+                               
+                             ),
+                             
+                             mainPanel(
+                               column(width = 12, span(htmlOutput("Projecttext2"), style="font-size: 15px; line-height:150%"))),
+                             
+                             position = c("left","right")
+                           )),
+                    
+                    
+                    
+                    
+                    column(10, offset = 1, h3("New Cases")),
+                    column(10, offset = 1, plotlyOutput("proj_line_case", width="100%",height="80%")),
+                    column(10, offset = 1, h3("New Total Hospitalizations")),
+                    column(10, offset = 1, plotlyOutput("proj_line_hosp", width="100%",height="80%")),
+                    column(10, offset = 1, h3("New Deaths")),
+                    column(10, offset = 1, plotlyOutput("proj_line_deat", width="100%",height="80%")),
+                    
+                    column(width = 10, offset = 1, span(htmlOutput("ProRefertext"), style="font-size: 12px; line-height:150%")),
+                    
+                    #column(10, offset = 1, helpText("Data Sources: https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC"))
+           ),
            
            
            fluidRow(align="center",
@@ -1763,11 +2054,13 @@ server <- function(input, output) {
       "The NYC Neighborhoods COVID-19 Dashboard is a tracker and data visualization tool to provide continuously updated sources of COVID-19 data in NYC for lay public, essential workers, policymakers, and researchers. 
  <br><br>
  
- There are four tools available (located at the top navigation menu): <br>
+ There are five tools available (located at the top navigation menu): <br>
 <b> <span>&#8226;</span>  COVID-19 Tracker </b> provides daily tracking of the local development for COVID-19 cases, deaths, and tests in 177 NYC ZIP Code Tabulation Areas (ZCTAs). <br>
 <b> <span>&#8226;</span>  COVID-19 Distribution </b> provides a data visualization of COVID-19 cases, hospitalizations, and deaths in NYC ZCTAs and by age, gender, and race/ethnicity. <br>
 <b> <span>&#8226;</span>  COVID-19 Trends </b> shows the time trends for COVID-19 cases, hospitalizations, and deaths by NYC boroughs, ZCTAs, and demographics. <br>
+<b> <span>&#8226;</span>  COVID-19 Projection </b> provides projection of COVID-19 new cases, new hospitalizations, and new deaths in the next 8 weeks by NYC United Hospital Fund neighborhood. <br>
 <b> <span>&#8226;</span>  Neighborhoods </b> shows and compares the neighborhood characteristics of NYC ZCTAs."
+      
       
     )
   })
@@ -1802,11 +2095,11 @@ server <- function(input, output) {
   
   output$borotrendtext = renderText({
     return(
-      "A look at how COVID-19 cases, hospitalizations, and deaths change over time by NYC borough. 
+      "A look at how cumulative counts of COVID-19 cases, hospitalizations, and deaths change over time by NYC borough. 
       Total count shows cumulative counts of COVID-19 cases, hospitalizations, and deaths since the start of the outbreak. 
-      Incidence count shows single week new numbers of COVID-19 cases, hospitalizations, and deaths last week. 
-      Total rate and incidence rate are calculated using total count and incidence count divided by borough population size and multiplied by 100,000. 
-      Data are updated every Sunday. Select available display options to visualize the data.
+      Total rate is calculated using total count divided by borough population size and multiplied by 100,000. 
+      Data are updated every Sunday. 
+      Select available display options to visualize the data.
 "     
     )
   })
@@ -1855,7 +2148,7 @@ Keep one decimal for all numbers.")
     urlqyc = a("Yuchen Qi",href = "https://www.linkedin.com/in/yuchen-qi/")
     urlcqx = a("Qixuan Chen",href = "https://www.publichealth.columbia.edu/people/our-faculty/qc2138")
     
-    tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Chen Lab in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
+    tagList("The NYC Neighborhoods COVID-19 Dashboard is developed by Professor Qixuan Chen’s research team in the Department of Biostatistics at Columbia University Mailman School of Public Health: 
     ",urlzzq,",",urlzmy,",",urlyyz,",",urlqyc,",",urlcqx,"."
     )
     
@@ -1863,7 +2156,8 @@ Keep one decimal for all numbers.")
   
   output$abouttext2 = renderText({
     return("<br>
-    We are thankful to Cynthia Liu who designed the dashboard logo and our colleagues in the Mailman School of Public Health for comments and suggestions. We hope that you find the dashboard useful.
+    We are thankful to Professor Wan Yang for allowing us to use her COVID-19 projection data, Cynthia Liu who designed the dashboard logo, and our colleagues in the Mailman School of Public Health for comments and suggestions. 
+    We hope that you find the dashboard useful.
     <br><br>
     Disclaimer: We assume no responsibility or liability for any errors or omissions in the content of this site. If you believe there is an error in our data, please feel free to contact us. 
 ")
@@ -1872,21 +2166,21 @@ Keep one decimal for all numbers.")
   ###########
   ##Home plot
   
-  output$HomePlot= renderPlotly({
-    fig1 = ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
-      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
-      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
-    )
-    fig2 = ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
-      plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
-      plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
-    )
-    fig1/fig2
-  })
+  #output$HomePlot= renderPlotly({
+  #  fig1 = ggplot(df.ave, aes(x = date, y = cases)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = date, y = ave_cases), color = "red", size = 1) + ggtitle("New reported cases by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+  #    axis.title.x = element_blank(),
+  #    axis.title.y = element_blank(),
+  #    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+  #    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  #  )
+  #  fig2 = ggplot(df.ave, aes(x = date, y = deaths)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = ave_deaths), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_minimal() + labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + theme(
+  #    axis.title.x = element_blank(),
+  #    axis.title.y = element_blank(),
+  #    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+  #    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  #  )
+  #  fig1/fig2
+  #})
   
   
   
@@ -1905,6 +2199,18 @@ Keep one decimal for all numbers.")
                    death_rate = death_rate,
                    newcase = newcase,
                    incidencerate = incidencerate
+    )
+    
+    plot(input$date_choice)
+  })
+  
+  output$testmap = renderLeaflet({
+    
+    plot = switch (input$outcome_selection_test,
+                   total_test_fc = total_test_fc,
+                   test_rate_fc = test_rate_fc,
+                   new_test_fc = new_test_fc,
+                   new_test_rate_fc = new_test_rate_fc
     )
     
     plot(input$date_choice)
@@ -2682,7 +2988,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -2710,7 +3016,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -2735,7 +3041,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -2765,7 +3071,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -2793,7 +3099,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -2818,7 +3124,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -2847,7 +3153,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -2875,7 +3181,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -2900,7 +3206,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -2930,7 +3236,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
@@ -2958,7 +3264,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
@@ -2983,7 +3289,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
@@ -3029,116 +3335,328 @@ Keep one decimal for all numbers.")
   #######
   
   output$pocase <- renderPlotly({
-    
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh1,
-             type == "Total Cases") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "Total Cases")
+    N = nrow(mvag_zcta_df)
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[i]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    
+    
+    #weeklydf %>% 
+    #  filter(zipcode_new %in% input$zip_nbh1,
+    #         type == "Total Cases") %>%
+    #  plot_ly(x = ~day,
+    #          y = ~num,
+    #          type="scatter",
+    #         mode = 'lines+markers',
+    #          colors= "Blues") %>% 
+    #  layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #         xaxis = list(title = "",type = "date"),
+    #         yaxis = list(title = ""))
     
     
     
   })
   
   output$death <- renderPlotly({
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh2,
-             type == "Total Deaths") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "Total Deaths")
+    N = nrow(mvag_zcta_df )
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[i]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    
+    #weeklydf %>% 
+    #filter(zipcode_new %in% input$zip_nbh2,
+    #       type == "Total Deaths") %>%
+    #plot_ly(x = ~day,
+    #        y = ~num,
+    #        type="scatter",
+    #        mode = 'lines+markers',
+    #        colors= "Blues") %>% 
+    #layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #       xaxis = list(title = "",type = "date"),
+    #       yaxis = list(title = ""))
     
   }) 
   
   output$porate <- renderPlotly({
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh3,
-             type == "Case Rate (per 100,000 people)") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "Case Rate (per 100,000 people)")
+    N = nrow(mvag_zcta_df )
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[1]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    #weeklydf %>% 
+    #  filter(zipcode_new %in% input$zip_nbh3,
+    #         type == "Case Rate (per 100,000 people)") %>%
+    #  plot_ly(x = ~day,
+    #          y = ~num,
+    #          type="scatter",
+    #          mode = 'lines+markers',
+    #          colors= "Blues") %>% 
+    #  layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #         xaxis = list(title = "",type = "date"),
+    #         yaxis = list(title = ""))
   }) 
   
   output$derate <- renderPlotly({
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh4,
-             type == "Death Rate (per 100,000 people)") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "Death Rate (per 100,000 people)")
+    N = nrow(mvag_zcta_df )
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[1]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    
+    #weeklydf %>% 
+    #  filter(zipcode_new %in% input$zip_nbh4,
+    #         type == "Death Rate (per 100,000 people)") %>%
+    #  plot_ly(x = ~day,
+    #          y = ~num,
+    #          type="scatter",
+    #          mode = 'lines+markers',
+    #          colors= "Blues") %>% 
+    #  layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #         xaxis = list(title = "",type = "date"),
+    #         yaxis = list(title = ""))
   })
   
   output$newcases <- renderPlotly({
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh5,
-             type == "New Cases") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "New Cases")
+    N = nrow(mvag_zcta_df)
+    
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[1]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    #for (i in 1:N) {
+    #  if (df.ave$num[i] < 0) {
+    #    df.ave$num[i] = 0
+    #  }
+    #}
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    
+    #weeklydf %>% 
+    #  filter(zipcode_new %in% input$zip_nbh5,
+    #         type == "New Cases") %>%
+    #  plot_ly(x = ~day,
+    #          y = ~num,
+    #          type="scatter",
+    #          mode = 'lines+markers',
+    #          colors= "Blues") %>% 
+    #  layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #         xaxis = list(title = "",type = "date"),
+    #         yaxis = list(title = ""))
   })
   
   output$incdrate <- renderPlotly({
-    weeklydf %>% 
+    mvag_zcta_df = data.mvag.daily %>% 
       filter(zipcode_new %in% input$zip_nbh6,
-             type == "Incidence Rate (per 100,000 people)") %>%
-      plot_ly(x = ~day,
-              y = ~num,
-              type="scatter",
-              mode = 'lines+markers',
-              colors= "Blues") %>% 
-      layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
-             xaxis = list(title = "",type = "date"),
-             yaxis = list(title = ""))
+             type == "Incidence Rate (per 100,000 people)")
+    N = nrow(mvag_zcta_df)
+    #for (i in 1:N) {
+    #  if (mvag_zcta_df$num[i] < 0) {
+    #    mvag_zcta_df$num[i] = 0
+    #  }
+    #}
+    
+    cases = pull(mvag_zcta_df,num)
+    #deaths = pull(df_totalcase_bx ,deaths)
+    ave.cases = rep(0, N-6)
+    #ave.deaths = rep(0, N-6)
+    
+    
+    for (i in 4:(N-3)) {
+      ave.cases[i] = mean(cases[(i-3):(i+3)])
+      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+    }
+    for (i in 1:3) {
+      ave.cases[i] = cases[1]
+      #ave.deaths[i] = ave.deaths[1]
+    }
+    for (i in (N-2):N) {
+      ave.cases[i] = ave.cases[N-3]
+      #ave.deaths[i] = ave.deaths[N-3]
+    }
+    
+    df.ave = mvag_zcta_df  %>% 
+      mutate(ave_cases = round(ave.cases))
+    
+    
+    
+    ggplot(df.ave, aes(x = day, y = num)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave.cases), color = "red", size = 1) + ggtitle("Cumulative reported cases by day in Bronx") + theme_classic() + theme(
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      plot.title = element_text(hjust = 0, size = 14)
+    )
+    
+    #weeklydf %>% 
+    #  filter(zipcode_new %in% input$zip_nbh6,
+    #         type == "Incidence Rate (per 100,000 people)") %>%
+    #  plot_ly(x = ~day,
+    #          y = ~num,
+    #          type="scatter",
+    #          mode = 'lines+markers',
+    #          colors= "Blues") %>% 
+    #  layout(legend=list(title=list(text='<b> Zipcode </b>'), orientation = 'h', xanchor = "center", x = 0.5, y = -0.5),
+    #         xaxis = list(title = "",type = "date"),
+    #         yaxis = list(title = ""))
   })
   
   ###added by 2020-09-15
   output$trendstitle = renderText({
     return(list(div(img(src = "newlogo3.png", height = "100%",width = "100%"),
-        style="text-align: center;"),
-        "COVID-19 Trends")
+                    style="text-align: center;"),
+                "COVID-19 Trends")
     )
   })
-
+  
   ###Added by 2020-09-03
   ### Moving average in Trends
   output$mvag_text = renderText({
     return("A look at how COVID-19 new cases, new hospitalizations, and new deaths change over time by NYC borough. 
     Each bar shows the <b> single day new numbers </b> of COVID-19 cases, hospitalizations, and deaths. 
-    Solid lines show the 7-day moving average. The moving average is taken over in 3 days before and 3 days after the day. 
+    Solid lines show the 7-day moving average. 
+    Incidence rate, new hospitalization rate, and new death rate (per 100,000 people) are calculated using counts of new cases, new hospitalizations, and new deaths divided by borough population size and multiplied by 100,000. 
+    Data are updated every Sunday.
     Select available display options to visualize the data.")
   })
   
   output$trendsmoving_avg = renderPlotly({
     
-    borocase_new_day_bx_case = boro_incidence_daily %>% 
-      filter(type == input$choices_trend_mvag ) %>% 
-      select(-newtype,-Rate)
+    borocase_new_day_bx_case = boro_incidence_daily_new %>% 
+      filter(type == input$choices_trend_mvag ) #%>% 
+    #select(-newtype,-Rate)
     
     if (input$choices_trend_mvag == "New Cases") {
       clr = "#F6BDBC"
@@ -3146,8 +3664,13 @@ Keep one decimal for all numbers.")
       clr = "#87c7ed"
     } else if (input$choices_trend_mvag == "New Hospitalizations") {
       clr = "#aaed93"
-      
-    }
+    } else if (input$choices_trend_mvag == "Incidence Rate (per 100,000 people)") {
+      clr = "#F6BDBC"
+    }else if (input$choices_trend_mvag == "New Death Rate (per 100,000 people)") {
+      clr = "#87c7ed"
+    } else if (input$choices_trend_mvag == "New Hospitalization Rate (per 100,000 people)") {
+      clr = "#aaed93"
+    } 
     
     if (input$choices_trend_mvag == "New Cases") {
       cll = "red"
@@ -3155,7 +3678,12 @@ Keep one decimal for all numbers.")
       cll = "blue"
     } else if (input$choices_trend_mvag == "New Hospitalizations") {
       cll = "green"
-      
+    } else if (input$choices_trend_mvag == "Incidence Rate (per 100,000 people)") {
+      cll = "red"
+    } else if (input$choices_trend_mvag == "New Death Rate (per 100,000 people)") {
+      cll = "blue"
+    } else if (input$choices_trend_mvag == "New Hospitalization Rate (per 100,000 people)") {
+      cll = "green"
     }
     
     N = nrow(borocase_new_day_bx_case )
@@ -3193,11 +3721,11 @@ Keep one decimal for all numbers.")
     }
     
     break.vec = pretty(break.vec,n=9)
-    break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
+    break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max])
     length(break.vec)
     
     a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.5) + 
-      geom_line(aes(x = Date, y = ave.cases), color = cll, size = 1) + 
+      geom_line(aes(x = Date, y = round(ave.cases)), color = cll, size = 1) + 
       ggtitle(paste0(input$choices_trend_mvag, " in different Boroughs")) + theme_classic() + 
       theme_bw() +
       theme(
@@ -3222,103 +3750,102 @@ Keep one decimal for all numbers.")
   })
   
   
-  output$trendsmoving_avg_rate = renderPlotly({
+ #output$trendsmoving_avg_rate = renderPlotly({
     
-    borocase_new_day_bx_case = boro_incidence_daily %>% 
-      filter(newtype == input$choices_trend_mvag_rate ) %>% 
-      select(-newtype,-Rate)
-  
+ #   borocase_new_day_bx_case = boro_incidence_daily %>% 
+ #     filter(newtype == input$choices_trend_mvag_rate ) %>% 
+ #     select(-newtype,-Rate)
     
-    if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
-      clr = "#F6BDBC"
-    } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
-      clr = "#87c7ed"
-    } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
-      clr = "#aaed93"
-      
-    }
     
-    if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
-      cll = "red"
-    } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
-      cll = "blue"
-    } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
-      cll = "green"
-      
-    }
+  #  if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
+ #     clr = "#F6BDBC"
+  #  } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
+  #    clr = "#87c7ed"
+  #  } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
+  #    clr = "#aaed93"
+  #    
+  #  }
     
-    N = nrow(borocase_new_day_bx_case )
-    cases = pull(borocase_new_day_bx_case ,Count)
-    #deaths = pull(df_totalcase_bx ,deaths)
-    ave.cases = rep(0, N-6)
-    #ave.deaths = rep(0, N-6)
+  #  if (input$choices_trend_mvag_rate == "Incidence Rate (per 100,000 people)") {
+  #    cll = "red"
+  #  } else if (input$choices_trend_mvag_rate == "New Death Rate (per 100,000 people)") {
+  #    cll = "blue"
+  #  } else if (input$choices_trend_mvag_rate == "New Hospitalization Rate (per 100,000 people)") {
+  #    cll = "green"
+  #    
+  #  }
     
-    for (i in 4:(N-3)) {
-      ave.cases[i] = mean(cases[(i-3):(i+3)])
-      #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
-    }
-    for (i in 1:3) {
-      ave.cases[i] = ave.cases[1]
-      #ave.deaths[i] = ave.deaths[1]
-    }
-    for (i in (N-2):N) {
-      ave.cases[i] = ave.cases[N-3]
-      #ave.deaths[i] = ave.deaths[N-3]
-    }
+  #  N = nrow(borocase_new_day_bx_case )
+  #  cases = pull(borocase_new_day_bx_case ,Count)
+  #  #deaths = pull(df_totalcase_bx ,deaths)
+  #  ave.cases = rep(0, N-6)
+  #  #ave.deaths = rep(0, N-6)
+  #  
+  #  for (i in 4:(N-3)) {
+  #    ave.cases[i] = mean(cases[(i-3):(i+3)])
+  #    #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+  #  }
+  #  for (i in 1:3) {
+  #    ave.cases[i] = ave.cases[1]
+  #    #ave.deaths[i] = ave.deaths[1]
+  #  }
+  #  for (i in (N-2):N) {
+  #    ave.cases[i] = ave.cases[N-3]
+  #    #ave.deaths[i] = ave.deaths[N-3]
+  #  }
+  #  
+  #  df.ave = borocase_new_day_bx_case  %>% 
+  #    mutate(ave_cases = round(ave.cases))
+  #  
+  #  x_min = min(df.ave$Date)		
+  #  x_max = max(df.ave$Date)		
+  #  if (as.numeric(x_max - x_min) < 15 ) {		
+  #    break.vec <- seq( x_min, x_max, by = "day")		
+  #  } else {		
+  #    if (as.numeric(x_max - x_min) %% 3 == 2) {		
+  #      break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + x_min, x_max, by = "3 days"))		
+  #    } else {		
+  #      break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + 3 + x_min, x_max, by = "3 days"))		
+  #    }		
+  #  }
+  #  
+  #  break.vec = pretty(break.vec,n=9)
+  #  break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
+  #  length(break.vec)
     
-    df.ave = borocase_new_day_bx_case  %>% 
-      mutate(ave_cases = round(ave.cases))
     
-    x_min = min(df.ave$Date)		
-    x_max = max(df.ave$Date)		
-    if (as.numeric(x_max - x_min) < 15 ) {		
-      break.vec <- seq( x_min, x_max, by = "day")		
-    } else {		
-      if (as.numeric(x_max - x_min) %% 3 == 2) {		
-        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + x_min, x_max, by = "3 days"))		
-      } else {		
-        break.vec <- c(x_min, seq( as.numeric(x_max - x_min) %% 3 + 3 + x_min, x_max, by = "3 days"))		
-      }		
-    }
+  # a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.5) + 
+  #    geom_line(aes(x = Date, y = ave.cases), color = cll, size = 1) + 
+  #    ggtitle(paste0(input$choices_trend_mvag_rate, " in different Boroughs")) + theme_classic() + 
+  #    theme_bw() +
+  #    theme(
+  #      axis.title.x = element_blank(),
+  #      axis.title.y = element_blank(),
+  #      plot.title = element_text(hjust = 0, size = 14)) +
+  #    theme(panel.border = element_blank()) +
+  #    theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+  #    theme(axis.line = element_line(colour = "black")) +
+  #    theme(strip.background = element_blank()) + 
+  #    theme(axis.text.x = element_text(angle = 65, hjust = 1, size = 7.5)) +
+  #    theme(legend.title = element_blank()) +
+  #    theme(panel.spacing.y=unit(1, "lines")) + 
+  #    scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
+  #   facet_wrap(.~Borough, scales = "free") + 
+  #    xlab("") + 
+  #    ylab("")
+  #  
+  #  ggplotly(a)
     
-    break.vec = pretty(break.vec,n=9)
-    break.vec = c(x_min,break.vec[break.vec>x_min+1 & break.vec<x_max],x_max-1)
-    length(break.vec)
-    
-   
-      a = ggplot(df.ave, aes(x = Date, y = Count)) + geom_col(color = clr, fill = clr, alpha = 0.5) + 
-        geom_line(aes(x = Date, y = ave.cases), color = cll, size = 1) + 
-        ggtitle(paste0(input$choices_trend_mvag_rate, " in different Boroughs")) + theme_classic() + 
-        theme_bw() +
-        theme(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          plot.title = element_text(hjust = 0, size = 14)) +
-        theme(panel.border = element_blank()) +
-        theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
-        theme(axis.line = element_line(colour = "black")) +
-        theme(strip.background = element_blank()) + 
-        theme(axis.text.x = element_text(angle = 65, hjust = 1, size = 7.5)) +
-        theme(legend.title = element_blank()) +
-        theme(panel.spacing.y=unit(1, "lines")) + 
-        scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
-        facet_wrap(.~Borough, scales = "free") + 
-        xlab("") + 
-        ylab("")
-      
-      ggplotly(a)
-      
-  })
+  #})
   
   
   output$trends_video_text = renderText({
-    return("This is the map video which shows the cumulative cases, new cases, and cumulative deaths destribution of COVID-19 at ZCTAs level. 
-           Please Choose 1080p by setting in the video.")
- })
+    return("The map videos below can be used to visualize how the changes of COVID-19 new cases, cumulative cases, and cumulative deaths over time vary by NYC ZCTAs.")
+  })
   
   output$mapvideo = renderUI({
     h6(tags$iframe(src = "https://www.youtube.com/embed/FtaFXzIiq8A",frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=NA, width="560", height="315"))
-
+    
   })
   
   output$mapvideo_newcase = renderUI({
@@ -3331,35 +3858,43 @@ Keep one decimal for all numbers.")
   })
   
   output$Projecttext = renderText({
-    return("A look at how COVID-19 new cases, new deaths, and new hospitalizations would change in next 8 weeks by NYC United Hospital Fund (UHF) neighborhood.
-    New cases, new deaths, and new hospitalizations show single week new numbers of COVID-19 cases, deaths, and hospitalizations last week.
-    <br>
-    Seasonality Assumption contains 2 options: Seasonality Assumption (with seasonal changes to virus transmissibility) and No Seasonality (without seasonality changes to virus transmissibility).
-    <br>
-    The location contains 42 United Hospital Fund (UHF) neighborhoods in NYC. Note that UHF locations are based on residential address and may not match with hospital locations and catchment area.
-    <br>
-    The intervention contains 6 scenarios. 
-    <br>
-    Worst Case: No Control. The model posterior estimated with data from Week 10 (March 1-7) of 2020 (an earlier week with minimal interventions) was integrated 8 weeks into the future to create a reference, worst case.
-    <br>
-    'As Is': the model posterior estimated using data from Week 10 through the most recent week, was integrated 8 weeks into the future to create a reference.
-    <br>
-    'Ctrl 1 moderate reduction in transmission': 10% reduction in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
-    <br>
-    ??????????'Ctrl 3 large reduction in transmission': 25% reduction in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
-    <br>
-    'Rebound 1 moderate increase in transmission': 10% increase in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
-    <br>
-    'Rebound 2 large increase in transmission': 25% increase in the transmission rate with respect to the projected estimates per the 'As Is' scenario.
-    <br>
-    Select available display options to visualize the data.
-    <br>
-    We thank the Professor Yang from Columbia University for allowing us to use their Projections of 
-    COVID-19 Epidemic Outcomes and Healthcare Demands for NYC model.
-    <br>
-    If you would like to get more details about this model, please check the github of Prof. Yang: 
-    https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC.
+    return("<b> Projection of COVID-19 new cases, new hospitalizations, and new deaths in the next 8 weeks </b> by NYC United Hospital Fund (UHF) neighborhood. 
+    The projection data are based on the COVID-19 Epidemic Outcomes and Healthcare Demands for NYC model developed by Professor Wan Yang at Columbia University <sup> 1,2,3 </sup>.
+    The red curves represent median estimates and the gray bands represent the first and third quarters of the estimates. 
+    Choose different modeling assumptions to visualize the projection data.
     ")
+  })
+  
+  output$Projecttext2 = renderText({
+    return("<b> Seasonality Assumption </b> contains 2 options: <br>
+    <p style='margin-left:5%; '> 1. <b> Seasonality Assumed </b>: with seasonal changes to virus transmissibility. <br> 
+    2. <b> No Seasonality </b>: without seasonality changes to virus transmissibility.</p>
+    
+    <b> Intervention </b> contains 6 scenarios. <br>
+    <p style='margin-left:5%; '> 1. <b> As Is </b>: Status quo. Current level of control.
+    <br>
+    2. <b> Rebound 1 </b>: 10% increase in the transmission rate compared to the <b> As Is </b> scenario.
+    <br>
+    3. <b> Rebound 2 </b>: 25% increase in the transmission rate compared to the <b> As Is </b> scenario.
+    <br>
+    4. <b> Ctrl 1 </b>: 10% reduction in the transmission rate compared to the <b> As Is </b> scenario.
+    <br>
+    5. <b> Ctrl 2 </b>: 25% reduction in the transmission rate compared to the <b> As Is </b> scenario.
+    <br>
+    6.<b> Worst Case </b>: No Control. Worst Case. </p>
+   
+    <b> Location </b> contains 42 United Hospital Fund (UHF) neighborhoods in NYC. 
+    Zip Codes that the selected UHF contains are displayed below the location selection box. 
+    ")
+  })
+  
+  output$ProRefertext = renderText({
+    return("1.	https://github.com/wan-yang/COLUMBIA-COVID19-PROJECTIONS-FOR-NYC.<br>
+           2.	Yang W, Kandula S, Huynh M, et al. Estimating the infection fatality risk of COVID-19 in New York City, March 1-May 16, 2020. medRxiv 2020: 2020.06.27.20141689. 
+           https://www.medrxiv.org/content/10.1101/2020.06.27.20141689v1 <br>
+           3.	Yang W, Shaff J, Shaman J. COVID-19 transmission dynamics and effectiveness of public health interventions in New York City during the 2020 spring pandemic wave. medRxiv. 2020:2020.09.08.20190710. 
+           https://www.medrxiv.org/content/10.1101/2020.09.08.20190710v1 <br>
+")
   })
   
   output$proj_line_case = renderPlotly({
@@ -3370,12 +3905,12 @@ Keep one decimal for all numbers.")
     
     x_min_us = min(train_data_sel$date)
     x_max_us = max(season_city_newcases$date)
-    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
-  
+    
     b = ggplot() + 
-      geom_line(data = train_data_sel ,aes(x = date, y = new_cases_value,group = 1)) +
-      geom_point(data = train_data_sel , aes(x = date, y = new_cases_value)) +
+      #geom_line(data = train_data_sel ,aes(x = date, y = new_cases_value,group = 1)) +
+     # geom_point(data = train_data_sel , aes(x = date, y = new_cases_value)) +
       theme_minimal() +
       #theme(legend.position = "none")+
       #theme(panel.spacing.y=unit(2, "lines")) + 
@@ -3397,7 +3932,7 @@ Keep one decimal for all numbers.")
       theme(legend.position = "none")+
       xlab("") + 
       ylab("") #+ 
-      #ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
+    #ggtitle(paste0("New Total Hospitalizations Under ", input$input$interve," Control Scenarios"))
     
     ggplotly(b)
   })
@@ -3410,11 +3945,11 @@ Keep one decimal for all numbers.")
     
     x_min_us = min(train_data_sel$date)
     x_max_us = max(season_city_newcases$date)
-    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     b = ggplot() + 
-      geom_line(data = train_data_sel ,aes(x = date, y = new_deaths_value,group = 1)) +
-      geom_point(data = train_data_sel , aes(x = date, y = new_deaths_value)) +
+     # geom_line(data = train_data_sel ,aes(x = date, y = new_deaths_value,group = 1)) +
+     # geom_point(data = train_data_sel , aes(x = date, y = new_deaths_value)) +
       theme_minimal() +
       #theme(legend.position = "none")+
       #theme(panel.spacing.y=unit(2, "lines")) + 
@@ -3436,7 +3971,7 @@ Keep one decimal for all numbers.")
       scale_x_date(breaks = break.train, date_labels = "%m-%d") + 
       xlab("") + 
       ylab("") #+ 
-      #ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
+    #ggtitle(paste0("New Deaths Under", input$input$interve,"Control Scenarios"))
     
     ggplotly(b)
   })
@@ -3446,15 +3981,15 @@ Keep one decimal for all numbers.")
       filter(seasonality == input$season  & location == input$loc_proj) 
     season_city_newcases = project_data %>% 
       filter(seasonality == input$season  & intervention ==input$interve & location == input$loc_proj)
-   
+    
     x_min_us = min(train_data_sel$date)
     x_max_us = max(season_city_newcases$date)
-    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.train = c(x_min_us, seq(x_min_us, x_max_us, by = "7 days"))
     
     
     b = ggplot() + 
-      geom_line(data = train_data_sel ,aes(x = date, y = new_hosp_value,group = 1)) +
-      geom_point(data = train_data_sel , aes(x = date, y = new_hosp_value)) +
+      #geom_line(data = train_data_sel ,aes(x = date, y = new_hosp_value,group = 1)) +
+     # geom_point(data = train_data_sel , aes(x = date, y = new_hosp_value)) +
       theme_minimal() +
       #theme(legend.position = "none")+
       #theme(panel.spacing.y=unit(2, "lines")) + 
@@ -3476,13 +4011,13 @@ Keep one decimal for all numbers.")
       scale_x_date(breaks = break.train, date_labels = "%m-%d") + 
       xlab("") + 
       ylab("")  
-      #ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
+    #ggtitle(paste("New Total Hospitalizations Under", input$input$interve,"Control Scenarios"))
     
     ggplotly(b)
   })
   
   output$zipuhf = renderText({
-    return("This UHF contains zipcode: ")
+    return("The selected location contains Zip Codes: ")
   })
   output$uhftext = renderText({
     
