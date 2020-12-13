@@ -1,0 +1,131 @@
+---
+title: "Asthma"
+author: "Ziqi Zhou"
+date: "10/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(codebook)
+```
+
+```{r}
+asthma = read.csv("./predictor/Asthma Hospitalizations (Adults).csv",skip = 7) %>% 
+  janitor::clean_names() %>% 
+  select(-notes_age_adjusted_rate,-notes_estimated_annual_rate,-notes_number,-x) %>% 
+  mutate(geography_id = as.character(geography_id))
+
+codebook(asthma)
+
+linkid = read.csv("./nyc-neighborhoods-covid/data/nyc.zips.uhfs.csv") %>% 
+  rename(zipcode = zip)
+```
+
+```{r}
+#by uhf
+asthma %>% 
+  arrange(age_adjusted_rate_per_10_000_residents) %>% 
+  filter(geo_type_name != "Borough") %>% 
+  ggplot(aes(x = reorder(geography, -age_adjusted_rate_per_10_000_residents), 
+             y = age_adjusted_rate_per_10_000_residents)) + 
+  geom_bar(position="stack", stat="identity") + 
+  theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(panel.spacing.y=unit(1, "lines")) + 
+      xlab("") +
+      ylab("") 
+```
+
+```{r}
+
+```
+
+
+
+```{r}
+#covid
+covid = read.csv("./nyc-neighborhoods-covid/data/modzcta_until1020.csv") %>% 
+arrange(-positive) %>% 
+  filter(day == "2020-10-20")
+
+covid2 = left_join(covid, linkid)
+topcasesuhf = covid2[1:20,12]
+topcasesuhf = c(402,103,206,102,503,208,410,106,105,204,210,201,207) 
+```
+
+```{r}
+asthma %>% 
+  arrange(age_adjusted_rate_per_10_000_residents) %>% 
+  filter(geography_id == 406|geography_id == 103 | geography_id == 206 | geography_id == 102
+         |geography_id == 503 | geography_id == 208 |geography_id == 410 |geography_id == 106
+         | geography_id == 105 | geography_id == 204 |geography_id == 210 |geography_id == 201
+         | geography_id == 207) %>% 
+  ggplot(aes(x = geography, y = age_adjusted_rate_per_10_000_residents)) + 
+  geom_bar(position="stack", stat="identity") + 
+  theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
+      theme(axis.line = element_line(colour = "black")) +
+      theme(strip.background = element_blank()) + 
+      theme(axis.text.x = element_text(angle = 65, hjust = 1)) + 
+      theme(legend.title = element_blank()) +
+      theme(panel.spacing.y=unit(1, "lines")) + 
+      xlab("") +
+      ylab("") 
+```
+
+```{r}
+train_data =read_xlsx("./nyc-neighborhoods-covid/data/WeeklyProjections20201016.xlsx",sheet = 3) %>% 
+  janitor::clean_names()%>% 
+  separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
+  mutate(new_cases_value = as.numeric(new_cases_value),
+         new_cases_lower = as.numeric(new_cases_lower),
+         new_cases_upper = as.numeric(new_cases_upper))%>% 
+  separate(col = new_deaths, into = c("new_deaths_value","new_deaths_lower","new_deaths_upper")) %>%
+  mutate(new_deaths_value = as.integer(new_deaths_value),
+         new_deaths_lower = as.integer(new_deaths_lower),
+         new_deaths_upper = as.integer(new_deaths_upper)
+  ) %>% 
+  separate(col = new_total_hospitalizations, into = c("new_hosp_value","new_hosp_lower","new_hosp_upper")) %>%
+  mutate(new_hosp_value = as.integer(new_hosp_value),
+         new_hosp_lower = as.integer(new_hosp_lower),
+         new_hosp_upper = as.integer(new_hosp_upper),
+         date = as.Date(date,format = "%m/%d/%y")
+  ) %>% 
+  mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
+         seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
+         location = str_replace_all(location, "city","City")
+  )
+
+covid_uhf = train_data %>% 
+  filter(location != "City") %>% 
+  separate(location,into = c("uhf", "uhf_name")) %>% 
+  rename(geography_id = uhf) 
+
+uhf_covid_asthma = left_join(covid_uhf, asthma)
+```
+```{r}
+to = read.csv("./nyc-neighborhoods-covid/data/modzcta_until1030.csv") %>% 
+  filter(day == min(day))
+sum(to$positive)
+```
+2020-10-29
+NY times:266,321
+health department:254,091
+download" 247719
+
+248838-247719
+
+```{r}
+b = read.csv("/Users/ziqizhou/Desktop/data-by-modzcta.csv") %>% janitor::clean_names()
+sum(b$covid_case_count)
+```
+

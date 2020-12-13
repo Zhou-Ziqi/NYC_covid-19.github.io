@@ -98,7 +98,7 @@ final_Julydata = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Scie
   mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator) 
 
-Augdata <- read_csv(paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/modzcta_until1014.csv")) %>% 
+Augdata <- read_csv(paste0("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/modzcta_until114.csv")) %>% 
   mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,incidence_rate,newcases,pop_denominator)
 
@@ -106,6 +106,9 @@ data <- rbind(finalMaydata,final_Junedata)
 data <- rbind(data,final_Julydata)
 data <- rbind(data,Augdata)
 ```
+
+
+###################
 
 ```{r}
 adjust_y_interval = function(y_max){
@@ -242,28 +245,569 @@ df.ave = df %>%
 ```
 
 
-```{r}
-plot2 = df.ave %>% 
-  ggplot(aes(x = day, y = ave.cases, 
-             group = zipcode, 
-             colour = zipcode, 
-             shape = zipcode)) + 
-  # geom_point(size = 2) + 
-  geom_line(size = 1) +
-  theme_bw() + 
-  theme(panel.border = element_blank()) +
-  theme(panel.grid.major.x = element_blank(), panel.grid.minor = element_blank()) +
-  theme(axis.line = element_line(colour = "black")) + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 24)) + 
-  theme(axis.text.y = element_text(size = 24), axis.title.y = element_text(size = 24)) + 
-  theme(legend.position = c(0.2, 0.8)) + 
-  theme(legend.title = element_text(size = 24,face = "bold.italic"), legend.text = element_text(size = 15,face = "italic")) +
-  scale_y_continuous(breaks = seq(0,y_max, y_interval), label = comma) +
- # scale_x_date(breaks = break.vec, date_labels = "%m-%d") +
-  #scale_color_manual(values = color_list[match(country_order, color_list_country)]) +
-  #ggtitle("日新增确诊病例国家趋势图", subtitle = "") + 
-  xlab("") +
-  ylab("New Cases")
+# Test data
 
-ggplotly(plot2)
+
+
+```{r}
+aug18 = read.csv("./nyc-neighborhoods-covid/data/Aug19data.csv")
 ```
+
+```{r}
+data0819 = read_csv("data_test/data-by-modzcta0819.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-19"))  %>% 
+  drop_na()
+data0820 = read_csv("data_test/data-by-modzcta0820.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-20"))  %>% 
+  drop_na()
+data0821 = read_csv("data_test/data-by-modzcta0821.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-21"))  %>% 
+  drop_na()
+data0822 = read_csv("data_test/data-by-modzcta0822.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-22"))  %>% 
+  drop_na()
+data0823 = read_csv("data_test/data-by-modzcta0823.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-23"))  %>% 
+  drop_na()
+data0824 = read_csv("data_test/data-by-modzcta0824.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-24"))  %>% 
+  drop_na()
+data0825 = read_csv("data_test/data-by-modzcta0825.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-25"))  %>% 
+  drop_na()
+data0826 = read_csv("data_test/data-by-modzcta0826.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-19"))  %>% 
+  drop_na()
+data0827 = read_csv("data_test/data-by-modzcta0827.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-27"))  %>% 
+  drop_na()
+data0828 = read_csv("data_test/data-by-modzcta0828.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-28"))  %>% 
+  drop_na()
+data0829 = read_csv("data_test/data-by-modzcta0829.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-29"))  %>% 
+  drop_na()
+data0830 = read_csv("data_test/data-by-modzcta0830.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-30"))  %>% 
+  drop_na()
+data0831 = read_csv("data_test/data-by-modzcta0831.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-08-31"))  %>% 
+  drop_na()
+data0901 = read_csv("data_test/data-by-modzcta0901.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-01"))  %>% 
+  drop_na()
+data0902 = read_csv("data_test/data-by-modzcta0902.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-02"))  %>% 
+  drop_na()
+data0903 = read_csv("data_test/data-by-modzcta0903.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-03"))  %>% 
+  drop_na()
+data0904 = read_csv("data_test/data-by-modzcta0904.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-04"))  %>% 
+  drop_na()
+data0905 = read_csv("data_test/data-by-modzcta0905.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-05"))  %>% 
+  drop_na()
+data0906 = read_csv("data_test/data-by-modzcta0906.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-06"))  %>% 
+  drop_na()
+data0907 = read_csv("data_test/data-by-modzcta0907.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-07"))  %>% 
+  drop_na()
+data0908 = read_csv("data_test/data-by-modzcta0908.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-08"))  %>% 
+  drop_na()
+data0909 = read_csv("data_test/data-by-modzcta0909.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-09"))  %>% 
+  drop_na()
+data0910 = read_csv("data_test/data-by-modzcta0910.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-10"))  %>% 
+  drop_na()
+
+data0911 = read_csv("data_test/data-by-modzcta0911.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-11"))  %>% 
+  drop_na()
+data0912 = read_csv("data_test/data-by-modzcta0912.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-12"))  %>% 
+  drop_na()
+data0913 = read_csv("data_test/data-by-modzcta0913.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-13"))  %>% 
+  drop_na()
+data0914 = read_csv("data_test/data-by-modzcta0914.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-14"))  %>% 
+  drop_na()
+data0915 = read_csv("data_test/data-by-modzcta0915.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-15"))  %>% 
+  drop_na()
+data0916 = read_csv("data_test/data-by-modzcta0916.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-16"))  %>% 
+  drop_na()
+data0917 = read_csv("data_test/data-by-modzcta0917.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-17"))  %>% 
+  drop_na()
+data0918 = read_csv("data_test/data-by-modzcta0918.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-18"))  %>% 
+  drop_na()
+data0919 = read_csv("data_test/data-by-modzcta0919.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-19"))  %>% 
+  drop_na()
+data0920 = read_csv("data_test/data-by-modzcta0920.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-20"))  %>% 
+  drop_na()
+
+data0921 = read_csv("data_test/data-by-modzcta0921.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-21"))  %>% 
+  drop_na()
+data0922 = read_csv("data_test/data-by-modzcta0922.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-22"))  %>% 
+  drop_na()
+data0923 = read_csv("data_test/data-by-modzcta0923.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-23"))  %>% 
+  drop_na()
+data0924 = read_csv("data_test/data-by-modzcta0924.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-24"))  %>% 
+  drop_na()
+data0925 = read_csv("data_test/data-by-modzcta0925.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-25"))  %>% 
+  drop_na()
+data0926 = read_csv("data_test/data-by-modzcta0926.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-26"))  %>% 
+  drop_na()
+data0927 = read_csv("data_test/data-by-modzcta0927.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-27"))  %>% 
+  drop_na()
+data0928 = read_csv("data_test/data-by-modzcta0928.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-28"))  %>% 
+  drop_na()
+data0929 = read_csv("data_test/data-by-modzcta0929.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-29"))  %>% 
+  drop_na()
+data0930 = read_csv("data_test/data-by-modzcta0930.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-09-30"))  %>% 
+  drop_na()
+```
+```{r}
+data1001 = read_csv("data_test/data-by-modzcta1001.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-01"))  %>% 
+  drop_na()
+data1002 = read_csv("data_test/data-by-modzcta1002.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-02"))  %>% 
+  drop_na()
+data1003 = read_csv("data_test/data-by-modzcta1003.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-03"))  %>% 
+  drop_na()
+data1004 = read_csv("data_test/data-by-modzcta1004.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-04"))  %>% 
+  drop_na()
+data1005 = read_csv("data_test/data-by-modzcta1005.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-05"))  %>% 
+  drop_na()
+data1006 = read_csv("data_test/data-by-modzcta1006.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-06"))  %>% 
+  drop_na()
+data1007 = read_csv("data_test/data-by-modzcta1007.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-07"))  %>% 
+  drop_na()
+data1008 = read_csv("data_test/data-by-modzcta1008.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-08"))  %>% 
+  drop_na()
+data1009 = read_csv("data_test/data-by-modzcta1009.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-09"))  %>% 
+  drop_na()
+data1010 = read_csv("data_test/data-by-modzcta1010.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-10"))  %>% 
+  drop_na()
+
+data1011 = read_csv("data_test/data-by-modzcta1011.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-11"))  %>% 
+  drop_na()
+data1012 = read_csv("data_test/data-by-modzcta1012.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-12"))  %>% 
+  drop_na()
+data1013 = read_csv("data_test/data-by-modzcta1013.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-13"))  %>% 
+  drop_na()
+data1014 = read_csv("data_test/data-by-modzcta1014.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-14"))  %>% 
+  drop_na()
+data1015 = read_csv("data_test/data-by-modzcta1015.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-15"))  %>% 
+  drop_na()
+data1016 = read_csv("data_test/data-by-modzcta1016.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-16"))  %>% 
+  drop_na()
+data1017 = read_csv("data_test/data-by-modzcta1017.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-17"))  %>% 
+  drop_na()
+data1018 = read_csv("data_test/data-by-modzcta1018.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-18"))  %>% 
+  drop_na()
+data1019 = read_csv("data_test/data-by-modzcta1019.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-19"))  %>% 
+  drop_na()
+data1020 = read_csv("data_test/data-by-modzcta1020.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-20"))  %>% 
+  drop_na()
+
+data1021 = read_csv("data_test/data-by-modzcta1021.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-21"))  %>% 
+  drop_na()
+data1022 = read_csv("data_test/data-by-modzcta1022.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-22"))  %>% 
+  drop_na()
+data1023 = read_csv("data_test/data-by-modzcta1023.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-23"))  %>% 
+  drop_na()
+data1024 = read_csv("data_test/data-by-modzcta1024.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-24"))  %>% 
+  drop_na()
+data1025 = read_csv("data_test/data-by-modzcta1025.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-25"))  %>% 
+  drop_na()
+data1026 = read_csv("data_test/data-by-modzcta1026.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-26"))  %>% 
+  drop_na()
+data1027 = read_csv("data_test/data-by-modzcta1027.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-27"))  %>% 
+  drop_na()
+data1028 = read_csv("data_test/data-by-modzcta1028.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-28"))  %>% 
+  drop_na()
+data1029 = read_csv("data_test/data-by-modzcta1029.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-29"))  %>% 
+  drop_na()
+data1030 = read_csv("data_test/data-by-modzcta1030.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-30"))  %>% 
+  drop_na()
+data1031 = read_csv("data_test/data-by-modzcta1031.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-10-31"))  %>% 
+  drop_na()
+```
+```{r}
+data1101 = read_csv("data_test/data-by-modzcta111.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-11-01"))  %>% 
+  drop_na()
+data1102 = read_csv("data_test/data-by-modzcta112.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-11-02"))  %>% 
+  drop_na()
+data1103 = read_csv("data_test/data-by-modzcta113.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-11-03"))  %>% 
+  drop_na()
+data1104 = read_csv("data_test/data-by-modzcta114.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-11-04"))  %>% 
+  drop_na()
+data1105 = read_csv("data_test/data-by-modzcta115.csv") %>% 
+  janitor::clean_names() %>% 
+  mutate(date = as.Date("2020-11-05"))  %>% 
+  drop_na()
+```
+
+```{r}
+data_test_aug = aug18 %>% select(-newcases) %>% 
+  rename(modified_zcta = zipcode,
+         covid_case_count = positive,
+         date = day) %>% 
+  mutate(neighborhood_name = as.character(neighborhood_name),
+         date = as.Date(date))
+
+data_test_aug = rbind(data_test_aug,data0819)
+```
+
+```{r}
+data_test_aug = rbind(data_test_aug,data0820)
+data_test_aug = rbind(data_test_aug,data0821)
+data_test_aug = rbind(data_test_aug,data0822)
+data_test_aug = rbind(data_test_aug,data0823)
+data_test_aug = rbind(data_test_aug,data0824)
+data_test_aug = rbind(data_test_aug,data0825)
+data_test_aug = rbind(data_test_aug,data0826)
+data_test_aug = rbind(data_test_aug,data0827)
+data_test_aug = rbind(data_test_aug,data0828)
+data_test_aug = rbind(data_test_aug,data0829)
+data_test_aug = rbind(data_test_aug,data0830)
+data_test_aug = rbind(data_test_aug,data0831)
+data_test_aug = rbind(data_test_aug,data0901)
+data_test_aug = rbind(data_test_aug,data0902)
+data_test_aug = rbind(data_test_aug,data0903)
+data_test_aug = rbind(data_test_aug,data0904)
+data_test_aug = rbind(data_test_aug,data0905)
+data_test_aug = rbind(data_test_aug,data0906)
+data_test_aug = rbind(data_test_aug,data0907)
+data_test_aug = rbind(data_test_aug,data0908)
+data_test_aug = rbind(data_test_aug,data0909)
+data_test_aug = rbind(data_test_aug,data0910)
+data_test_aug = rbind(data_test_aug,data0911)
+data_test_aug = rbind(data_test_aug,data0912)
+data_test_aug = rbind(data_test_aug,data0913)
+data_test_aug = rbind(data_test_aug,data0914)
+data_test_aug = rbind(data_test_aug,data0915)
+data_test_aug = rbind(data_test_aug,data0916)
+data_test_aug = rbind(data_test_aug,data0917)
+data_test_aug = rbind(data_test_aug,data0918)
+data_test_aug = rbind(data_test_aug,data0919)
+data_test_aug = rbind(data_test_aug,data0920)
+data_test_aug = rbind(data_test_aug,data0921)
+data_test_aug = rbind(data_test_aug,data0922)
+data_test_aug = rbind(data_test_aug,data0923)
+data_test_aug = rbind(data_test_aug,data0924)
+data_test_aug = rbind(data_test_aug,data0925)
+data_test_aug = rbind(data_test_aug,data0926)
+data_test_aug = rbind(data_test_aug,data0927)
+data_test_aug = rbind(data_test_aug,data0928)
+data_test_aug = rbind(data_test_aug,data0929)
+data_test_aug = rbind(data_test_aug,data0930)
+```
+
+```{r}
+data_test_aug = rbind(data_test_aug,data1001)
+data_test_aug = rbind(data_test_aug,data1002)
+data_test_aug = rbind(data_test_aug,data1003)
+data_test_aug = rbind(data_test_aug,data1004)
+data_test_aug = rbind(data_test_aug,data1005)
+data_test_aug = rbind(data_test_aug,data1006)
+data_test_aug = rbind(data_test_aug,data1007)
+data_test_aug = rbind(data_test_aug,data1008)
+data_test_aug = rbind(data_test_aug,data1009)
+data_test_aug = rbind(data_test_aug,data1010)
+data_test_aug = rbind(data_test_aug,data1011)
+data_test_aug = rbind(data_test_aug,data1012)
+data_test_aug = rbind(data_test_aug,data1013)
+data_test_aug = rbind(data_test_aug,data1014)
+data_test_aug = rbind(data_test_aug,data1015)
+data_test_aug = rbind(data_test_aug,data1016)
+data_test_aug = rbind(data_test_aug,data1017)
+data_test_aug = rbind(data_test_aug,data1018)
+data_test_aug = rbind(data_test_aug,data1019)
+data_test_aug = rbind(data_test_aug,data1020)
+data_test_aug = rbind(data_test_aug,data1021)
+data_test_aug = rbind(data_test_aug,data1022)
+data_test_aug = rbind(data_test_aug,data1023)
+data_test_aug = rbind(data_test_aug,data1024)
+data_test_aug = rbind(data_test_aug,data1025)
+data_test_aug = rbind(data_test_aug,data1026)
+data_test_aug = rbind(data_test_aug,data1027)
+data_test_aug = rbind(data_test_aug,data1028)
+data_test_aug = rbind(data_test_aug,data1029)
+data_test_aug = rbind(data_test_aug,data1030)
+data_test_aug = rbind(data_test_aug,data1031)
+```
+
+```{r}
+data_test_aug = rbind(data_test_aug,data1101)
+data_test_aug = rbind(data_test_aug,data1102)
+data_test_aug = rbind(data_test_aug,data1103)
+data_test_aug = rbind(data_test_aug,data1104)
+data_test_aug = rbind(data_test_aug,data1105)
+```
+
+```{r}
+#write.csv(data_test_aug,"data_test_aug.csv")
+data_test_aug = read.csv("data_test_aug.csv") 
+data_test_aug = data_test_aug %>% select(-X)
+```
+
+
+```{r}
+N = nrow(data_test_aug)
+new_case = 0
+new_death = 0
+new_test = 0
+
+for (i in 1:16992) {
+  new_case[i] = data_test_aug[i+177,4] - data_test_aug[i,4]
+  new_case
+
+  new_death[i] = data_test_aug[i+177,7] - data_test_aug[i,7]
+  new_death
+  
+  new_test[i] = data_test_aug[i+177,10] - data_test_aug[i,10]
+  new_test
+}
+
+for (i in 16993:N) {
+  
+  new_case[i] = NA
+  
+  new_death[i] = NA
+  
+  new_test[i] = NA
+}
+
+
+data_test_aug = data_test_aug %>% 
+  mutate(new_case = new_case,
+         new_death = new_death,
+         new_test = new_test
+  ) %>% 
+  mutate(new_case = as.numeric(new_case),
+         new_death = as.numeric(new_death),
+         new_test = as.numeric(new_test),
+         incidence_rate = round(new_case*100000/pop_denominator, digits = 1),
+         new_test_rate = round(new_test*100000/pop_denominator, digits = 1),
+         total_test_rate = round(total_covid_tests*100000/pop_denominator, digits = 1))
+view(data_test_aug)
+
+
+data_test_aug0817 = data_test_aug %>% 
+  filter(date == "2020-08-17") 
+
+data_test_aug_1 = data_test_aug %>% 
+  filter(date != "2020-08-16")
+
+data_test_aug_1 = rbind(data_test_aug_1,data_test_aug0815) %>% arrange(date)
+```
+
+```{r}
+setwd('/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/draft')
+```
+
+```{r}
+test_Julydata = read_csv("data/final_Julydata.csv") %>% 
+  mutate(incidence_rate = (newcases/pop_denominator)*100000) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
+         incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator) 
+
+test_Augdata <-data_test_aug %>% 
+  rename(zipcode = modified_zcta,
+         positive = covid_case_count,
+         day = date,
+         newcases = new_case) %>% 
+ # mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
+  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
+        incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator)
+
+test_data <- rbind(test_Julydata,test_Augdata)
+
+Nrow = nrow(test_data)
+new_test = 0
+
+for (i in 1:(Nrow-177)) {
+
+  new_test[i] = test_data[i+177,11] - test_data[i,11]
+  new_test
+}
+
+for (i in (Nrow-176):Nrow) {
+
+  new_test[i] = NA
+  new_test
+}
+
+test_data = test_data %>% 
+  mutate(newtests = new_test,
+         newtests = as.numeric(newtests))
+view(test_data)
+
+view(test_data %>% filter(day == "2020-08-19"))
+```
+```{r}
+
+df = test_data %>% filter(zipcode == "10001")
+N = nrow(df)
+tests = pull(df,total_covid_tests)
+
+ave.tests = rep(0, N-6)
+
+for (i in 4:(N-3)) {
+  ave.tests[i] = mean(tests[(i-3):(i+3)])
+  #ave.deaths[i] = mean(deaths[(i-3):(i+3)])
+}
+for (i in 1:3) {
+  ave.tests[i] = tests[i]
+  #ave.deaths[i] = ave.deaths[1]
+}
+for (i in (N-2):N) {
+  ave.tests[i] = ave.tests[N-3]
+  #ave.deaths[i] = ave.deaths[N-3]
+}
+
+df.ave = df %>% 
+  mutate(ave_tests = round(ave.tests)) %>% 
+  filter(zipcode == 10001)
+
+a = ggplot(df.ave, aes(x = day, y = total_covid_tests)) + geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + geom_line(aes(x = day, y = ave_tests), color = "red", size = 1) + ggtitle("New tests by day in New York City") + theme_classic() + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+a
+```
+

@@ -12,7 +12,7 @@ library(patchwork)
 ```
 
 ```{r}
-df = read_csv("data/case-hosp-death1006.csv") %>% 
+df = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data-by-day.csv") %>% 
   janitor::clean_names() %>% 
   rename(date = date_of_interest) %>% 
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
@@ -68,6 +68,32 @@ ggsave(filename = paste("HomePagepic",max(df.ave$date),".png"), plot = p3, width
 ```
 
 
+```{r}
+df = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data-by-day.csv") %>% 
+  janitor::clean_names() %>% 
+  rename(date = date_of_interest) %>% 
+  mutate(date = as.Date(date, format = "%m/%d/%Y"))
+
+p1 = ggplot(df, aes(x = date, y = case_count)) + 
+  geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + 
+  geom_line(aes(x = date, y = case_count_7day_avg), color = "red", size = 1) + 
+  ggtitle("New reported cases by day in New York City") + 
+  theme_classic() + 
+  #labs(caption = "Note: the seven day average is the average of a day and the past 6 days") + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  )
+
+p2 = ggplot(df, aes(x = date, y = death_count)) + geom_col(color = "#D5D2D2", fill = "#D5D2D2", alpha = 0.8) + geom_line(aes(x = date, y = death_count_7day_avg), color = "black", size = 1) + ggtitle("New reported deaths by day in New York City") + theme_classic()  + theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14),    # Center title position and size
+    plot.caption = element_text(hjust = 0, face = "italic")# move caption to the left
+  )
+```
 
 
 

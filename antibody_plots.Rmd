@@ -1,0 +1,166 @@
+---
+title: "New data"
+author: "Ziqi Zhou"
+date: "11/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(curl)
+library(lubridate)
+
+library(shiny)
+library(DT)
+library(patchwork)
+
+library(readxl)
+library(sp)
+library(tmap)  
+library(viridis)
+library(leaflet)
+library(tigris)
+library(plotly)
+library(shinyWidgets)
+library(table1)
+library(htmlTable)
+library(scales)
+
+library(RColorBrewer)
+library(grid)
+
+
+library(Dict)
+library(lubridate)
+```
+
+```{r}
+test_trend = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/trends/tests.csv")) %>% janitor::clean_names()
+
+#write_csv(test_trend,"test_trend.csv")
+
+#test.trend = read.csv("/Users/ziqizhou/Downloads/tests.csv") %>% 
+#  janitor::clean_names() 
+
+#day = c(as.Date("2020-03-20"):as.Date("2020-11-09"))
+#day = as.Date(day, origin = "1969-12-15")
+```
+
+```{r}
+
+ggplot(test_trend, aes(x = as.Date(date), y = total_tests)) + 
+  geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + 
+  geom_line(aes(x = as.Date(date), y = total_tests_7days_avg), color = "red", size = 1) + 
+  ggtitle("New tests by day in New York City") + 
+  theme_classic() + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+```
+
+## Number of people with a positive result on a PCR test
+```{r}
+
+ggplot(test_trend, aes(x = as.Date(date), y = positive_tests
+)) + 
+  geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + 
+  geom_line(aes(x = as.Date(date), y = positive_tests_7days_avg), color = "red", size = 1) + 
+  ggtitle("New tests by day in New York City") + 
+  theme_classic() + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+```
+## Percentage of people tested with a PCR test who tested positive
+
+```{r}
+ggplot(test_trend, aes(x = as.Date(date), y = percent_positive)) + 
+  geom_col(color = "#F6BDBC", fill = "#F6BDBC", alpha = 0.8) + 
+  geom_line(aes(x = as.Date(date), y = percent_positive_7days_avg), color = "red", size = 1) + 
+  ggtitle("New tests by day in New York City") + 
+  theme_classic() + 
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    plot.title = element_text(hjust = 0, size = 14)
+  )
+```
+
+
+# draw a antibody test map
+
+COVID-19 Antibody Tests by NYC ZIP Code Tabulation Areas (ZCTAs)
+
+This map may be used to visualize how COVID-19 antibody tests vary by NYC ZCTAs. Select available display options to visualize the data. Click a ZCTA on the map to see the data. These data are updated daily.
+
+```{r}
+spdf = rgdal::readOGR("./Geography-resources/MODZCTA_2010_WGS1984.geo.json")
+
+antibody = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/totals/antibody-by-modzcta.csv")) 
+#write_csv(antibody,paste0("antibody_zcta",month(today),day(today),".csv"))
+antibody = antibody %>% janitor::clean_names()
+```
+
+```{r antibody_percent_posit}
+data_to_plot = antibody
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modzcta_first")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(percent_positive))
+  pal <- colorNumeric("Reds", domain=data_to_plot_geo$percent_positive)
+  
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "MODZCTA: ", as.character(data_to_plot_geo$modzcta_first),
+                     "<br>", 
+                     "Death Rate of COVID-19: ", as.character(data_to_plot_geo$percent_positive)
+  )
+  
+  p1 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$percent_positive), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$percent_positive, 
+              position = "bottomright", 
+              title = "Number")
+  p1
+```
+
+```{r antibody_num_posit}
+data_to_plot = antibody
+  data_to_plot_geo = geo_join(spdf,data_to_plot,"MODZCTA","modzcta_first")
+  data_to_plot_geo = subset(data_to_plot_geo, !is.na(num_peop_pos))
+  pal <- colorNumeric("Reds", domain=data_to_plot_geo$num_peop_pos)
+  
+  popup_sb <- paste0("Neighborhood Name: ", as.character(data_to_plot_geo$neighborhood_name),
+                     "<br>", 
+                     "MODZCTA: ", as.character(data_to_plot_geo$modzcta_first),
+                     "<br>", 
+                     "Death Rate of COVID-19: ", as.character(data_to_plot_geo$num_peop_pos)
+  )
+  
+  p2 = leaflet() %>%
+    addProviderTiles("CartoDB.Positron") %>%
+    setView(lng = -73.99653, lat = 40.75074, zoom = 10) %>% 
+    addPolygons(data =  data_to_plot_geo , 
+                fillColor = ~pal(data_to_plot_geo$num_peop_pos), 
+                fillOpacity = 0.7, 
+                weight = 0.2, 
+                smoothFactor = 0.2, 
+                popup = ~popup_sb) %>%
+    addLegend(pal = pal, 
+              values =  data_to_plot_geo$num_peop_pos, 
+              position = "bottomright", 
+              title = "Number")
+  p2
+```
+

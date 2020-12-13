@@ -336,68 +336,64 @@ test_Julydata = read_csv("data/final_Julydata.csv") %>%
   select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
          incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator) 
 
-test_Augdata <- read_csv(paste0("./data/modzcta_until",month(today),day(today),".csv")) %>% 
-  mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
-  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
-         incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator)
+#test_Augdata <- read_csv("data/data_test_aug.csv") %>% 
+#  rename(zipcode = modified_zcta,
+#         positive = covid_case_count,
+#         day = date,
+#         newcases = new_case) %>% 
+ # mutate(incidence_rate = (round(newcases/pop_denominator*100000, digits = 1))) %>% 
+#  select(zipcode,day,neighborhood_name,borough_group, positive,covid_case_rate, covid_death_count, covid_death_rate,
+#        incidence_rate,newcases,total_covid_tests,percent_positive,pop_denominator)
 
-test_data <- rbind(test_Julydata,test_Augdata)
+#test_data <- rbind(test_Julydata,test_Augdata)
 
-Nrow = nrow(test_data)
+#Nrow = nrow(test_data)
 
-for (i in 1:test_data-177) {
-  new_case[i] = data_tracker[i,4] - data_tracker[i+177,4]
-  new_case
+#for (i in 1:(Nrow-177)) {
+
+#  new_test[i] = data_tracker[i,10] - data_tracker[i+177,10]
+#  new_test
+#}
+
+#for (i in (Nrow-177):test_data) {
   
-  new_death[i] = data_tracker[i,7] - data_tracker[i+177,7]
-  new_death
   
-  new_test[i] = data_tracker[i,10] - data_tracker[i+177,10]
-  new_test
-}
-
-for (i in test_data-178:test_data) {
-  
-  new_case[i] = NA
-  
-  new_death[i] = NA
-  
-  new_test[i] = NA
-}
+#  new_test[i] = NA
+#}
 
 
 
-test.mvag.daily = test_data %>% 
-  pivot_longer(positive:total_covid_tests,
-               names_to = "type",
-               values_to = "num") %>% 
-  mutate(type = recode(type, 
-                       "positive" = "Total Cases", 
-                       "covid_case_rate" = "Case Rate (per 100,000 people)",
-                       "covid_death_count" = "Total Deaths",
-                       "covid_death_rate" = "Death Rate (per 100,000 people)",
-                       "newcases" = "New Cases",
-                       "incidence_rate" = "Incidence Rate (per 100,000 people)",
-                       "total_covid_tests" = "Total Tests"))
+#test.mvag.daily = test_data %>% 
+#  pivot_longer(positive:total_covid_tests,
+#               names_to = "type",
+#               values_to = "num") %>% 
+#  mutate(type = recode(type, 
+#                       "positive" = "Total Cases", 
+#                       "covid_case_rate" = "Case Rate (per 100,000 people)",
+#                       "covid_death_count" = "Total Deaths",
+#                       "covid_death_rate" = "Death Rate (per 100,000 people)",
+#                       "newcases" = "New Cases",
+#                       "incidence_rate" = "Incidence Rate (per 100,000 people)",
+#                       "total_covid_tests" = "Total Tests"))
 #fill the blank in 0629 and 0819
-data.mvag.daily0629  = data.mvag.daily %>% 
-  filter(day == "2020-06-28") %>% 
-  mutate(date = as.Date("2020-06-29")) %>% 
-  select(-day) %>% 
-  rename(day = date) %>% 
-  select(zipcode,day,everything())
+#test.mvag.daily0629  = test.mvag.daily %>% 
+#  filter(day == "2020-06-28") %>% 
+#  mutate(date = as.Date("2020-06-29")) %>% 
+#  select(-day) %>% 
+#  rename(day = date) %>% 
+#  select(zipcode,day,everything())
 
-data.mvag.daily0819  = data.mvag.daily %>% 
-  filter(day == "2020-08-18")%>% 
-  mutate(date = as.Date("2020-08-19")) %>% 
-  select(-day) %>% 
-  rename(day = date) %>% 
-  select(zipcode,day,everything())
+#test.mvag.daily0819  = test.mvag.daily %>% 
+#  filter(day == "2020-08-18")%>% 
+#  mutate(date = as.Date("2020-08-19")) %>% 
+#  select(-day) %>% 
+#  rename(day = date) %>% 
+#  select(zipcode,day,everything())
 
-data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0629)
-data.mvag.daily = rbind(data.mvag.daily,data.mvag.daily0819) %>% arrange(day)
+#test.mvag.daily = rbind(test.mvag.daily,test.mvag.daily0629)
+#test.mvag.daily = rbind(test.mvag.daily,test.mvag.daily0819) %>% arrange(day)
 
-data.mvag.daily$zipcode_new <- paste(data.mvag.daily$zipcode, data.mvag.daily$neighborhood_name)
+#test.mvag.daily$zipcode_new <- paste(test.mvag.daily$zipcode, test.mvag.daily$neighborhood_name)
 
 
 
@@ -1262,8 +1258,8 @@ ui <- navbarPage(
            )),
     ###2020-11-03 added
     column(width = 10, offset = 1, h4("COVID-19 Tests by NYC ZIP Code Tabulation Areas (ZCTAs)")),
-    #column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext2"), 
-    #                                    style="font-size: 15px;  line-height:150%")),
+    column(width = 10, offset = 1, span(htmlOutput("Distributionmaptext2"), 
+                                        style="font-size: 15px;  line-height:150%")),
     column(10, offset = 1, helpText(paste("Last updated: ", max(data_to_plot$date)))),
     column(width = 10,offset = 1,
            sidebarLayout(
@@ -1275,10 +1271,10 @@ ui <- navbarPage(
                               "Test Rate (per 100,000 people)" = "test_rate_fc", 
                               "New Tests" = "new_test_fc", 
                               "New Tests Rate (per 100,000 people)" = "new_test_rate_fc")),
-               
-               
-               #span(htmlOutput("Distributionmap_help_text2"), 
-               #     style="font-size: 14px;line-height:150% ; color:grey")
+               br(),br(),
+               br(),br(),
+               span(htmlOutput("Distributionmap_help_text2"), 
+                    style="font-size: 14px;line-height:150% ; color:grey")
              )
              ,
              
@@ -2093,6 +2089,17 @@ server <- function(input, output) {
     )
   })
   
+  output$Distributionmap_help_text2 = renderText({
+    return(
+      "<span>&#8226;</span>  Total tests are total cumulative numbers of people tested for COVID-19 with a PCR test since the start of the outbreak. 
+      <br>
+     <span>&#8226;</span>  New tests are single day new reported numbers of people tested for COVID-19 with a PCR test on the updated date.  
+     <br>
+     <span>&#8226;</span>  Test rate, and new test rate are calculated using total tests, and new tests divided by ZCTA population size and multiplied by 100,000.
+"
+    )
+  })
+  
   output$borotrendtext = renderText({
     return(
       "A look at how cumulative counts of COVID-19 cases, hospitalizations, and deaths change over time by NYC borough. 
@@ -2107,6 +2114,14 @@ server <- function(input, output) {
   output$Distributionmaptext = renderText({
     return(
       "This map may be used to visualize how COVID-19 cases and deaths vary by NYC ZCTAs. 
+      Select available display options to visualize the data.
+      Click a ZCTA on the map to see the data. These data are updated daily.<br> "
+    )
+  })
+  
+  output$Distributionmaptext2 = renderText({
+    return(
+      "This map may be used to visualize how number of people tested for COVID-19 with a PCR test vary by NYC ZCTAs. 
       Select available display options to visualize the data.
       Click a ZCTA on the map to see the data. These data are updated daily.<br> "
     )
