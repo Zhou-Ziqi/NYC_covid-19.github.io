@@ -1,0 +1,85 @@
+,,,,,Heart Attack Hospitalizations : Summarize
+Topic: Health Behavior and Population
+Subtopic: Heart Attacks
+Indicator Name: Heart Attack Hospitalizations
+Indicator Description: Heart attacks can stem from genetic lifestyle and environmental factors including ambient air pollution and second-hand smoke.
+
+Year,GeoTypeName,Borough,Geography,Geography ID,Indicator Name,"Age-Adjusted Rate - Adults 35 to 64 Yrs Old (per 10,000 residents)","Age-Adjusted Rate Adults - 65 Yrs and Older (per 10,000 residents)",Number - Adults 35 to 64 Yrs Old,Number - Adults 65 Yrs and Older,"Rate - Adults 35 to 64 Yrs Old (per 10,000 residents)","Rate - Adults 65 Yrs and Older (per 10,000 residents)",Notes Age-Adjusted Rate - Adults 35 to 64 Yrs Old,Notes Age-Adjusted Rate Adults - 65 Yrs and Older,Notes Number - Adults 35 to 64 Yrs Old,Notes Number - Adults 65 Yrs and Older,Notes Rate - Adults 35 to 64 Yrs Old,Notes Rate - Adults 65 Yrs and Older,
+2016,Citywide,New York City, New York City,1,Heart Attack Hospitalizations,12.7,55.7,"4,745","6,326",14.5,54.8,,,,,,,
+2016,Borough,Bronx, Bronx,1,Heart Attack Hospitalizations,14.3,52.2,848,872,16.0,51.0,,,,,,,
+2016,Borough,Brooklyn, Brooklyn,2,Heart Attack Hospitalizations,13.2,64.7,"1,443","2,103",14.8,63.0,,,,,,,
+2016,Borough,Manhattan, Manhattan,3,Heart Attack Hospitalizations,9.0,45.3,636,"1,105",10.1,45.1,,,,,,,
+2016,Borough,Queens, Queens,4,Heart Attack Hospitalizations,12.7,54.7,"1,419","1,797",15.0,54.1,,,,,,,
+2016,Borough,Staten Island, Staten Island,5,Heart Attack Hospitalizations,17.4,63.1,399,449,20.7,61.4,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Bayside - Little Neck,404,Heart Attack Hospitalizations,5.3,32.1,28,53,6.9,32.5,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Bedford Stuyvesant - Crown Heights,203,Heart Attack Hospitalizations,16.4,64.2,219,241,18.1,62.4,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Bensonhurst - Bay Ridge,209,Heart Attack Hospitalizations,10.3,50.4,99,161,11.4,48.0,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Borough Park,206,Heart Attack Hospitalizations,12.3,66.3,171,287,14.5,67.5,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Canarsie - Flatlands,208,Heart Attack Hospitalizations,11.2,73.2,116,220,13.8,72.2,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Central Harlem - Morningside Heights,302,Heart Attack Hospitalizations,13.2,55.0,93,102,14.4,53.7,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Chelsea - Clinton,306,Heart Attack Hospitalizations,7.6,43.7,54,91,8.2,43.3,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Coney Island - Sheepshead Bay,210,Heart Attack Hospitalizations,13.2,62.8,181,344,15.9,64.2,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Crotona -Tremont,105,Heart Attack Hospitalizations,15.8,59.1,136,104,17.5,54.8,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Downtown - Heights - Slope,202,Heart Attack Hospitalizations,10.4,61.7,96,155,9.6,57.0,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, East Flatbush - Flatbush,207,Heart Attack Hospitalizations,12.3,61.1,173,242,14.8,57.4,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, East Harlem,303,Heart Attack Hospitalizations,20.2,74.9,90,111,21.9,75.8,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, East New York,204,Heart Attack Hospitalizations,22.4,79.5,168,147,24.7,74.6,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Flushing - Clearview,403,Heart Attack Hospitalizations,8.3,37.7,121,187,10.5,38.8,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Fordham - Bronx Pk,103,Heart Attack Hospitalizations,12.8,50.5,129,123,14.0,50.1,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Fresh Meadows,406,Heart Attack Hospitalizations,6.4,48.1,31,77,7.7,49.3,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Gramercy Park - Murray Hill,307,Heart Attack Hospitalizations,6.3,28.3,34,61,7.1,26.9,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Greenpoint,201,Heart Attack Hospitalizations,13.1,54.7,56,68,12.9,54.1,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Greenwich Village - SoHo,308,Heart Attack Hospitalizations,5.1,29.2,18,33,5.5,28.8,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, High Bridge - Morrisania,106,Heart Attack Hospitalizations,16.6,59.7,146,123,18.5,56.1,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Hunts Point - Mott Haven,107,Heart Attack Hospitalizations,19.8,79.4,105,112,21.6,76.6,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Jamaica,408,Heart Attack Hospitalizations,17.2,67.3,255,294,20.2,66.7,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Kingsbridge - Riverdale,101,Heart Attack Hospitalizations,11.9,49.7,49,91,14.1,51.3,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Long Island City - Astoria,401,Heart Attack Hospitalizations,10.3,38.7,89,101,10.9,38.3,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Lower Manhattan,310,Heart Attack Hospitalizations,6.8,36.2,13,25,6.0,45.2,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Northeast Bronx,102,Heart Attack Hospitalizations,10.5,37.8,101,126,12.6,37.6,,,,,,,
+2016,Neighborhood (UHF 42),Bronx, Pelham - Throgs Neck,104,Heart Attack Hospitalizations,14.3,49.4,183,195,15.6,48.1,,,,,,,
+2016,Neighborhood (UHF 42),Staten Island, Port Richmond,501,Heart Attack Hospitalizations,21.7,65.8,64,46,24.7,64.1,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Ridgewood - Forest Hills,405,Heart Attack Hospitalizations,10.1,56.8,123,230,11.8,58.0,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Rockaways,410,Heart Attack Hospitalizations,14.7,62.0,85,107,18.7,61.0,,,,,,,
+2016,Neighborhood (UHF 42),Staten Island, South Beach - Tottenville,504,Heart Attack Hospitalizations,14.8,62.3,142,190,17.3,59.7,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Southeast Queens,409,Heart Attack Hospitalizations,12.7,62.3,150,206,16.9,59.8,,,,,,,
+2016,Neighborhood (UHF 42),Queens, Southwest Queens,407,Heart Attack Hospitalizations,22.6,86.7,314,292,25.8,83.6,,,,,,,
+2016,Neighborhood (UHF 42),Staten Island, Stapleton - St. George,502,Heart Attack Hospitalizations,21.8,60.3,126,113,25.6,60.8,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Sunset Park,205,Heart Attack Hospitalizations,7.4,41.2,38,49,7.7,39.3,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Union Square - Lower East Side,309,Heart Attack Hospitalizations,8.0,48.4,69,153,9.3,49.8,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Upper East Side,305,Heart Attack Hospitalizations,5.4,32.0,51,134,6.1,31.3,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Upper West Side,304,Heart Attack Hospitalizations,7.2,56.2,76,226,8.4,55.4,,,,,,,
+2016,Neighborhood (UHF 42),Manhattan, Washington Heights,301,Heart Attack Hospitalizations,11.6,49.6,136,167,13.2,49.1,,,,,,,
+2016,Neighborhood (UHF 42),Queens, West Queens,402,Heart Attack Hospitalizations,10.5,45.4,223,250,11.7,44.2,,,,,,,
+2016,Neighborhood (UHF 42),Brooklyn, Williamsburg - Bushwick,211,Heart Attack Hospitalizations,16.3,96.2,126,189,17.4,90.6,,,,,,,
+2016,Neighborhood (UHF 42),Staten Island, Willowbrook,503,Heart Attack Hospitalizations,14.7,68.5,67,100,18.5,64.3,,,,,,,
+
+Name:Heart Attack Hospitalizations,Measure:Number - Adults 65 Yrs and Older,How Calculated:<p>Number of NYC resident adults 65 years and older hospitalized for heart attack (acute myocardial infarction).&nbsp;</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+Name:Heart Attack Hospitalizations,Measure:Number - Adults 35 to 64 Yrs Old,How Calculated:<p>Number of NYC resident adults 35 to 64 years hospitalized for heart attack (acute myocardial infarction).</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+Name:Heart Attack Hospitalizations,Measure:Rate - Adults 35 to 64 Yrs Old (per 10000 residents),How Calculated:<p>Number of NYC resident adults 35 to 64 years hospitalized for heart attack (acute myocardial infarction) divided by the population 65 years and older; expressed as cases per 10000 residents using NYC DOHMH intercensal estimates.&nbsp;</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+Name:Heart Attack Hospitalizations,Measure:Age-Adjusted Rate - Adults 35 to 64 Yrs Old (per 10000 residents),How Calculated:<p>Number of NYC resident adults 35 to 64 years old hospitalized for heart attack (acute myocardial infarction) summed within 5-year age groups and divided by the population in each age group using NYC DOHMH intercensal estimates; quotients are multiplied by the proportion of the 2000 US population in each age group. Age-adjusted rate is the sum of the weighted age-specific rates; expressed as cases per 10000 residents.</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+Name:Heart Attack Hospitalizations,Measure:Rate - Adults 65 Yrs and Older (per 10000 residents),How Calculated:<p>Number of NYC resident adults 65 years and older hospitalized for heart attack (acute myocardial infarction) divided by the population 65 years and older; expressed as cases per 10000 residents using NYC DOHMH intercensal estimates.&nbsp;</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+Name:Heart Attack Hospitalizations,Measure:Age-Adjusted Rate Adults - 65 Yrs and Older (per 10000 residents),How Calculated:<p>Number of NYC resident adults 65 years and older hospitalized for heart attack (acute myocardial infarction) summed within 5-year age groups and divided by the population in each age group using NYC DOHMH intercensal estimates; quotients are multiplied by the proportion of the 2000 US population in each age group. Age-adjusted rate is the sum of the weighted age-specific rates; expressed as cases per 10000 residents.&nbsp;</p>
+<p>&nbsp;</p>
+<p>A hospitalization is included if it has an ICD-9 principal diagnosis code of 410 or an ICD-10&nbsp;rincipal diagnosis code of I21 or I22 and excluded if the patient was transfered from one urgrent care facility within NYC to another.</p>
+<p>&nbsp;</p>,Source(s):New York State Statewide Plann,Year:2016,
+
+NYC Department of Health and Mental Hygiene
+Environment & Health Data Portal
+More information can be found at: http://nyc.gov/health/tracking
+Accessed 10/20/2020

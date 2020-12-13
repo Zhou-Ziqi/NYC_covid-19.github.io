@@ -1,0 +1,70 @@
+---
+title: "Codebook"
+author: "Ziqi Zhou"
+date: "10/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(codebook)
+library(dataMaid)
+```
+
+```{r}
+asthma = read.csv("Asthma Hospitalizations (Adults).csv",skip = 7) %>% 
+  janitor::clean_names() %>% 
+  select(-notes_age_adjusted_rate,-notes_estimated_annual_rate,-notes_number,-x) %>% 
+  mutate(geography_id = as.character(geography_id)) %>% 
+  filter(geo_type_name == "Neighborhood (UHF 42)") %>% 
+  mutate(geography = as.character(geography),
+         geography_id = as.factor(geography_id),
+         number = as.numeric(number))
+
+#codebook(asthma, survey_repetition = "single", metadata_table = FALSE)
+makeCodebook(asthma)
+
+poverty = read.csv("Poverty.csv",skip = 5)%>% 
+  janitor::clean_names() %>% 
+  select(-notes_number,-notes_percent,-x) %>% 
+  filter(geo_type_name == "Neighborhood (UHF 42)") %>% 
+  mutate(geography = as.character(geography),
+         geography_id = as.factor(geography_id),
+         number = as.numeric(number))
+
+makeCodebook(poverty)
+```
+
+
+```{r}
+highschool = read.csv("clean_data/High School Graduation.csv",skip = 6) %>% 
+  janitor::clean_names() %>% 
+  select(-notes_number,-notes_percent,-x) %>% 
+  filter(geo_type_name == "Neighborhood (UHF 42)") %>% 
+  mutate(geography = as.character(geography),
+         geography_id = as.factor(geography_id),
+         number = as.numeric(number))
+makeCodebook(highschool)
+```
+
+```{r}
+heartattact = read.csv("Heart Attack Hospitalizations.csv",skip = 6) %>% 
+  janitor::clean_names() %>% 
+  select(-notes_rate_adults_35_to_64_yrs_old,-notes_rate_adults_65_yrs_and_older,-x,
+         -notes_number_adults_35_to_64_yrs_old,-notes_number_adults_65_yrs_and_older,
+         -notes_age_adjusted_rate_adults_35_to_64_yrs_old,-notes_age_adjusted_rate_adults_65_yrs_and_older) %>% 
+  filter(geo_type_name == "Neighborhood (UHF 42)") %>% 
+  mutate(geography = as.character(geography),
+         geography_id = as.factor(geography_id),
+         number_adults_35_to_64_yrs_old = as.numeric(number_adults_35_to_64_yrs_old),
+         number_adults_65_yrs_and_older = as.numeric(number_adults_65_yrs_and_older),
+         )
+
+makeCodebook(heartattact)
+```
+```{r}
+read.csv("nyc-neighborhoods-covid/data/modzcta_until1029")
+```
+
