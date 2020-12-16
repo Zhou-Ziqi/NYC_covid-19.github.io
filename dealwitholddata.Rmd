@@ -1,0 +1,188 @@
+---
+title: "demogra-covid-arrange"
+author: "Ziqi Zhou"
+date: "12/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+library(readxl)
+```
+
+```{r}
+#read the table
+racehosp123 = read.csv("./data_to_be_dealed/group-hosp-by-boro123.csv") %>% 
+filter(group =="Age") %>% 
+  pivot_longer(BK_HOSPITALIZED_COUNT:SI_HOSPITALIZED_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-12-03")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+racecase123 = read.csv("./data_to_be_dealed/group-cases-by-boro123.csv") %>% 
+filter(group =="Age") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_CASE_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-12-03")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+racedeath123 = read.csv("./data_to_be_dealed/group-death-by-boro123.csv") %>% 
+filter(group =="Age") %>%  
+  pivot_longer(BK_DEATH_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-12-03")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+race123 = rbind(racehosp123,racecase123)
+race123 = rbind(race123,racedeath123)
+write_csv(race123,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_today123.csv")) 
+```
+
+
+```{r}
+#read the table
+racehosp1110 = read.csv("./data_to_be_dealed/group-hosp-by-boro1110.csv") %>% 
+filter(group =="Sex") %>% 
+  pivot_longer(BK_HOSPITALIZED_COUNT:SI_HOSPITALIZED_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-10")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+racecase1110 = read.csv("./data_to_be_dealed/group-cases-by-boro1110.csv") %>% 
+filter(group =="Sex") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_CASE_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-10")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+racedeath1110 = read.csv("./data_to_be_dealed/group-death-by-boro1110.csv") %>% 
+filter(group =="Sex") %>% 
+  pivot_longer(BK_DEATH_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-10")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+race1110 = rbind(racehosp1110,racecase1110)
+race1110 = rbind(race1110,racedeath1110)
+write_csv(race1110,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_today1110.csv")) 
+```
+
+```{r}
+#read the table
+racehosp1111 = read.csv("./data_to_be_dealed/group-hosp-by-boro1111.csv") %>% 
+filter(group =="Race/ethnicity") %>% 
+  pivot_longer(BK_HOSPITALIZED_COUNT:SI_HOSPITALIZED_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-11")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+racecase1111 = read.csv("./data_to_be_dealed/group-cases-by-boro1111.csv") %>% 
+filter(group =="Race/ethnicity") %>% 
+  pivot_longer(BK_CASE_COUNT:SI_CASE_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-11")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+racedeath1111 = read.csv("./data_to_be_dealed/group-death-by-boro1111.csv") %>%
+filter(group =="Race/ethnicity") %>% 
+  pivot_longer(BK_DEATH_COUNT:SI_DEATH_RATE,
+               names_to = "location_n_event",
+               values_to = "count") %>% 
+  mutate(day = as.Date("2020-11-11")) %>% 
+  separate(location_n_event,
+                   into = c("location","outcome"),sep = 3) %>% 
+  separate(location, into = c("boro", "x"),sep = 2) %>% 
+  dplyr:: select(-x)
+
+race1111 = rbind(racehosp1111,racecase1111)
+race1111 = rbind(race1111,racedeath1111)
+#write_csv(race1111,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today1111.csv")) 
+```
+
+
+
+
+
+
+```{r}
+byage = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_until118.csv")) 
+
+  mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
+         outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
+         outcome = str_replace_all(outcome, "CASE_RATE","Case Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "HOSPITALIZED_RATE","Hospitalization Rate (per 100,000 people)"),
+         outcome = str_replace_all(outcome, "DEATH_RATE","Death Rate (per 100,000 people)"),
+         boro = str_replace_all(boro, "BK","Brooklyn"),
+         boro = str_replace_all(boro, "MN","Manhattan"),
+         boro = str_replace_all(boro, "QN","Queens"),
+         boro = str_replace_all(boro, "BX","Bronx"),
+         boro = str_replace_all(boro, "SI","Staten Island"),
+         count = round(count)) %>% 
+  mutate(outcome = factor(outcome, levels = c("Total Cases","Total Hospitalizations","Total Deaths",
+                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
+  arrange(outcome)
+```
+
+```{r}
+max(byage$day)
+```
+
+```{r}
+#age119 to 12/14
+byrace119 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today119.csv"))
+byraceNov = byrace119
+for (i in 10:30) {
+  byraceNov9 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today11",i,".csv"))
+  byraceNov = rbind(byraceNov,byraceNov9)
+}
+
+for (i in 3:14) {
+  byraceNov9 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today12",i,".csv"))
+  byraceNov = rbind(byraceNov,byraceNov9)
+}
+
+```
+
+age has different group separate
+```{r}
+byrace = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until118.csv")) 
+byraceNov = byraceNov %>% 
+  dplyr::select(-group) %>% 
+  rename(group =  subgroup)
+
+byrace1 = rbind(byrace, byraceNov)
+write_csv(byrace1,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until1214.csv"))
+```
+

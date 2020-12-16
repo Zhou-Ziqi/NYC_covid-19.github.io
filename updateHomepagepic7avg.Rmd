@@ -12,7 +12,7 @@ library(patchwork)
 ```
 
 ```{r}
-df = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/data-by-day.csv") %>% 
+df = read_csv("/Users/ziqizhou/Desktop/MSPH_1st_Year/P8105_Data_Science/Git/NYC_covid-19.github.io/nyc-neighborhoods-covid/data/data-by-day.csv") %>% 
   janitor::clean_names() %>% 
   rename(date = date_of_interest) %>% 
   mutate(date = as.Date(date, format = "%m/%d/%Y"))
