@@ -28,7 +28,7 @@ library(lubridate)
 
 ###set the date
 
-today = as.Date("2020-12-12")
+today = as.Date("2020-12-22")
 yesterday = today - 1
 
 ##
@@ -62,12 +62,9 @@ url7 = "https://service.weibo.com/share/share.php?url=https://msph.shinyapps.io/
 
 ### summary data
 
-summary_table1 = read_csv(paste0("./data/summarytable/summary",month(yesterday),day(yesterday),".csv"))
 
-summary_table2 = read_csv(paste0("./data/summarytable/summary",month(today),day(today),".csv"))
-
-
-
+summary_table1 = read_csv(paste0("./data/summarytable/summary",month(today),day(today),".csv"))
+summary_table2 = read_csv(paste0("./data/summarytable/summarynew",month(today),day(today),".csv"))
 
 
 ### trakcer data
@@ -196,7 +193,7 @@ bysextoday = read_csv(paste0("./distribution_of_covid-19/data/demosex_today",mon
   rename(group = subgroup)
 
 #change!but need to deal with it later
-byagetoday = read_csv(paste0("./distribution_of_covid-19/data/demoage_today",month(today),day(today),".csv")) %>% 
+byagetoday = read_csv(paste0("./distribution_of_covid-19/data/demoage_clean_today",month(today),day(today),".csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -210,10 +207,11 @@ byagetoday = read_csv(paste0("./distribution_of_covid-19/data/demoage_today",mon
          boro = str_replace_all(boro, "SI","Staten Island"),
          count = round(count)) %>% 
   mutate(outcome = factor(outcome, levels = c("Total Cases","Total Hospitalizations","Total Deaths",
-                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"))) %>% 
-  arrange(outcome) %>% 
-  select(-group) %>% 
-  rename(group = subgroup)
+                                              "Case Rate (per 100,000 people)","Hospitalization Rate (per 100,000 people)","Death Rate (per 100,000 people)"
+                                              ))) %>% 
+  arrange(outcome) #%>% 
+  #select(-group) %>% 
+  #rename(group = subgroup)
 ##
 
 byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until118.csv")) %>% 
@@ -234,7 +232,7 @@ byage = read_csv(paste0("./distribution_of_covid-19/data/demoage_until118.csv"))
   arrange(outcome)
 
 
-byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until118.csv")) %>% 
+byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until1214.csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -254,7 +252,7 @@ byrace = read_csv(paste0("./distribution_of_covid-19/data/demorace_until118.csv"
 
 
 
-bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until118.csv")) %>% 
+bysex = read_csv(paste0("./distribution_of_covid-19/data/demosex_until1214.csv")) %>% 
   mutate(outcome = str_replace_all(outcome, "CASE_COUNT","Total Cases"),
          outcome = str_replace_all(outcome, "HOSPITALIZED_COUNT","Total Hospitalizations"),
          outcome = str_replace_all(outcome, "DEATH_COUNT","Total Deaths"),
@@ -1282,8 +1280,8 @@ ui <- navbarPage(
       
       #column(width = 10, offset = 1, h4("Summary Table")),
       
-      #column(5, offset = 1,align="center",tableOutput(outputId = "summarytable1")),
-      #column(5,offset = 1,align="center",tableOutput(outputId = "summarytable2")),
+      column(5, offset = 1,align="center",tableOutput(outputId = "summarytable1")),
+      column(5,align="center",tableOutput(outputId = "summarytable2")),
       
       column(width = 10, offset = 1, h4("Tracking yesterday’s COVID-19 cases, deaths, and tests by NYC ZIP Code Tabulation Areas (ZCTAs).")),
       
@@ -3116,7 +3114,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -3144,7 +3142,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -3169,7 +3167,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Total Cases") %>% 
@@ -3199,7 +3197,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -3227,7 +3225,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -3252,7 +3250,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Case Rate (per 100,000 people)") %>% 
@@ -3281,7 +3279,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -3309,7 +3307,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -3334,7 +3332,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Total Deaths") %>% 
@@ -3364,7 +3362,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyage$day)
     x_max_us = max(weeklyage$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyage %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
@@ -3392,7 +3390,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklysex$day)
     x_max_us = max(weeklysex$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklysex %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 
@@ -3417,7 +3415,7 @@ Keep one decimal for all numbers.")
     x_min_us = min(weeklyrace$day)
     x_max_us = max(weeklyrace$day)
     
-    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "14 days"))
+    break.vec <- c(x_min_us, seq(x_min_us, x_max_us, by = "28 days"))
     
     a = weeklyrace %>% 
       filter(group != "Boroughwide" & outcome == "Death Rate (per 100,000 people)") %>% 

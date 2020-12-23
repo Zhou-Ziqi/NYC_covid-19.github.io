@@ -15,7 +15,7 @@ library(lubridate)
 # Date change
 ```{r}
 #today = Sys.Date()
-today = as.Date("2020-12-15")
+today = as.Date("2020-12-22")
 
 yesterday = today - 1
 
@@ -34,19 +34,21 @@ yessum = read.csv(paste0("nyc-neighborhoods-covid/data/summarytable/summary",mon
 
 ```{r}
 sum <- read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/totals/summary.csv"))
+
 sum = sum %>% 
   janitor::clean_names() %>% 
-  mutate(measure = str_replace_all(measure,"NYC_CASE_COUNT","Cumulative Case Count"),
-         measure = str_replace_all(measure,"NYC_HOSPITALIZED_COUNT","Cumulative Hospitalization Count"),
-         measure = str_replace_all(measure,"NYC_CONFIRMED_DEATH_COUNT","Cumulative Confirmed Death Count"),
-         measure = str_replace_all(measure,"NYC_PROBABLE_DEATH_COUNT","Cumulative Probable Death Count"),
+  filter(measure == "NYC_TOTAL_CASE_COUNT" | measure == "NYC_HOSPITALIZED_COUNT" |
+           measure == "DATE_UPDATED"| measure == "NYC_TOTAL_DEATH_COUNT") %>% 
+  mutate(measure = str_replace_all(measure,"NYC_HOSPITALIZED_COUNT","Cumulative Hospitalization Count"),
+         
          measure = str_replace_all(measure,"DATE_UPDATED","Date updated"),
-         measure = str_replace_all(measure,"NYC_PROBABLE_CASE_COUNT","Probable Case Count"),
-         measure = str_replace_all(measure,"NYC_TOTAL_CASE_COUNT","Total Case Count"),
-         measure = str_replace_all(measure,"NYC_TOTAL_DEATH_COUNT","Total Death Count")) %>% 
+         
+         measure = str_replace_all(measure,"NYC_TOTAL_CASE_COUNT","Cumulative Case Count"),
+         measure = str_replace_all(measure,"NYC_TOTAL_DEATH_COUNT","Cumulative Death Count")) %>% 
   rename("Measure" = "measure",
          "Count" = number_of_nyc_residents)
-#knitr::kable(sum,col.names  = c(" "," "))
+
+
 write_csv(sum,paste0("nyc-neighborhoods-covid/data/summarytable/summary",month(today),day(today),".csv") )
 write_csv(sum,"draft/data/summary.csv")
 ```
@@ -54,16 +56,18 @@ write_csv(sum,"draft/data/summary.csv")
 
 ```{r}
 new_sum = sum
-new_sum[,1] = c("New Case Count","New Probable Case Count","New Case Count2",
+new_sum[,1] = c("New Case Count",
                 "New Hospitalization Count",
-                "New Comfirmed Death Count","New Probable Death Count","New Death Count",
+                "New Death Count",
                 "Date updated")
 new_sum[,2] = as.character(new_sum[,2])
-for (i in 1:7) {
+for (i in 1:3) {
   new_sum[i,2] = as.numeric(as.character(sum[i,2])) - as.numeric(as.character(yessum[i,2])) 
 }
 
-new_sum[8,2] = sum[8,2]
+new_sum[4,2] = as.character(sum[4,2])
+new_sum = drop_na(new_sum)
+write_csv(new_sum, paste0("nyc-neighborhoods-covid/data/summarytable/summarynew",month(today),day(today),".csv"))
 ```
 
 
@@ -73,6 +77,7 @@ Just need to download the raw data(data-by-modzcta0819.csv).(add the date!)
 ```{r}
 #https://github.com/nychealth/coronavirus-data/blob/master/totals/data-by-modzcta.csv
 x <- read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/totals/data-by-modzcta.csv")) 
+
 #write_csv(x,paste0("draft/data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
 write_csv(x,paste0("nyc-neighborhoods-covid/data/data_for_table/data-by-modzcta",month(today),day(today),".csv")) 
 ```
@@ -145,6 +150,7 @@ groupbycase = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/m
 groupbydeath = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/totals/group-death-by-boro.csv"))
 
 groupbyhosp = read.csv(curl("https://raw.github.com/nychealth/coronavirus-data/master/totals/group-hosp-by-boro.csv"))
+
 ```
 
 
@@ -186,10 +192,266 @@ hospbyage = groupbyhosp %>% filter(group =="Age") %>%
 
 byagetoday = rbind(casebyage,deathbyage)
 byagetoday = rbind(byagetoday,hospbyage)
-write_csv(byagetoday,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_today",month(today),day(today),".csv")) 
+write_csv(byagetoday,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_today",month(today),day(today),".csv"))
+```
+
+```{r}
+byagetoday = byagetoday%>% 
+  dplyr::select(-group) %>% 
+  rename(group =  subgroup)
+
+byageold = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_until",month(yesterday),day(yesterday),".csv"))
+
+byageuntiltoday = rbind(byageold,byagetoday)
+write_csv(byageuntiltoday,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_until",month(today),day(today),".csv"))
+```
+
+### BK 
+```{r}
+bkage = byagetoday %>% filter(boro == "BK" & outcome == "CASE_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","BK","CASE_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","BK","CASE_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","BK","CASE_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+####
+
+bkage = byagetoday %>% filter(boro == "BK" & outcome == "HOSPITALIZED_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","BK","HOSPITALIZED_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","BK","HOSPITALIZED_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","BK","HOSPITALIZED_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+###
+bkage = byagetoday %>% filter(boro == "BK" & outcome == "DEATH_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = bkage[1,-5]
+bkage2 = c("18-44","BK","DEATH_COUNT",sum(bkage[2:4,4])) 
+bkage3 = c("45-64","BK","DEATH_COUNT",sum(bkage[5:6,4]))
+
+BKAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[7:8,-5])
+
+```
+
+### BX
+
+```{r}
+bkage = byagetoday %>% filter(boro == "BX" & outcome == "CASE_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","BX","CASE_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","BX","CASE_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","BX","CASE_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+####
+
+bkage = byagetoday %>% filter(boro == "BX" & outcome == "HOSPITALIZED_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","BX","HOSPITALIZED_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","BX","HOSPITALIZED_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","BX","HOSPITALIZED_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+###
+bkage = byagetoday %>% filter(boro == "BX" & outcome == "DEATH_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = bkage[1,-5]
+bkage2 = c("18-44","BX","DEATH_COUNT",sum(bkage[2:4,4])) 
+bkage3 = c("45-64","BX","DEATH_COUNT",sum(bkage[5:6,4]))
+
+bxAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[7:8,-5])
+```
+
+### MN
+```{r}
+bkage = byagetoday %>% filter(boro == "MN" & outcome == "CASE_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","MN","CASE_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","MN","CASE_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","MN","CASE_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+####
+
+bkage = byagetoday %>% filter(boro == "MN" & outcome == "HOSPITALIZED_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","MN","HOSPITALIZED_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","MN","HOSPITALIZED_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","MN","HOSPITALIZED_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+###
+bkage = byagetoday %>% filter(boro == "MN" & outcome == "DEATH_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = bkage[1,-5]
+bkage2 = c("18-44","MN","DEATH_COUNT",sum(bkage[2:4,4])) 
+bkage3 = c("45-64","MN","DEATH_COUNT",sum(bkage[5:6,4]))
+
+mnAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[7:8,-5])
+```
+
+### QN
+```{r}
+bkage = byagetoday %>% filter(boro == "QN" & outcome == "CASE_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","QN","CASE_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","QN","CASE_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","QN","CASE_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+####
+
+bkage = byagetoday %>% filter(boro == "QN" & outcome == "HOSPITALIZED_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","QN","HOSPITALIZED_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","QN","HOSPITALIZED_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","QN","HOSPITALIZED_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+###
+bkage = byagetoday %>% filter(boro == "QN" & outcome == "DEATH_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = bkage[1,-5]
+bkage2 = c("18-44","QN","DEATH_COUNT",sum(bkage[2:4,4])) 
+bkage3 = c("45-64","QN","DEATH_COUNT",sum(bkage[5:6,4]))
+
+qnAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[7:8,-5])
+```
+
+### SI
+```{r}
+bkage = byagetoday %>% filter(boro == "SI" & outcome == "CASE_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","SI","CASE_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","SI","CASE_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","SI","CASE_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+####
+
+bkage = byagetoday %>% filter(boro == "SI" & outcome == "HOSPITALIZED_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = c("0-17","SI","HOSPITALIZED_COUNT",sum(bkage[1:3,4]))
+bkage2 = c("18-44","SI","HOSPITALIZED_COUNT",sum(bkage[4:6,4])) 
+bkage3 = c("45-64","SI","HOSPITALIZED_COUNT",sum(bkage[7:8,4]))
+
+bkAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[9:10,-5])
+
+###
+bkage = byagetoday %>% filter(boro == "SI" & outcome == "DEATH_COUNT") %>% 
+  mutate(group = as.character(group))
+
+bkage1 = bkage[1,-5]
+bkage2 = c("18-44","SI","DEATH_COUNT",sum(bkage[2:4,4])) 
+bkage3 = c("45-64","SI","DEATH_COUNT",sum(bkage[5:6,4]))
+
+siAge = rbind(bkAge,bkage1,bkage2,bkage3,bkage[7:8,-5])
+```
+```{r}
+byAGEtoday = rbind(BKAge,bxAge,mnAge,qnAge,siAge)
+```
+
+```{r}
+byagetoday %>% filter(boro == "BK")
+#population denominator
+#bk 0-17: 575068
+#bk 18-44:1035850	
+#bk 45-64: 581098
+#bk 65-74: 210250
+#bk 75+ : 157640
+
+byagetoday %>% filter(boro == "BX")
+#population denominator
+#bx 0-17:  347020
+#bx 18-44:  546120
+#bx 45-64: 336300
+#bx 65-74: 104703
+#bx 75+: 84063
+
+byagetoday %>% filter(boro == "MN")
+#population denominator
+#mn 0-17:  231257
+#mn 18-44:  741685
+#mn 45-64: 379642
+#mn 65-74: 149311
+#mn 75+: 126810
+
+byagetoday %>% filter(boro == "QN")
+#population denominator
+#qn 0-17:  447805
+#qn 18-44:  838050
+#qn 45-64: 599670
+#qn 65-74: 207880
+#qn 75+: 160455
+
+byagetoday %>% filter(boro == "SI")
+#population denominator
+#si 0-17:  102975
+#si 18-44:  163565
+#si 45-64: 130302
+#si 65-74: 46660
+#si 75+: 32642
 ```
 
 
+```{r}
+byAGEtoday %>% arrange(boro)
+byAGEtoday$pop = c(rep(c(575068,1035850,581098,210250,157640),3),  #bk
+                   rep(c(347020,546120,336300,104703,84063),3), #bx
+                   rep(c(23125,741685,379642,149311,126810),3), #mn
+                   rep(c(447805,838050,599670,207880,160455),3), #qn
+                   rep(c(102975,163565,130302,46660,32642),3) #si
+)
+byAGEtoday = byAGEtoday %>% 
+  mutate(count = as.numeric(count)) %>% 
+  mutate(rate = round(count/pop*100000,1))
+
+group = rep(c("0-17","18-44","45-64","65-74","75+"),15)
+outcome = c(rep("CASE_RATE",5),rep("HOSPITALIZED_RATE",5),rep("DEATH_RATE",5),5)
+count = byAGEtoday$rate
+boro = byAGEtoday$boro
+rr = cbind(group,boro,outcome,count)
+agerate = byAGEtoday[,1:4]
+agerate = rbind(agerate,rr)
+
+agerate =   agerate %>%
+  mutate(day = today,
+         day = as.Date(day)) 
+```
+
+
+```{r}
+write_csv(agerate,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demoage_clean_today",month(today),day(today),".csv")) 
+```
+
+
+
+######
 ```{r}
 casebyrace = groupbycase %>% filter(group =="Race/ethnicity") %>% 
   pivot_longer(BK_CASE_COUNT:SI_CASE_RATE,
@@ -227,6 +489,19 @@ byracetoday = rbind(casebyrace,deathbyrace)
 byracetoday = rbind(byracetoday,hospbyrace)
 write_csv(byracetoday,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today",month(today),day(today),".csv")) 
 ```
+
+```{r}
+byracetoday = byracetoday%>% 
+  dplyr::select(-group) %>% 
+  rename(group =  subgroup)
+
+byraceold = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until",month(yesterday),day(yesterday),".csv"))
+
+byraceuntiltoday = rbind(byraceold,byracetoday)
+write_csv(byraceuntiltoday,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until",month(today),day(today),".csv"))
+```
+
+
 
 ```{r}
 casebysex = groupbycase %>% filter(group =="Sex") %>% 
@@ -267,6 +542,17 @@ bysextoday = rbind(bysextoday,hospbysex)
 write_csv(bysextoday,paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_today",month(today),day(today),".csv")) 
 
 ```
+```{r}
+bysextoday = bysextoday%>% 
+  dplyr::select(-group) %>% 
+  rename(group =  subgroup)
+
+bysexold = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until",month(yesterday),day(yesterday),".csv"))
+
+bysexuntiltoday = rbind(bysexold,bysextoday)
+write_csv(bysexuntiltoday,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until",month(today),day(today),".csv"))
+```
+
 
 
 # Antibody

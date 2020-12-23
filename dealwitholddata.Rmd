@@ -161,7 +161,18 @@ max(byage$day)
 
 ```{r}
 #age119 to 12/14
-byrace119 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today119.csv"))
+byage1215 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_today1215.csv")) %>% 
+  dplyr::select(-group) %>% 
+  rename(group =  subgroup)
+
+byage1214 = read_csv(paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until1214.csv"))
+
+byage12155 = rbind(byage1214,byage1215)
+write_csv(byage12155,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demosex_until1215.csv"))
+```
+
+
+```{r}
 byraceNov = byrace119
 for (i in 10:30) {
   byraceNov9 = read_csv(paste0("nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_today11",i,".csv"))
@@ -183,6 +194,46 @@ byraceNov = byraceNov %>%
   rename(group =  subgroup)
 
 byrace1 = rbind(byrace, byraceNov)
-write_csv(byrace1,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until1214.csv"))
+write_csv(byrace12155,paste0("./nyc-neighborhoods-covid/distribution_of_covid-19/data/demorace_until1215.csv"))
+```
+
+## Deal with model data
+```{r}
+train_data =read_xlsx("./nyc-neighborhoods-covid/data/WeeklyProjections20201204.xlsx",sheet = 3) %>% 
+  janitor::clean_names() %>% 
+  separate(col = new_cases, into = c("new_cases_value","new_cases_lower","new_cases_upper")) %>%
+  mutate(new_cases_value = as.numeric(new_cases_value),
+         new_cases_lower = as.numeric(new_cases_lower),
+         new_cases_upper = as.numeric(new_cases_upper))%>% 
+  separate(col = new_deaths, into = c("new_deaths_value","new_deaths_lower","new_deaths_upper")) %>%
+  mutate(new_deaths_value = as.integer(new_deaths_value),
+         new_deaths_lower = as.integer(new_deaths_lower),
+         new_deaths_upper = as.integer(new_deaths_upper)
+  ) %>% 
+  separate(col = new_total_hospitalizations, into = c("new_hosp_value","new_hosp_lower","new_hosp_upper")) %>%
+  mutate(new_hosp_value = as.integer(new_hosp_value),
+         new_hosp_lower = as.integer(new_hosp_lower),
+         new_hosp_upper = as.integer(new_hosp_upper),
+         date = as.Date(date,format = "%m/%d/%y")
+  ) %>% 
+  mutate(seasonality = str_replace_all(seasonality,"Seasonality assumed","Seasonality Assumed"),
+         seasonality = str_replace_all(seasonality,"No seasonality","No Seasonality"),
+         location = str_replace_all(location, "city","City")
+  )
+
+
+model_train_data = train_data %>% 
+  dplyr::select(seasonality, location,date,new_deaths_value) %>% 
+  filter(seasonality == "Seasonality Assumed" & location != "City") %>% 
+  dplyr::select(-seasonality) %>% 
+  separate(col = location, into = c("uhf","Name"))
+
+```
+
+```{r}
+asthma = read_csv("./predictor/clean_data/Asthma Hospitalizations (Adults).csv",skip = 7) %>% 
+  janitor::clean_names() 
+Asthma = asthma[,1:9]
+Asthma = Asthma %>% filter(geo_type_name == "Neighborhood (UHF 42)")
 ```
 
